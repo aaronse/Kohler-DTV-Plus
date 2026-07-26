@@ -12,6 +12,42 @@ See the Story log section of [AGENT.md](AGENT.md) for what to append and how.
 
 ## 2026-07-26
 
+### 13:37 — The repo stops being a fork, and gets a licence
+
+This project had been a fork of
+[timelery/Kohler-DTV-Plus](https://github.com/timelery/Kohler-DTV-Plus) since
+2022 — a 2017 repo of CGI notes, 8 commits, untouched since. What's here now
+shares almost nothing with it but the starting point, and GitHub was still
+presenting the work as a contribution to someone else's project.
+
+Rather than ask GitHub Support to detach it, the history was pushed to a fresh
+standalone repo and the original name reclaimed. All 38 commits survive with
+authorship intact, including Tim Elery's original 8 — the fork relationship is
+gone, the provenance is not.
+
+Three things landed with it:
+
+1. **Attribution that was actually missing.** The README credited xagon0,
+   dcmeglio and Kohler's user guide, but never named the repo this started
+   from. Now it does.
+2. **A licence.** The
+   [Open Maker License](https://github.com/aaronse/OpenMakerLicense) — AGPL-3.0
+   with a maker addendum — covering work original to this repo, with an
+   explicit scope table for what it *cannot* cover.
+3. **`_config.yml` deleted.** A one-line Jekyll theme setting from 2017, for a
+   GitHub Pages site that was never enabled.
+
+**Why it matters:** the licence question was live regardless of the fork. Three
+bodies of third-party material sit in this tree — xagon0's analysis, Kohler's
+guide and controller mirror, and Tim's original notes — and **none of the three
+states a licence**. That's now written down where someone can find it before
+they copy something, rather than being implied by a `PROVENANCE.md` two
+directories deep. With a video pointing people here, the difference matters.
+
+One caveat recorded honestly: the 38 commits were public in a fork network for
+years, so they stay fetchable by SHA through the parent repo forever. Detaching
+doesn't retract that, and nothing here pretends it does.
+
 ### 13:30 — Tankless heater reframes everything, and I had over-claimed
 
 The hot water source is a **tankless** heater. Two consequences.

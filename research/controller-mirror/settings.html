@@ -1,0 +1,2574 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <title>Kohler Shower Settings</title>
+    <!--[if lt IE 9]>
+<script src="js/ie9.js"></script>
+<![endif]-->
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+	<meta http-equiv="cache-control" content="no-cache" />
+    <link href="css/redmond/jquery_ui_1.10.0.custom.css" rel="stylesheet">
+    <script type="text/javascript" src="js/jquery_1.9.1.js?temp=" + Maths.Random()></script>
+    <script type="text/javascript" src="js/jquery_ui_1.10.2.custom.js?temp=" + Maths.Random()></script>
+    <script type="text/javascript" src="js/timepicker.js?temp=" + Maths.Random()></script>
+    <script type="text/javascript" src="js/values.js?temp=" + Maths.Random()></script>
+    <script type="text/javascript" src="js/settings.js?temp=" + Maths.Random()></script>
+    <script type="text/javascript" src="js/html5.js?temp=" + Maths.Random()></script>
+    <script type="text/javascript" src="js/common.js?temp=" + Maths.Random()></script>
+    <link href="css/local.css?temp=" + new Date(); rel="stylesheet" />
+    <link href="css/timepicker.css?temp=" + new Date(); rel="stylesheet" />
+
+    <script type="text/javascript">
+    function page_load() {
+        if (typeof jQuery !== 'function' ||
+            typeof load !== 'function' ||
+            typeof test_ui !== 'function') {
+            // Was not loaded.
+            <!-- document.body.style.background = "#ffffff"; -->  <!--Commnented by TF team 04-07 -->
+            <!--document.body.innerHTML = document.body.innerHTML = 'There was a page error. Please refresh the page.'; --> <!--Commnented by TF team 04-07 -->
+			 window.location.reload(true);<!--Added by TF team 04-07 -->
+            //alert('There was a page error, please refresh');
+        } else {
+            //$('.dual_shower').hide();
+            //$('#relay_div').hide();
+            //$('#contact_div').hide();
+            //$('#module_1').hide();
+            //$('#module_2').hide();
+            //$('#module_3').hide();
+            //$('#remove_modules').hide();
+            //$('#del_light_modual').hide();
+            //$('#new_light_modual').hide();
+            //$('#light1_options').hide();
+            //$('#light2_options').hide();
+            //$('#light3_options').hide();
+            //$('#hide_this_1').hide();
+            //$('#hide_this_2').hide();
+            //$('#hide_this_3').hide();
+            $('#valve1_order').hide();
+            $('#valve2_order').hide();
+            //$('#order_div').hide();
+            //$('#ui-id-1').hide();
+            //$('#control_div').hide();						//Commented by TF team - else clicking settings.html hides control tab
+            //$('#tabs-Interface').hide();
+            //$('#interface_tab').hide();
+            //$('#chroma_settings_div').hide();
+            $('#lighting_tab').hide();
+            //$('#tabs-Lighting').hide();
+            $('#steam_tab').hide();
+            $('#tabs-Steam').hide();
+            $('#tabs-Music').hide();
+            $('#music_tab').hide();
+            $('#music_status').hide();
+            //$('#am_ver_div').hide();
+            //$('#co_ver_div').hide();
+            //$('#lang_ver_div').hide();
+            //$('#valve1_ver_div').hide();
+            //$('#valve2_ver_div').hide();
+            //$('#music_ver_div').hide();
+            //$('#light_ver_div').hide();
+            //$('#steam_ver_div').hide();
+            //$('#amp_ver_div').hide();
+            //$('#rain_ver_div').hide();
+            $('#interface1_frame').hide();
+            $('#interface1_title').hide();
+            $('#interface2_frame').hide();
+            $('#interface2_title').hide();
+            $('#interface3_frame').hide();
+            $('#interface3_title').hide();
+            $('#tabs-Valve1').hide();
+            $('#valve1_tab').hide();
+            //$('#outlet_three').hide();
+            //$('#outlet_0_flow').hide();
+            //$('#outlet_1_flow').hide();
+            //$('#outlet_2_flow').hide();
+            //$('#outlet_four').hide();
+            //$('#outlet_five').hide();
+            //$('#outlet_six').hide();
+            //$(".v1_purge").hide();
+            //$("#auto_purge").hide();
+            //$(".v2_purge").hide();
+            //$("#auto_purgev2").hide();
+            $('#tabs-Valve2').hide();
+            $('#valve2_tab').hide();
+            $('#outletv2_three').hide();
+            $('#outletv2_four').hide();
+            $('#outletv2_five').hide();
+            $('#outletv2_six').hide();
+            $('#outletv2_1_flow').hide();
+            $('#outletv2_0_flow').hide();
+            $('#outletv2_1_flow').hide();
+            $('#outletv2_2_flow').hide();
+            $('#outletv2_five').hide();
+            $('#outletv2_four').hide();
+            $('#outletv2_six').hide();
+			$('#spa_tab').hide();
+			$('#tabs-Spa').hide();
+			//$('#tabs-Konnect').hide();
+			//$('#konnect_tab').hide();
+			//Added by TF Team - Hiding Steam Spa and different configurations of Spa on Page load
+			$('#spa_borderbottom').hide();
+			$("#spa_borderbottom1").hide();
+			$("#steam_spa_title").hide();
+			$("#steam_spa_outlet_table").hide();
+			$("#steam_spa_separation_line").hide();
+			$("#steam_spa_title").hide();
+			
+
+            language();
+            setTimeout(function () {
+                load();
+            }, 500);
+
+	        setTimeout(function () {
+                $('#tabs').show();
+    	    }, 1000);
+					
+			massage_load();					///Added by TF2 - Bug 1033 - Updating Massage Checkbox when page loads		
+			powerclean_check_load();		//Added by TF2*March 2nd 2015 - Bug 279 - checking if power clean is on when the page loads
+        }
+    }
+	
+	//TF Team (3.15)
+	//---------------------------------------------------------------------------------------------------------
+	
+	function massage_load() {
+	
+	$.ajax({
+			type: "GET",
+			url: "massage_toggle.cgi",
+			data: {},
+			dataType: "JSON",
+			cache: false,
+			
+			success: function (data) {
+			
+			if(data.massage == 1)
+				{
+				document.getElementById("massage").disabled = 1;
+					//Added By TF2 March*16*2015 to prevent massage toggle when shower is on - Bug 1033
+					document.getElementById("massage_0").disabled = 1;
+					document.getElementById("massage_1").disabled = 1;
+					document.getElementById("massage_2").disabled = 1;
+					document.getElementById("massage_3").disabled = 1;
+					document.getElementById("massage_4").disabled = 1;
+					document.getElementById("massage_5").disabled = 1;
+					document.getElementById("massage_0v2").disabled = 1;
+					document.getElementById("massage_1v2").disabled = 1;
+					document.getElementById("massage_2v2").disabled = 1;
+					document.getElementById("massage_3v2").disabled = 1;
+					document.getElementById("massage_4v2").disabled = 1;
+					document.getElementById("massage_5v2").disabled = 1;
+					
+					document.getElementById("default_0").disabled = 1;
+					document.getElementById("default_1").disabled = 1;
+					document.getElementById("default_2").disabled = 1;
+					document.getElementById("default_3").disabled = 1;
+					document.getElementById("default_4").disabled = 1;
+					document.getElementById("default_5").disabled = 1;
+					document.getElementById("default_0v2").disabled = 1;
+					document.getElementById("default_1v2").disabled = 1;
+					document.getElementById("default_2v2").disabled = 1;
+					document.getElementById("default_3v2").disabled = 1;
+					document.getElementById("default_4v2").disabled = 1;
+					document.getElementById("default_5v2").disabled = 1;
+					
+					document.getElementById("autopurge_0").disabled = 1;
+					document.getElementById("autopurge_1").disabled = 1;
+					document.getElementById("autopurge_2").disabled = 1;
+					document.getElementById("autopurge_3").disabled = 1;
+					document.getElementById("autopurge_4").disabled = 1;
+					document.getElementById("autopurge_5").disabled = 1;
+					document.getElementById("autopurge_0v2").disabled = 1;
+					document.getElementById("autopurge_1v2").disabled = 1;
+					document.getElementById("autopurge_2v2").disabled = 1;
+					document.getElementById("autopurge_3v2").disabled = 1;
+					document.getElementById("autopurge_4v2").disabled = 1;
+					document.getElementById("autopurge_5v2").disabled = 1;
+					
+					
+					document.getElementById("steam_select").disabled = 1;
+					document.getElementById("spa").disabled = 1;
+					
+					//End of add By TF2 March*16*2015 to prevent massage toggle when shower is on - Bug 1033
+				}	
+			else if(data.massage == 0)
+				{
+				document.getElementById("massage").disabled = 0;
+					//Added By TF2 March*16*2015 to prevent massage toggle when shower is on - Bug 1033
+					document.getElementById("massage_0").disabled = 0;
+					document.getElementById("massage_1").disabled = 0;
+					document.getElementById("massage_2").disabled = 0;
+					document.getElementById("massage_3").disabled = 0;
+					document.getElementById("massage_4").disabled = 0;
+					document.getElementById("massage_5").disabled = 0;
+					document.getElementById("massage_0v2").disabled = 0;
+					document.getElementById("massage_1v2").disabled = 0;
+					document.getElementById("massage_2v2").disabled = 0;
+					document.getElementById("massage_3v2").disabled = 0;
+					document.getElementById("massage_4v2").disabled = 0;
+					document.getElementById("massage_5v2").disabled = 0;
+					
+					document.getElementById("default_0").disabled = 0;
+					document.getElementById("default_1").disabled = 0;
+					document.getElementById("default_2").disabled = 0;
+					document.getElementById("default_3").disabled = 0;
+					document.getElementById("default_4").disabled = 0;
+					document.getElementById("default_5").disabled = 0;	
+					document.getElementById("default_0v2").disabled = 0;
+					document.getElementById("default_1v2").disabled = 0;
+					document.getElementById("default_2v2").disabled = 0;
+					document.getElementById("default_3v2").disabled = 0;
+					document.getElementById("default_4v2").disabled = 0;
+					document.getElementById("default_5v2").disabled = 0;
+					
+					document.getElementById("autopurge_0").disabled = 0;
+					document.getElementById("autopurge_1").disabled = 0;
+					document.getElementById("autopurge_2").disabled = 0;
+					document.getElementById("autopurge_3").disabled = 0;
+					document.getElementById("autopurge_4").disabled = 0;
+					document.getElementById("autopurge_5").disabled = 0;
+					document.getElementById("autopurge_0v2").disabled = 0;
+					document.getElementById("autopurge_1v2").disabled = 0;
+					document.getElementById("autopurge_2v2").disabled = 0;
+					document.getElementById("autopurge_3v2").disabled = 0;
+					document.getElementById("autopurge_4v2").disabled = 0;
+					document.getElementById("autopurge_5v2").disabled = 0;
+					
+					document.getElementById("steam_select").disabled = 0;
+					document.getElementById("spa").disabled = 0;
+					//End of add By TF2 March*16*2015 to prevent massage toggle when shower is on - Bug 1033
+				}
+        }
+			});	
+			setTimeout(function () {
+            massage_load();
+            }, 700);
+    }
+	//---------------------------------------------------------------------------------------------------------
+	//TF Team (3.15) - Bug 1033 - To prevent massage toggle when shower is on
+	
+    </script>
+</head>
+
+<body onload="page_load()" onunload="confirmExit()">
+    <div hidden="hidden" id="tabs">
+    <img src="images/logo.png" alt="Kohler" class="logo">
+    <p>
+    <div id="top-tabs">
+       <a href="control.html" id="control-tab">Control</a> <!--uncommented for control page TF team-->
+        <a class="active" href="settings.html" id="settings-tab">Settings</a>
+        <a href="service.html" id="service-tab">Service</a>
+    </div>
+
+    <div id="tabs-Settings">
+         <div id="settings_tabs_id">
+                <ul>
+                    <li><a class="systemTabString" href="#tabs-System">System</a>
+                    </li>
+                    <li id="users_tab"><a class="users_text" href="#tabs-Users">Users</a>
+                    </li>
+                    <!--%valves%-->
+                    <li id="valve1_tab"><a class="valve1_ver_string" href="#tabs-Valve1">Valve1</a>
+                    </li>
+                    <li id="valve2_tab"><a class="valve2_ver_string" href="#tabs-Valve2">Valve2</a>
+                    </li>
+					<li id="interface_tab"><a class="interfaceTabString" href="#tabs-Interface">Interface</a>
+                    </li>
+					<li id="konnect_tab"><a class="konnect_dev_string" href="#tabs-Konnect">Konnect</a>
+                    </li>
+					<li id="spa_tab"><a class="spaTabString" href="#tabs-Spa">Spa</a>
+                    </li>
+                    <li id="music_tab"><a class="music_text" href="#tabs-Music">Music</a>
+                    </li>
+                    <li id="lighting_tab"><a class="lighting_text" href="#tabs-Lighting">Lighting</a>
+                    </li>
+                    <li id="steam_tab"><a class="steam_dev_string" href="#tabs-Steam">Steam</a>
+                    </li>
+                    <li class="rightmost"><a class="aboutTabString" href="#tabs-About">About</a>
+                    </li>
+                </ul>
+
+                <div id="tabs-System">
+                    <!-- *** System Page Start *** -->
+                    <div style="float:left; margin:10px; width:350px; padding: 0 30px 0 0;">
+                        <p class="title shower_config_string">Available Shower Configurations</p>
+
+                        <select id="shower_config" name="shower_config" onchange="update_config(const_shower_config,this.value)"></select>
+                        <br>
+						<br>
+						<br>
+                        <div class="radio-div">
+                            <input id="lock_check" type="checkbox" name="settings_lock" onchange="update_lock(0)"> <!-- was value="1"--> <!--Changed update_lock() to update_lock(0) by TF team -->
+                            <label for="lock_check">
+                            <span class="title lock_string_ui radio_button_label">UI Settings Lock&nbsp;&nbsp;</span> <!--Added label UI by TF team and changed lock_string to lock_string_ui-->
+                            </label>
+                            <input id="lock_code" name="lock_code" type="text" onkeypress='validate(event)' size="5" style="width:auto;"> <!-- was onchange="update_lock()"--><!--Changed width from 45% to auto by TF team-->
+							<br>
+							<span id = "wrong_password_1" hidden="hidden" style="display:none;color:red;font-size:75%;">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Invalid Password Set !!!</span>		<!--TF team 31-07-->
+                        </div>
+						<!--Added by TF team-->
+						<br>
+						<br>
+						<div class="radio-div">
+                            <input id="web_lock" type="checkbox" name="web_lock" onchange="update_lock(1)"> <!-- was value="1"-->
+                            <label for="web_lock">
+                            <span class="title lock_string_web radio_button_label">Web Settings Lock</span>
+                            </label>
+                            <input id="web_code" name="web_code" type="text" onkeypress='validate(event)' size="5" style="width:auto;"> <!-- was onchange="update_lock()"-->
+							<br>
+							<span id = "wrong_password_2" hidden="hidden" style="display:none;color:red;font-size:75%;">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Invalid Password Set !!!</span>		<!--TF team 31-07-->
+                        </div>
+						<!----------------------------------------  //Added by TF2 for power clean  dialog - TF2*March 2nd 2015 - Bug 279------------------------------------------------------->
+						<div id="dialog-Lockpage" title="Please Enter the Password ">
+						<div id = "password" hidden="hidden" style="display:none;">
+						<input name="pass" id="pw" value="" placeholder="password" type="password" onchange = "password(document.getElementById('pw').value)">
+						</div>
+						<p></p>
+						<span id = "wrong_password" hidden="hidden" style="display:none;color:red;font-weight:bold;">WRONG PASSSWORD!!!</span>		
+						<span class="ui-icon ui-icon-alert text"></span>
+						</div>
+						<!----------------------------------------  //End of Add by TF2 - TF2*March 2nd 2015 - Bug 279 ------------------------------------------------------->
+						<!--End of Add by TF team-->
+                        <br>
+						<br>
+						<span class="warning-title feature_string">Feature Enable</span>
+                        <br>
+						<p class="text feature_warning_string">Please read owner's manual regarding possible risks associated with these features</p>
+                        <div class="radio-div massage_sel" id="massage_activate_checkbox">  <!--Added by TF2 team 27-05-2015-->
+                            <input type="checkbox" name="massage" id="massage" onchange="if(this.checked){update_value(const_massage,1)}else{update_value(const_massage,0)}">
+                            <label for="massage">
+                            <span class="text massage_string radio_button_label">Massage</span>
+                            </label>
+                        </div>
+                        <br>
+                       <div class="radio-div steam_sel" id="steam_activate_checkbox">
+                            <input type="checkbox" name="steam_select" id="steam_select" onchange="if(this.checked){update_value(const_steam_select,1)}else{update_value(const_steam_select,0)}">
+                            <label for="steam_select">
+                            <span class="text steam_dev_string radio_button_label">Steam</span>
+                            </label>
+                        </div>
+                        <br>
+                        <div class="radio-div spa_sel" id="spa_activate_checkbox">
+                            <input type="checkbox" name="spa" id="spa" onchange="if(this.checked){update_value(const_spa,1);$('#spa_tab').show();}else{update_value(const_spa,0);$('#spa_tab').hide();}">
+                            <label for="spa">
+                            <span class="text spa_string radio_button_label">Spa</span>
+                            </label>
+                        </div>
+                        <br>
+						<!--Added by TF team-->
+						<div class="radio-div userlock_sel" id="user_lock_checkbox">
+                            <input type="checkbox" name="userlock" id="userlock" onchange="if(this.checked){update_value(const_userlock,1)}else{update_value(const_userlock,0)}">
+                            <label for="userlock">
+                            <span class="text userlock_string radio_button_label">Lock Users</span>
+                            </label>
+                        </div>
+						<!--End of Add-->
+
+                    </div>
+
+					<div id="settings_2" style="padding: 0 0 0 50px;float:left; margin:10px;width:350px;" class="borderleft">
+						<p class="title date_time_string">Date/Time</p>
+                        <div>
+                            <input type="text" style="width:250px;" name="date" id="datetimepicker" onchange="update_value(const_date_time,this.value)" />
+                        </div>
+						<br>
+                        <div>
+                            <p class="title daylight_string_english">Daylight Saving Time</p>
+                            <div class="radio-div">
+                                <input id="daylight_0" onchange="update_daylight_savings(0);" type="radio" name="daylight_savings" value="0" />
+                                <label for="daylight_0">
+								<span class="text daylight_0 radio_button_label">On</span>
+                                </label>
+                            </div>
+                            <br>
+                            <div class="radio-div">
+                                <input id="daylight_1" onchange="update_daylight_savings(1);" type="radio" name="daylight_savings" value="1" />
+                                <label for="daylight_1">
+								<span class="text daylight_1 radio_button_label">Off</span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <br>
+                        <br>
+                            <div>
+                              <p class="title lang_string">Language</p>
+								<!-- CORYO: Change 'size=1' 'size=5' for future releases. -->
+                                <select id="lang" name="lang" size=1 style="width:100%;" onchange="update_value(const_lang,this.value);setTimeout(function () {language();}, 500);;setTimeout(function(){load();}, 1500);">
+                                    <option value="0">English</option>
+									<!-- CORYO: Per Keith Ruh email on 2/26/14 - Release One will only have English as a language option.-->
+                                    <!--
+									<option value="1">???????</option>
+                                    <option value="2">??</option>
+                                    <option value="3">????</option>
+                                    <option value="4">British English</option>
+                                    <option value="5">Deutsch</option>
+                                    <option value="6">Italiano</option>
+                                    <option value="7">???</option>
+                                    <option value="8">???</option>
+                                    <option value="9">Português</option>
+                                    <option value="10">?????????????</option>
+                                    <option value="11">???</option>
+                                    <option value="12">français</option>
+                                    <option value="13">español</option>
+									-->
+                                </select>
+                            </div>
+						<br>
+						<br>
+						<div>
+						  <p class="title unit_string">Units</p>
+							<div class="radio-div">
+								<input id="units_f" onchange="if(this.checked) {update_value(const_units,this.value);}" type="radio" name="units" value="0" />
+								<label for="units_f">
+								<span class="text f_string radio_button_label">Fahreneit</span>
+								</label>
+							</div>
+							<br>
+							<div class="radio-div">
+								<input id="units_c" onchange="if(this.checked) {update_value(const_units,this.value);}" type="radio" name="units" value="1" />
+								<label for="units_c">
+								<span class="text c_string radio_button_label">Celsius</span>
+								</label>
+							</div>
+						</div>
+					</div>
+
+					<div style="clear:both;width:100%">
+						<div id="inner_save_current">
+							<form action="save_default.cgi">
+								<input type="submit" id="save_current" style="width:250px;" value="Save Current as Default">
+							</form>
+						</div>
+					</div>
+				</div>
+
+				<!--issue 1114 : Added by TF2 for testing bug no 1114 ,for restricting key entries more than fifteen and space-->
+<!--------------------------------------------------------------------------------------------------------------------------------->
+                <div id="tabs-Users" style="width:100%;">
+                    <p></p>
+                    <table style="width:100%; padding: 0 5px 0 15px;">
+                        <tr style="width:100%;">
+                            <td class="user_table_column">	<p class="title user_1_title_string">User: Preset 1</p>
+                                <span class="text rename_string">Rename:</span>
+                                <div class="search" >
+								  <!--Issue 1114 : Added by TF2 for restricting key entries more than fifteen and space-->
+                                    <input type="text" maxlength="15" size="15" id="newuser1" name="code" onkeypress='validate_user(event)' onchange="update_value_user(const_user_name,document.getElementById('newuser1').value,1);">
+                                </div>
+                                <br>
+                                <input type="button" class="centered_button clear_users" value="Reset User" onclick="reset_user(1);">
+                            </td>
+                            <td class="user_table_column">
+								<p class="title user_2_title_string">User: Preset 2</p>
+
+								<span class="text rename_string">Rename:</span>
+                                <div class="search">
+                                    <input type="text" maxlength="15" size="15" id="newuser2" name="code" onkeypress='validate_user(event)' onchange="update_value_user(const_user_name,document.getElementById('newuser2').value,2);">
+                                </div>
+                                <br>
+                                <input type="button" class="centered_button clear_users" value="Reset User" onclick="reset_user(2);">
+                            </td>
+                            <td class="user_table_column">
+								<p class="title user_3_title_string">User: Preset 3</p>
+
+								<span class="text rename_string">Rename:</span>
+                                <div class="search">
+                                    <input type="text" maxlength="15" size="15" id="newuser3" name="code" onkeypress='validate_user(event)' onchange="update_value_user(const_user_name,document.getElementById('newuser3').value,3);">
+                                </div>
+                                <br>
+                                <input type="button" class="centered_button clear_users" value="Reset User" onclick="reset_user(3);">
+                            </td>
+                        </tr>
+                        <tr class="spacetop">
+                            <td class="user_table_column">
+								<p class="title user_4_title_string">User: Preset 4</p>
+
+								<span class="text rename_string">Rename:</span>
+                                <div class="search">
+                                    <input type="text" maxlength="15" size="15" id="newuser4" name="code" onkeypress='validate_user(event)' onchange="update_value_user(const_user_name,document.getElementById('newuser4').value,4);">
+                                </div>
+                                <br>
+                                <input type="button" class="centered_button clear_users" value="Reset User" onclick="reset_user(4);">
+                            </td>
+                            <td class="user_table_column">
+								<p class="title user_5_title_string">User: Preset 5</p>
+
+								<span class="text rename_string">Rename:</span>
+                                <div class="search">
+                                    <input type="text" maxlength="15" size="15" id="newuser5" name="code" onkeypress='validate_user(event)' onchange="update_value_user(const_user_name,document.getElementById('newuser5').value,5);">
+                                </div>
+                                <br>
+                                <input type="button" class="centered_button clear_users" value="Reset User" onclick="reset_user(5);">
+                            </td>
+                            <td class="user_table_column">
+								<p class="title user_6_title_string">User: Preset 6</p>
+
+								<span class="text rename_string">Rename:</span>
+                                <div class="search">
+                                    <input type="text" maxlength="15" size="15" id="newuser6" name="code" onkeypress='validate_user(event)' onchange="update_value_user(const_user_name,document.getElementById('newuser6').value,6);">
+                                </div>
+                                <br>
+                                <input type="button" class="centered_button clear_users" value="Reset User" onclick="reset_user(6);">
+                            </td>
+                        </tr>
+                    </table>
+                </div>  
+<!------------------------------------------------------------------------------------------------------------------------------------>
+			<!--End of Add by TF2 for for restricting key entries more than fifteen and space-->
+
+                <div id="tabs-Valve1">
+                    <p></p>
+                    <div id="dialog-form" title="Select an Outlet"></div>
+                    <input type="hidden" id="outlets" name="outlets" value="0">
+                    <div class="valves_table borderbottom">
+                        <table id="valve_outlet_table" style="width:100%;">
+                            <tr>
+                                <!--OUTLET 1-->
+                                <td class="valves_cell borderright">
+                                    <span class="title outlet_1_title_string">Outlet 1</span>
+                                    <p></p>
+                                    <div class="valves_cell_box">
+                                        <div class="outlet_div">
+                                            <input id="outlet_0_id" type="button" class="outlet outlet_0" onclick="pop(event,'valve_picker',0,1);">
+                                        </div>
+                                        <div class="valves_cell_text">
+                                            <div class="radio-div">
+                                                <input type="radio" id="default_0" name="default" value="0" onchange="check_def_outlet(0,1)">
+                                                <label for="default_0">
+												<span class="text radio_button_label default_string">Default</span>
+                                                </label>
+                                            </div>
+                                            <br/>
+                                            <div class="radio-div massage_div" id="v1_MassageOutlet1"> <!--(issue 971) Tf Team added div id to hide massage radio button if tubfils selected--->
+                                                <input type="checkbox" id="massage_0" value="0" onchange="update_massage(this,'#outlet_0_id',1,0);">
+                                                <label for="massage_0">
+												<span class="text radio_button_label massage_string">Massage</span>
+                                                </label>
+                                            </div>
+                                            <br/>
+                                            <div class="radio-div v1_purge">
+												<input type="checkbox" id="autopurge_0" value="0" onchange="update_auto_purge(this, '#outlet_0_id', 1, 0);">
+                                                <label for="autopurge_0">
+												<span class="text radio_button_label auto_purge_string">Auto Purge</span>
+                                                </label>
+                                            </div>
+                                            <br/>
+                                            <div class="radio-div v1_deluge" id="v1_DelugeOutlet1">
+												<input type="radio" name='deluge' id="steamdeluge_0" value="0" onchange="set_def_deluge(0,1);">
+                                                <label for="steamdeluge_0">
+												<span class="text radio_button_label steamdeluge_string">Steam Deluge</span>
+                                                </label>
+                                            </div>
+											<!----------------------------------------  //issue 994 : added by TF team for custom massage warning ,22-04-2015------------------------------------------------------->
+											<div id="custom_massage_warning_1" title="warning!!..Custom massage order is inactive now">
+											<span class="ui-icon ui-icon-alert text"></span>
+											</div>											
+											<div id="custom_massage_warning_3" title="warning!!..Shower configuration has been changed..clearing custom massage order now">
+											<span class="ui-icon ui-icon-alert text"></span>
+											</div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <!--OUTLET 2-->
+                                <td class="valves_cell borderright">
+                                    <span class="title outlet_2_title_string">Outlet 2</span>
+                                    <p></p>
+                                    <div class="valves_cell_box">
+                                        <div class="outlet_div">
+                                            <input id="outlet_1_id" type="button" class="outlet outlet_0" onclick="pop(event,'valve_picker',1,1);">
+                                        </div>
+                                        <div class="valves_cell_text">
+                                            <div class="radio-div">
+                                                <input type="radio" id="default_1" name="default" value="0" onchange="check_def_outlet(1,1);">
+                                                <label for="default_1">
+                                                   <span class="text radio_button_label default_string">Default</span>
+                                                </label>
+                                            </div>
+                                            <br/>
+                                            <div class="radio-div massage_div" id="v1_MassageOutlet2"> <!--(issue 971) Tf Team added div id to hide massage radio button if tubfils selected--->
+                                                <input type="checkbox" id="massage_1" value="0" onchange="update_massage(this,'#outlet_1_id',1,1);">
+                                                <label for="massage_1">
+                                                   <span class="text radio_button_label massage_string">Massage</span>
+                                                </label>
+                                            </div>
+                                            <br/>
+                                            <div class="radio-div v1_purge">
+												<input type="checkbox" id="autopurge_1" value="0" onchange="update_auto_purge(this, '#outlet_1_id', 1, 1);">
+                                                <label for="autopurge_1">
+                                                    <span class="text radio_button_label auto_purge_string">Auto Purge</span>
+                                                </label>
+                                            </div>
+                                            <br/>
+                                            <div class="radio-div v1_deluge" id="v1_DelugeOutlet2">
+												<input type="radio" id="steamdeluge_1" name='deluge' value="0" onchange="set_def_deluge(1,1);">
+                                                <label for="steamdeluge_1">
+												<span class="text radio_button_label steamdeluge_string">Steam Deluge</span>
+                                                </label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <!--OUTLET 3-->
+                                <td id="outlet_three" class="valves_cell">
+                                    <span class="title outlet_3_title_string">Outlet 3</span>
+                                    <p></p>
+                                    <div class="valves_cell_box">
+                                        <div class="outlet_div">
+                                            <input id="outlet_2_id" type="button" class="outlet outlet_0" onclick="pop(event,'valve_picker',2,1);">
+                                        </div>
+                                        <div class="valves_cell_text">
+                                            <div class="radio-div">
+                                                <input type="radio" id="default_2" name="default" value="0" onchange="check_def_outlet(2,1);">
+                                                <label for="default_2">
+                                                    <span class="text radio_button_label default_string">Default</span>
+                                                </label>
+                                            </div>
+                                            <br/>
+                                            <div class="radio-div massage_div" id="v1_MassageOutlet3"> <!--(issue 971) Tf Team added div id to hide massage radio button if tubfils selected--->
+                                                <input type="checkbox" id="massage_2" value="0" onchange="update_massage(this,'#outlet_2_id',1,2);">
+                                                <label for="massage_2">
+                                                  <span class="text radio_button_label massage_string">Massage</span>
+                                                </label>
+                                            </div>
+                                            <br/>
+                                            <div class="radio-div v1_purge">
+												<input type="checkbox" id="autopurge_2" value="0" onchange="update_auto_purge(this, '#outlet_2_id', 1, 2);">
+                                                <label for="autopurge_2">
+                                                  <span class="text radio_button_label auto_purge_string">Auto Purge</span>
+                                                </label>
+                                            </div>
+                                            <br/>
+                                            <div class="radio-div v1_deluge" id="v1_DelugeOutlet3">
+												<input type="radio" id="steamdeluge_2" name='deluge' value="0" onchange="set_def_deluge(2,1);">
+                                                <label for="steamdeluge_2">
+												<span class="text radio_button_label steamdeluge_string">Steam Deluge</span>
+                                                </label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr id="four_above">
+                                <!--OUTLET 4-->
+                                <td id="outlet_four" class="valves_cell borderright">
+                                    <div style="text-align:center;">
+                                    <hr/>
+                                    </div>
+                                    <p></p>
+                                    <span class="title outlet_4_title_string">Outlet 4</span>
+                                    <p></p>
+                                    <div class="valves_cell_box">
+                                        <div class="outlet_div">
+                                            <input id="outlet_3_id" type="button" class="outlet outlet_0" onclick="pop(event,'valve_picker',3,1);">
+                                        </div>
+                                        <div class="valves_cell_text">
+                                            <div class="radio-div">
+                                                <input type="radio" id="default_3" name="default" value="0" onchange="check_def_outlet(3,1)">
+                                                <label for="default_3">
+                                                   <span class="text radio_button_label default_string">Default</span>
+                                                </label>
+                                            </div>
+                                            <br/>
+                                            <div class="radio-div massage_div" id="v1_MassageOutlet4"> <!--(issue 971) Tf Team added div id to hide massage radio button if tubfils selected--->
+                                                <input type="checkbox" id="massage_3" value="0" onchange="update_massage(this,'#outlet_3_id',1,3);">
+                                                <label for="massage_3">
+                                                   <span class="text radio_button_label massage_string">Massage</span>
+                                                </label>
+                                            </div>
+                                            <br/>
+                                            <div class="radio-div v1_purge">
+												<input type="checkbox" id="autopurge_3" value="0" onchange="update_auto_purge(this, '#outlet_3_id', 1, 3);">
+                                                <label for="autopurge_3">
+                                                   <span class="text radio_button_label auto_purge_string">Auto Purge</span>
+                                                </label>
+                                            </div>
+                                            <br/>
+                                            <div class="radio-div v1_deluge" id="v1_DelugeOutlet4">
+												<input type="radio" id="steamdeluge_3" name='deluge' value="0" onchange="set_def_deluge(3,1);">
+                                                <label for="steamdeluge_3">
+												<span class="text radio_button_label steamdeluge_string">Steam Deluge</span>
+                                                </label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <br>
+                                </td>
+                                <!--OUTLET 5-->
+                                <td id="outlet_five" class="valves_cell borderright">
+                                    <div style="text-align:center;">
+                                    <hr/>
+                                    </div>
+                                    <p></p>
+                                    <span class="title outlet_5_title_string">Outlet 5</span>
+                                    <p></p>
+                                    <div class="valves_cell_box">
+                                        <div class="outlet_div">
+                                            <input id="outlet_4_id" type="button" class="outlet outlet_0" onclick="pop(event,'valve_picker',4,1);">
+                                        </div>
+                                        <div class="valves_cell_text">
+                                            <div class="radio-div">
+                                                <input type="radio" id="default_4" name="default" value="0" onchange="check_def_outlet(4,1)">
+                                                <label for="default_4">
+                                                  <span class="text radio_button_label default_string">Default</span>
+                                                </label>
+                                            </div>
+                                            <br/>
+                                            <div class="radio-div massage_div" id="v1_MassageOutlet5"> <!--(issue 971) Tf Team added div id to hide massage radio button if tubfils selected--->
+                                                <input type="checkbox" id="massage_4" value="0" onchange="update_massage(this,'#outlet_4_id',1,4);">
+                                                <label for="massage_4">
+                                                   <span class="text radio_button_label massage_string">Massage</span>
+                                                </label>
+                                            </div>
+                                            <br/>
+                                            <div class="radio-div v1_purge">
+												<input type="checkbox" id="autopurge_4" value="0" onchange="update_auto_purge(this, '#outlet_4_id', 1, 4);">
+                                                <label for="autopurge_4">
+                                                   <span class="text radio_button_label auto_purge_string">Auto Purge</span>
+                                                </label>
+                                            </div>
+                                            <br/>
+                                            <div class="radio-div v1_deluge" id="v1_DelugeOutlet5">
+												<input type="radio" id="steamdeluge_4" value="0" name='deluge' onchange="set_def_deluge(4,1);">
+                                                <label for="steamdeluge_4">
+												<span class="text radio_button_label steamdeluge_string">Steam Deluge</span>
+                                                </label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <br>
+                                </td>
+                                <!--OUTLET 6-->
+                                <td id="outlet_six" class="valves_cell">
+                                    <div style="text-align:center;">
+                                    <hr/>
+                                    </div>
+                                    <p></p>
+                                    <span class="title outlet_6_title_string">Outlet 6</span>
+                                    <p></p>
+                                    <div class="valves_cell_box">
+                                        <div class="outlet_div">
+                                            <input id="outlet_5_id" type="button" class="outlet outlet_0" onclick="pop(event,'valve_picker',5,1);">
+                                        </div>
+                                        <div class="valves_cell_text">
+                                            <div class="radio-div">
+                                                <input type="radio" id="default_5" name="default" value="0" onchange="check_def_outlet(5,1)">
+                                                <label for="default_5">
+                                                   <span class="text radio_button_label default_string">Default</span>
+                                                </label>
+                                            </div>
+                                            <br/>
+                                            <div class="radio-div massage_div" id="v1_MassageOutlet6"> <!--(issue 971) Tf Team added div id to hide massage radio button if tubfils selected--->
+                                                <input type="checkbox" id="massage_5" value="0" onchange="update_massage(this,'#outlet_5_id',1,5);">
+                                                <label for="massage_5">
+                                                   <span class="text radio_button_label massage_string">Massage</span>
+                                                </label>
+                                            </div>
+                                            <br/>
+                                            <div class="radio-div v1_purge">
+												<input type="checkbox" id="autopurge_5" value="0" onchange="update_auto_purge(this, '#outlet_5_id', 1, 5);">
+                                                <label for="autopurge_5">
+                                                   <span class="text radio_button_label auto_purge_string">Auto Purge</span>
+                                                </label>
+                                            </div>
+                                            <br/>
+                                            <div class="radio-div v1_deluge" id="v1_DelugeOutlet6">
+												<input type="radio" id="steamdeluge_5" name='deluge' value="0" onchange="set_def_deluge(5,1);">
+                                                <label for="steamdeluge_5">
+												<span class="text radio_button_label steamdeluge_string">Steam Deluge</span>
+                                                </label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <br>
+                                </td>
+                            </tr>
+                        </table>
+                    </div>
+
+                    <div class="valve_temp_block">
+                        <div class="valve_temp_block_border borderright">
+                            <span class="title temperature_string">Temperature</span>
+                            <p></p>
+                            <table id="valve_temp_table">
+                                <tr>
+                                    <td><span class="text def_temp_string">Default Temperature</span></td>
+                                    <td>
+                                        <input type="number" onkeypress='validate(event)' class="valve_temp_number_box" id="def_temperature" onchange="number_blur(this);update_value_valve(const_valve_default_temp,this.value,1);">
+                                        <br>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td><span class="text max_temp_string">Max Temperature</span></td>
+                                    <td>
+                                        <input type="number" onkeypress='validate(event)' class="valve_temp_number_box" id="max_temperature" onchange="max_change(this,document.getElementById('def_temperature'));update_value_valve(const_valve_max_temp,this.value,1);">
+                                        <br>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <div class="radio-div">
+										    <input type="checkbox" id="cold_water_check" onchange="cold_water(this.checked);">
+                                            <label for="cold_water_check">
+												<span class="text radio_button_label cold_water_string">Cold Water Off</span>
+											</label>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <select size='1' id="cold_water" onchange='update_value_valve(const_valve_cold_water,this.value,1);'>
+                                            <option value='0'>2 Minutes</option>
+                                            <option value='1'>5 Minutes</option>
+                                            <option value='2'>7 Minutes</option>
+                                            <option value='3'>10 Minutes</option>
+											<!-- value='4' == Cold Water Disabled -->
+                                        </select>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <div class="radio-div">
+                                            <input type="checkbox" id="auto_purge_check" onchange="auto_purge(1,this.checked);">
+                                            <label for="auto_purge_check">
+												<span class="text radio_button_label auto_purge_string">Auto Purge</span>
+                                            </label>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <select size='1' id="auto_purge" onchange='update_value_valve_purge(const_valve_auto_purge,1,1,this.value);'>
+                                            <option value='0'>0 Seconds</option>
+                                            <option value='1'>7 Seconds</option>
+                                            <option value='2'>15 Seconds</option>
+                                            <option value='3'>30 Seconds</option>
+                                            <option value='4'>45 Seconds</option>
+                                            <option value='5'>60 Seconds</option>
+                                        </select>
+                                    </td>
+                                </tr>
+								<!--Added by TF team-->
+								<tr>
+                                    <td>
+                                        <div class="radio-div">
+                                            <input type="checkbox" id="max_valve_runtime_check" onchange="max_valve_runtime(1,this.checked);">
+                                            <label for="max_valve_runtime_check">
+												<span class="text radio_button_label max_valve_runtime_string">Max Run Time</span>
+                                            </label>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <select size='1' id="max_valve_runtime" onchange='update_value_valve_runtime(const_max_valve_runtime,1,1,this.value);'>
+                                            <option value='1'>No Limit</option>
+                                            <option value='2'>20 Minutes</option>
+                                            <option value='3'>30 Minutes</option>
+                                            <option value='4'>40 Minutes</option>
+                                            <option value='5'>50 Minutes</option>
+                                        </select>
+                                    </td>
+                                </tr>
+								<!--End of add by TF team-->
+                            </table>
+                        </div>
+						<!--Issue 994 : TF team altered for custom massage order,22-04-2015 -->
+                        <div id = "custom_massage_block_1" class="valve_massage_block">
+                            <div class="valve_massage_block_border">
+								<span class="title custom_massage_title_stringv1_1">Custom Massage Order 1</span>
+								<span class="text massage_example_string">(example: 1,3,2,4,6,5)</span>
+                                <p></p>
+                                <div class="radio-div">
+								<input type="checkbox" id="massageorder_1" value="0" onchange="activate_textbox(this.checked,'massage_orderv1c1',1,1)">
+								<label for="massageorder_1"><span class="text radio_button_label"></span></label>
+                                <input class="massage_box" type="text" onkeydown ="validate_custom_massage(event,1,1,this.id,this.value)" onkeypress ="validate_special_char(event)" id="massage_orderv1c1" onchange="update_customMassageOrder(const_valve_massage_order,this.value,1,1);">
+                                </div>
+                                <p></p>
+								<br>
+								<span class="title custom_massage_title_stringv1_2">Custom Massage Order 2</span>
+								<span class="text massage_example_string">(example: 1,3,2,4,6,5)</span>
+                                <p></p>
+                                <div class="radio-div">
+								<input type="checkbox" id="massageorder_2" value="0" onchange="activate_textbox(this.checked,'massage_orderv1c2',2,1)">
+								<label for="massageorder_2"><span class="text radio_button_label"></span></label>
+                                <input class="massage_box" type="text" onkeydown ="validate_custom_massage(event,1,2,this.id,this.value)" onkeypress ="validate_special_char(event)" id="massage_orderv1c2" onchange="update_customMassageOrder(const_valve_massage_order,this.value,1,2);">
+								</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div style="clear:both;display: block;position: relative;text-align:center; padding: 50px 0 0 0;">
+	                    <p></p>
+                        <form action="swapvalves.cgi">
+                            <input id="swap_valves_button_v2" type="submit" class="swap_valves" value="Swap Valves 1 and 2" style="width:400px">  <!--Changed swap_valves_button to swap_valves_button_v2 by TF2 4Apr2015 - Bug 1112 - Different id for swap button on valve 2 tab-->
+                        </form>
+                    </div>
+
+                    <div class="valve_picker_popout" id="valve_picker">
+                      <div class="popout_titlebar">
+                        <span class="title">Icons Available - Outlet <span id="outlet_number"></span>, Valve <span id="valve_number"></span></span>
+                        <div style="float: right;">
+                          <a href="" onclick="pop(event,'valve_picker',0,0);"><span class="text">X</span></a>
+                        </div>
+                      </div>
+
+                      <p></p>
+<!-- 					  <div class="popout_interior">
+                      <input type="button" class="outlet outlet_0"  onclick="set_outlet('outlet_0',0,1);">
+					  <input type="button" class="outlet outlet_1"  onclick="set_outlet('outlet_1',1,1);">
+					  <input type="button" class="outlet outlet_2"  onclick="set_outlet('outlet_2',2,1);">
+					  <input type="button" class="outlet outlet_3"  onclick="set_outlet('outlet_3',3,1);">
+					  <input type="button" class="outlet outlet_4"  onclick="set_outlet('outlet_4',4,1);">
+					  <input type="button" class="outlet outlet_5"  onclick="set_outlet('outlet_5',5,1);">
+					  <input type="button" class="outlet outlet_6"  onclick="set_outlet('outlet_6',6,1);">
+					  <input type="button" class="outlet outlet_7"  onclick="set_outlet('outlet_7',7,1);">
+					  <input type="button" class="outlet outlet_8"  onclick="set_outlet('outlet_8',8,1);">
+					  <input type="button" class="outlet outlet_9"  onclick="set_outlet('outlet_9',9,1);">
+					  <input type="button" class="outlet outlet_10" onclick="set_outlet('outlet_10',10,1);">
+					  <input type="button" class="outlet outlet_11" onclick="set_outlet('outlet_11',11,1);">
+					  <input type="button" class="outlet outlet_12" onclick="set_outlet('outlet_12',12,1);">
+					  <input type="button" class="outlet outlet_13" onclick="set_outlet('outlet_13',13,1);">
+					  <input type="button" class="outlet outlet_14" onclick="set_outlet('outlet_14',14,1);">
+					  <input type="button" class="outlet outlet_15" onclick="set_outlet('outlet_15',15,1);">
+					  <input type="button" class="outlet outlet_16" onclick="set_outlet('outlet_16',16,1);">
+					  <input type="button" class="outlet outlet_17" onclick="set_outlet('outlet_17',17,1);">
+					  <input type="button" class="outlet outlet_18" onclick="set_outlet('outlet_18',18,1);">
+					  <input type="button" class="outlet outlet_19" onclick="set_outlet('outlet_19',19,1);">
+					  <input type="button" class="outlet outlet_20" onclick="set_outlet('outlet_20',20,1);">
+					  <input type="button" class="outlet outlet_21" onclick="set_outlet('outlet_21',21,1);">
+                      <input type="button" class="outlet outlet_22" onclick="set_outlet('outlet_22',22,1);">
+                      </div> -->
+					  <!--COmmneted above by TF team 06-07-->
+ <!--Added below by TF team 06-07, assigning id's for each outlet-->
+					<div class="popout_interior">
+                      <input type="button" id="outletv1_0" class="outlet outlet_0"  onclick="set_outlet('outlet_0',0,1);">
+					  <input type="button" id="outletv1_1" class="outlet outlet_1"  onclick="set_outlet('outlet_1',1,1);">
+					  <input type="button" id="outletv1_2" class="outlet outlet_2"  onclick="set_outlet('outlet_2',2,1);">
+					  <input type="button" id="outletv1_3" class="outlet outlet_3"  onclick="set_outlet('outlet_3',3,1);">
+					  <input type="button" id="outletv1_4" class="outlet outlet_4"  onclick="set_outlet('outlet_4',4,1);">
+					  <input type="button" id="outletv1_5" class="outlet outlet_5"  onclick="set_outlet('outlet_5',5,1);">
+					  <input type="button" id="outletv1_6" class="outlet outlet_6"  onclick="set_outlet('outlet_6',6,1);">
+					  <input type="button" id="outletv1_7" class="outlet outlet_7"  onclick="set_outlet('outlet_7',7,1);">
+					  <input type="button" id="outletv1_8" class="outlet outlet_8"  onclick="set_outlet('outlet_8',8,1);">
+					  <input type="button" id="outletv1_9" class="outlet outlet_9"  onclick="set_outlet('outlet_9',9,1);">
+					  <input type="button" id="outletv1_10" class="outlet outlet_10" onclick="set_outlet('outlet_10',10,1);">
+					  <input type="button" id="outletv1_11" class="outlet outlet_11" onclick="set_outlet('outlet_11',11,1);">
+					  <input type="button" id="outletv1_12" class="outlet outlet_12" onclick="set_outlet('outlet_12',12,1);">
+					  <input type="button" id="outletv1_13" class="outlet outlet_13" onclick="set_outlet('outlet_13',13,1);">
+					  <input type="button" id="outletv1_14" class="outlet outlet_14" onclick="set_outlet('outlet_14',14,1);">
+					  <input type="button" id="outletv1_15" class="outlet outlet_15" onclick="set_outlet('outlet_15',15,1);">
+					  <input type="button" id="outletv1_16" class="outlet outlet_16" onclick="set_outlet('outlet_16',16,1);">
+					  <input type="button" id="outletv1_17" class="outlet outlet_17" onclick="set_outlet('outlet_17',17,1);">
+					  <input type="button" id="outletv1_18" class="outlet outlet_18" onclick="set_outlet('outlet_18',18,1);">
+					  <input type="button" id="outletv1_19" class="outlet outlet_19" onclick="set_outlet('outlet_19',19,1);">
+					  <input type="button" id="outletv1_20" class="outlet outlet_20" onclick="set_outlet('outlet_20',20,1);">
+					  <input type="button" id="outletv1_21" class="outlet outlet_21" onclick="set_outlet('outlet_21',21,1);">
+                      <input type="button" id="outletv1_22" class="outlet outlet_22" onclick="set_outlet('outlet_22',22,1);">
+					  <input type="button" id="outletv1_23" class="outlet outlet_23" onclick="set_outlet('outlet_23',23,1);">
+                      </div> 
+					  <!--End below by TF team 06-07, assigning id's for each outlet-->
+					<span class="footerv1" style="color:red;width=100%;padding: 20px 0 0 20px;">Real Rain requires all 99693-P-NA user interface</span>
+                    </div>
+
+                </div>
+
+
+                <div id="tabs-Valve2">
+                    <p></p>
+                    <div id="dialog-form" title="Select an Outlet"></div>
+                    <input type="hidden" id="outletv2s" name="outlets" value="0">
+                    <div class="valves_table borderbottom">
+                        <table id="valve_outlet_table" style="width:100%;">
+                            <tr>
+                                <!--OUTLET 1-->
+                                <td class="valves_cell borderright">
+                                    <span class="title outlet_1_title_string">Outlet 1</span>
+                                    <p></p>
+                                    <div class="valves_cell_box">
+                                        <div class="outlet_div">
+                                            <input id="outletv2_0_id" type="button" class="outlet outlet_0" onclick="pop(event,'valve_picker_v2',0,2);">
+                                        </div>
+                                        <div class="valves_cell_text">
+                                            <div class="radio-div">
+                                                <input type="radio" id="default_0v2" name="defaultv2" value="0" onchange="check_def_outlet(0,2)">
+                                                <label for="default_0v2">
+												<span class="text radio_button_label default_string">Default</span>
+                                                </label>
+                                            </div>
+                                            <br/>
+                                            <div class="radio-div massage_div" id="v2_MassageOutlet1"> <!--(issue 971) Tf Team added div id to hide massage radio button if tubfils selected--->
+                                                <input type="checkbox" id="massage_0v2" value="0" onchange="update_massage(this,'#outletv2_0_id',2,0);">
+                                                <label for="massage_0v2">
+												<span class="text radio_button_label massage_string">Massage</span>
+                                                </label>
+                                            </div>
+                                            <br/>
+                                            <div class="radio-div v1_purge">
+												<input type="checkbox" id="autopurge_0v2" value="0" onchange="update_auto_purge(this, '#outletv2_0_id', 2, 0);">
+                                                <label for="autopurge_0v2">
+												<span class="text radio_button_label auto_purge_string">Auto Purge</span>
+                                                </label>
+                                            </div>
+                                            <br/>
+                                            <div class="radio-div v2_deluge" id="v2_DelugeOutlet1">
+												<input type="radio" name='deluge2' id="steamdeluge_0v2" value="0" onchange="set_def_deluge(0,2);">
+                                                <label for="steamdeluge_0v2">
+												<span class="text radio_button_label steamdeluge_string">Steam Deluge</span>
+                                                </label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <!--OUTLET 2-->
+                                <td class="valves_cell borderright">
+                                    <span class="title outlet_2_title_string">Outlet 2</span>
+                                    <p></p>
+                                    <div class="valves_cell_box">
+                                        <div class="outlet_div">
+                                            <input id="outletv2_1_id" type="button" class="outlet outlet_0" onclick="pop(event,'valve_picker_v2',1,2);">
+                                        </div>
+                                        <div class="valves_cell_text">
+                                            <div class="radio-div">
+                                                <input type="radio" id="default_1v2" name="defaultv2" value="0" onchange="check_def_outlet(1,2);">
+                                                <label for="default_1v2">
+                                                   <span class="text radio_button_label default_string">Default</span>
+                                                </label>
+                                            </div>
+                                            <br/>
+                                            <div class="radio-div massage_div" id="v2_MassageOutlet2"> <!--(issue 971) Tf Team added div id to hide massage radio button if tubfils selected--->
+                                                <input type="checkbox" id="massage_1v2" value="0" onchange="update_massage(this,'#outletv2_1_id',2,1);">
+                                                <label for="massage_1v2">
+                                                   <span class="text radio_button_label massage_string">Massage</span>
+                                                </label>
+                                            </div>
+                                            <br/>
+                                            <div class="radio-div v1_purge">
+												<input type="checkbox" id="autopurge_1v2" value="0" onchange="update_auto_purge(this, '#outletv2_1_id', 2, 1);">
+                                                <label for="autopurge_1v2">
+                                                    <span class="text radio_button_label auto_purge_string">Auto Purge</span>
+                                                </label>
+                                            </div>
+                                            <br/>
+                                            <div class="radio-div v2_deluge" id="v2_DelugeOutlet2">
+												<input type="radio" name='deluge2' id="steamdeluge_1v2" value="0" onchange="set_def_deluge(1,2);">
+                                                <label for="steamdeluge_1v2">
+												<span class="text radio_button_label steamdeluge_string">Steam Deluge</span>
+                                                </label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <!--OUTLET 3-->
+                                <td id="outletv2_three" class="valves_cell">
+                                    <span class="title outlet_3_title_string">Outlet 3</span>
+                                    <p></p>
+                                    <div class="valves_cell_box">
+                                        <div class="outlet_div">
+                                            <input id="outletv2_2_id" type="button" class="outlet outlet_0" onclick="pop(event,'valve_picker_v2',2,2);">
+                                        </div>
+                                        <div class="valves_cell_text">
+                                            <div class="radio-div">
+                                                <input type="radio" id="default_2v2" name="defaultv2" value="0" onchange="check_def_outlet(2,2)">
+                                                <label for="default_2v2">
+                                                    <span class="text radio_button_label default_string">Default</span>
+                                                </label>
+                                            </div>
+                                            <br/>
+                                            <div class="radio-div massage_div" id="v2_MassageOutlet3"> <!--(issue 971) Tf Team added div id to hide massage radio button if tubfils selected--->
+                                                <input type="checkbox" id="massage_2v2" value="0" onchange="update_massage(this,'#outletv2_2_id',2,2);">
+                                                <label for="massage_2v2">
+                                                  <span class="text radio_button_label massage_string">Massage</span>
+                                                </label>
+                                            </div>
+                                            <br/>
+                                            <div class="radio-div v1_purge">
+												<input type="checkbox" id="autopurge_2v2" value="0" onchange="update_auto_purge(this, '#outletv2_2_id', 2, 2);">
+                                                <label for="autopurge_2v2">
+                                                  <span class="text radio_button_label auto_purge_string">Auto Purge</span>
+                                                </label>
+                                            </div>
+                                            <br/>
+                                            <div class="radio-div v2_deluge" id="v2_DelugeOutlet3">
+												<input type="radio" id="steamdeluge_2v2" name='deluge2' value="0" onchange="set_def_deluge(2, 2);">
+                                                <label for="steamdeluge_2v2">
+												<span class="text radio_button_label steamdeluge_string">Steam Deluge</span>
+                                                </label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr id="four_above">
+                                <!--OUTLET 4-->
+                                <td id="outletv2_four" class="valves_cell borderright">
+                                    <div style="text-align:center;">
+                                    <hr/>
+                                    </div>
+                                    <p></p>
+                                    <span class="title outlet_4_title_string">Outlet 4</span>
+                                    <p></p>
+                                    <div class="valves_cell_box">
+                                        <div class="outlet_div">
+                                            <input id="outletv2_3_id" type="button" class="outlet outlet_0" onclick="pop(event,'valve_picker_v2',3,2);">
+                                        </div>
+                                        <div class="valves_cell_text">
+                                            <div class="radio-div">
+                                                <input type="radio" id="default_3v2" name="defaultv2" value="0" onchange="check_def_outlet(3,2)">
+                                                <label for="default_3v2">
+                                                   <span class="text radio_button_label default_string">Default</span>
+                                                </label>
+                                            </div>
+                                            <br/>
+                                            <div class="radio-div massage_div" id="v2_MassageOutlet4"> <!--(issue 971) Tf Team added div id to hide massage radio button if tubfils selected--->
+                                                <input type="checkbox" id="massage_3v2" value="0" onchange="update_massage(this,'#outletv2_3_id',2,3);">
+                                                <label for="massage_3v2">
+                                                   <span class="text radio_button_label massage_string">Massage</span>
+                                                </label>
+                                            </div>
+                                            <br/>
+                                            <div class="radio-div v1_purge">
+												<input type="checkbox" id="autopurge_3v2" value="0" onchange="update_auto_purge(this, '#outletv2_3_id', 2, 3);">
+                                                <label for="autopurge_3v2">
+                                                   <span class="text radio_button_label auto_purge_string">Auto Purge</span>
+                                                </label>
+                                            </div>
+                                            <br/>
+                                            <div class="radio-div v2_deluge" id="v2_DelugeOutlet4">
+												<input type="radio" id="steamdeluge_3v2" name='deluge2' value="0" onchange="set_def_deluge(3,2);">
+                                                <label for="steamdeluge_3v2">
+												<span class="text radio_button_label steamdeluge_string">Steam Deluge</span>
+                                                </label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <br>
+                                </td>
+                                <!--OUTLET 5-->
+                                <td id="outletv2_five" class="valves_cell borderright">
+                                    <div style="text-align:center;">
+                                    <hr/>
+                                    </div>
+                                    <p></p>
+                                    <span class="title outlet_5_title_string">Outlet 5</span>
+                                    <p></p>
+                                    <div class="valves_cell_box">
+                                        <div class="outlet_div">
+                                            <input id="outletv2_4_id" type="button" class="outlet outlet_0" onclick="pop(event,'valve_picker_v2',4,2);">
+                                        </div>
+                                        <div class="valves_cell_text">
+                                            <div class="radio-div">
+                                                <input type="radio" id="default_4v2" name="defaultv2" value="0" onchange="check_def_outlet(4,2)">
+                                                <label for="default_4v2">
+                                                  <span class="text radio_button_label default_string">Default</span>
+                                                </label>
+                                            </div>
+                                            <br/>
+                                            <div class="radio-div massage_div" id="v2_MassageOutlet5"> <!--(issue 971) Tf Team added div id to hide massage radio button if tubfils selected--->
+                                                <input type="checkbox" id="massage_4v2" value="0" onchange="update_massage(this,'#outletv2_4_id',2,4);">
+                                                <label for="massage_4v2">
+                                                   <span class="text radio_button_label massage_string">Massage</span>
+                                                </label>
+                                            </div>
+                                            <br/>
+                                            <div class="radio-div v1_purge">
+												<input type="checkbox" id="autopurge_4v2" value="0" onchange="update_auto_purge(this, '#outletv2_4_id', 2, 4);">
+                                                <label for="autopurge_4v2">
+                                                   <span class="text radio_button_label auto_purge_string">Auto Purge</span>
+                                                </label>
+                                            </div>
+                                            <br/>
+                                            <div class="radio-div v2_deluge" id="v2_DelugeOutlet5">
+												<input type="radio" id="steamdeluge_4v2" name='deluge2' value="0" onchange="set_def_deluge(4,2);">
+                                                <label for="steamdeluge_4v2">
+												<span class="text radio_button_label steamdeluge_string">Steam Deluge</span>
+                                                </label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <br>
+                                </td>
+                                <!--OUTLET 6-->
+                                <td id="outletv2_six" class="valves_cell">
+                                    <div style="text-align:center;">
+                                    <hr/>
+                                    </div>
+                                    <p></p>
+                                    <span class="title outlet_6_title_string">Outlet 6</span>
+                                    <p></p>
+                                    <div class="valves_cell_box">
+                                        <div class="outlet_div">
+                                            <input id="outletv2_5_id" type="button" class="outlet outlet_0" onclick="pop(event,'valve_picker_v2',5,2);">
+                                        </div>
+                                        <div class="valves_cell_text">
+                                            <div class="radio-div">
+                                                <input type="radio" id="default_5v2" name="defaultv2" value="0" onchange="check_def_outlet(5,2)">
+                                                <label for="default_5v2">
+                                                   <span class="text radio_button_label default_string">Default</span>
+                                                </label>
+                                            </div>
+                                            <br/>
+                                            <div class="radio-div massage_div" id="v2_MassageOutlet6"> <!--(issue 971) Tf Team added div id to hide massage radio button if tubfils selected--->
+                                                <input type="checkbox" id="massage_5v2" value="0" onchange="update_massage(this,'#outletv2_5_id',2,5);">
+                                                <label for="massage_5v2">
+                                                   <span class="text radio_button_label massage_string">Massage</span>
+                                                </label>
+                                            </div>
+                                            <br/>
+                                            <div class="radio-div v1_purge">
+												<input type="checkbox" id="autopurge_5v2" value="0" onchange="update_auto_purge(this, '#outletv2_5_id', 2, 5);">
+                                                <label for="autopurge_5v2">
+                                                   <span class="text radio_button_label auto_purge_string">Auto Purge</span>
+                                                </label>
+                                            </div>
+                                            <br/>
+                                            <div class="radio-div v2_deluge" id="v2_DelugeOutlet6">
+												<input type="radio" id="steamdeluge_5v2" value="0" name="deluge2" onchange="set_def_deluge(5,2);">
+                                                <label for="steamdeluge_5v2">
+												<span class="text radio_button_label steamdeluge_string">Steam Deluge</span>
+                                                </label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <br>
+                                </td>
+                            </tr>
+                        </table>
+                    </div>
+
+                    <div class="valve_temp_block">
+                        <div class="valve_temp_block_border borderright">
+                            <span class="title temperature_string">Temperature</span>
+                            <p></p>
+                            <table id="valve_temp_table">
+                                <tr>
+                                    <td><span class="text def_temp_string">Default Temperature</span></td>
+                                    <td>
+                                        <input type="number" onkeypress='validate(event)' class="valve_temp_number_box" id="def_temperaturev2" onchange="number_blur(this);update_value_valve(const_valve_default_temp,this.value,2);">
+                                        <br>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td><span class="text max_temp_string">Max Temperature</span></td>
+                                    <td>
+                                        <input type="number" onkeypress='validate(event)' class="valve_temp_number_box" id="max_temperaturev2" onchange="max_change(this,document.getElementById('def_temperature'));update_value_valve(const_valve_max_temp,this.value,2);">
+                                        <br>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <div class="radio-div">
+										    <input type="checkbox" id="cold_water_checkv2" onchange="cold_water(this.checked);">
+                                            <label for="cold_water_checkv2">
+												<span class="text radio_button_label cold_water_string">Cold Water Off</span>
+											</label>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <select size='1' id="cold_waterv2" onchange='update_value_valve(const_valve_cold_water,this.value,2);'>
+                                            <option value='0'>2 Minutes</option>
+                                            <option value='1'>5 Minutes</option>
+                                            <option value='2'>7 Minutes</option>
+                                            <option value='3'>10 Minutes</option>
+											<!-- value='4' == Cold Water Disabled -->
+                                        </select>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <div class="radio-div">
+                                            <input type="checkbox" id="auto_purge_checkv2" onchange="auto_purge(2,this.checked);">
+                                            <label for="auto_purge_checkv2">
+												<span class="text radio_button_label auto_purge_string">Auto Purge</span>
+                                            </label>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <select size='1' id="auto_purgev2" onchange='update_value_valve_purge(const_valve_auto_purge,1,2,this.value);'>
+                                            <option value='0'>0 Seconds</option>
+                                            <option value='1'>7 Seconds</option>
+                                            <option value='2'>15 Seconds</option>
+                                            <option value='3'>30 Seconds</option>
+                                            <option value='4'>45 Seconds</option>
+                                            <option value='5'>60 Seconds</option>
+                                        </select>
+                                    </td>
+                                </tr>
+								<!--Added by TF team-->
+								<tr>
+                                    <td>
+                                        <div class="radio-div">
+                                            <input type="checkbox" id="max_valve_runtime_checkv2" onchange="max_valve_runtime(2,this.checked);">
+                                            <label for="max_valve_runtime_checkv2">
+												<span class="text radio_button_label max_valve_runtime_string">Max Run Time</span>
+                                            </label>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <select size='1' id="max_valve_runtimev2" onchange='update_value_valve_runtime(const_max_valve_runtime,1,2,this.value);'>
+                                            <option value='1'>No Limit</option>
+                                            <option value='2'>20 Minutes</option>
+                                            <option value='3'>30 Minutes</option>
+                                            <option value='4'>40 Minutes</option>
+                                            <option value='5'>50 Minutes</option>
+                                        </select>
+                                    </td>
+                                </tr>
+								<!--End of add by TF team-->
+                            </table>
+                        </div>
+						<!--Issue 994 : TF team altered for custom massage order,22-04-2015-->
+                        <div id = "custom_massage_block_2" class="valve_massage_block">
+                            <div class="valve_massage_block_border">
+								<span class="title custom_massage_title_stringv2_1">Custom Massage Order 1</span>
+								<span class="text massage_example_string">(example: 1,3,2,4,6,5)</span>
+                                <p></p>
+                                <div class="radio-div">
+								<input type="checkbox" id="massageorderv2_1" value="0" onchange="activate_textbox(this.checked,'massage_orderv2c1',1,2)">
+								<label for="massageorderv2_1"><span class="text radio_button_label"></span></label>
+                                <input class="massage_box" type="text" onkeydown ="validate_custom_massage(event,2,3,this.id,this.value)" onkeypress ="validate_special_char(event)" id="massage_orderv2c1" onchange="update_customMassageOrder(const_valve_massage_order,this.value,2,1);">
+                                </div>
+                                <p></p>
+								<br>
+								<span class="title custom_massage_title_stringv2_2">Custom Massage Order 2</span>
+								<span class="text massage_example_string">(example: 1,3,2,4,6,5)</span>
+                                <p></p>
+                                <div class="radio-div">
+								<input type="checkbox" id="massageorderv2_2" value="0" onchange="activate_textbox(this.checked,'massage_orderv2c2',2,2)">
+								<label for="massageorderv2_2"><span class="text radio_button_label"></span></label>
+                                <input class="massage_box" type="text" onkeydown ="validate_custom_massage(event,2,4,this.id,this.value)" onkeypress ="validate_special_char(event)" id="massage_orderv2c2" onchange="update_customMassageOrder(const_valve_massage_order,this.value,2,2);">
+								</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div style="clear:both;display: block;position: relative;text-align:center; padding: 50px 0 0 0;">
+	                    <p></p>
+                        <form action="swapvalves.cgi">
+                            <input id="swap_valves_button" type="submit" class="swap_valves" value="Swap Valves 1 and 2" style="width:400px">
+                        </form>
+                    </div>
+
+                    <div class="valve_picker_popout" id="valve_picker_v2">
+                      <div class="popout_titlebar">
+                        <span class="title">Icons Available - Outlet <span id="outlet_number_v2"></span>, Valve <span id="valve_number_v2"></span></span>
+                        <div style="float: right;">
+                          <a href="" onclick="pop(event,'valve_picker_v2',0,0);"><span class="text">X</span></a>
+                        </div>
+                      </div>
+
+                      <p></p>
+					  <!--COmmneted above by TF team 06-07-->
+ <!--Added below by TF team 06-07, assigning id's for each outlet-->
+					<div class="popout_interior">
+                      <input type="button" id="outletv2_0" class="outlet outlet_0"  onclick="set_outlet('outlet_0',0,2);">
+					  <input type="button" id="outletv2_1" class="outlet outlet_1"  onclick="set_outlet('outlet_1',1,2);">
+					  <input type="button" id="outletv2_2" class="outlet outlet_2"  onclick="set_outlet('outlet_2',2,2);">
+					  <input type="button" id="outletv2_3" class="outlet outlet_3"  onclick="set_outlet('outlet_3',3,2);">
+					  <input type="button" id="outletv2_4" class="outlet outlet_4"  onclick="set_outlet('outlet_4',4,2);">
+					  <input type="button" id="outletv2_5" class="outlet outlet_5"  onclick="set_outlet('outlet_5',5,2);">
+					  <input type="button" id="outletv2_6" class="outlet outlet_6"  onclick="set_outlet('outlet_6',6,2);">
+					  <input type="button" id="outletv2_7" class="outlet outlet_7"  onclick="set_outlet('outlet_7',7,2);">
+					  <input type="button" id="outletv2_8" class="outlet outlet_8"  onclick="set_outlet('outlet_8',8,2);">
+					  <input type="button" id="outletv2_9" class="outlet outlet_9"  onclick="set_outlet('outlet_9',9,2);">
+					  <input type="button" id="outletv2_10" class="outlet outlet_10" onclick="set_outlet('outlet_10',10,2);">
+					  <input type="button" id="outletv2_11" class="outlet outlet_11" onclick="set_outlet('outlet_11',11,2);">
+					  <input type="button" id="outletv2_12" class="outlet outlet_12" onclick="set_outlet('outlet_12',12,2);">
+					  <input type="button" id="outletv2_13" class="outlet outlet_13" onclick="set_outlet('outlet_13',13,2);">
+					  <input type="button" id="outletv2_14" class="outlet outlet_14" onclick="set_outlet('outlet_14',14,2);">
+					  <input type="button" id="outletv2_15" class="outlet outlet_15" onclick="set_outlet('outlet_15',15,2);">
+					  <input type="button" id="outletv2_16" class="outlet outlet_16" onclick="set_outlet('outlet_16',16,2);">
+					  <input type="button" id="outletv2_17" class="outlet outlet_17" onclick="set_outlet('outlet_17',17,2);">
+					  <input type="button" id="outletv2_18" class="outlet outlet_18" onclick="set_outlet('outlet_18',18,2);">
+					  <input type="button" id="outletv2_19" class="outlet outlet_19" onclick="set_outlet('outlet_19',19,2);">
+					  <input type="button" id="outletv2_20" class="outlet outlet_20" onclick="set_outlet('outlet_20',20,2);">
+					  <input type="button" id="outletv2_21" class="outlet outlet_21" onclick="set_outlet('outlet_21',21,2);">
+                      <input type="button" id="outletv2_22" class="outlet outlet_22" onclick="set_outlet('outlet_22',22,2);">
+                      <input type="button" id="outletv2_23" class="outlet outlet_23" onclick="set_outlet('outlet_23',23,2);">
+                      </div> 
+					  <!--End below by TF team 06-07, assigning id's for each outlet-->
+					<span class="footerv2" style="color:red;width=100%;padding: 20px 0 0 20px;">Real Rain requires all 99693-P-NA user interface</span>
+                    </div>
+
+                </div>
+
+                <div id="tabs-Interface">
+                    <div style="width=100%;padding: 20px 0 0 20px;" id="order_div">
+						<p></p>
+						<p></p>
+						<span class="outlet_order_string title">Interface Outlet Display Order</span>
+						<span class="outlet_order_inst_string text">(Click and drag to rearrange within zone)</span>
+                        <br><br>
+                        <table style="border-width: 1px;">
+                            <tr id="valve1_order">
+                                <td>
+			                        <div id="valve_1_div" class="highlightbox" style="float:left;">
+									<div id="valve_1_text" class="highlightbox_text">
+	
+									<span class="text valve1_ver_string">Shower Zone 1 (Valve 1)</span>
+									<p></p>
+                                    <ul id="one_order"></ul>
+									<p></p>
+									</div>
+									</div>
+                                </td>
+                            </tr>
+                            <tr id="valve2_order">
+                                <td>	
+			                        <div id="valve_2_div" class="highlightbox" style="float:left;">
+									<div id="valve_2_text" class="highlightbox_text">
+									<span class="text valve2_ver_string">Shower Zone 2 (Valve 2)</span>
+									<p></p>
+                                    <ul id="two_order"></ul>
+									<p></p>
+									</div>
+									</div>
+                                </td>
+                            </tr>
+                        </table>
+                    </div>
+                </div>
+				<!--the below tab was added by TF-Team for Kohler Konnect on 01-03-2018-->
+				
+				<div id="tabs-Konnect">
+	
+                    <div style="width=100%;padding: 20px 0 0 20px;" id="order_div">
+						<p></p>
+						<div style="padding: 0 0 0 30px;float:left;">
+						<span id="konnect_string" class="title konnect_dev_string">Kohler Konnect</span>
+						<br>
+						<div id="konnect_ip">
+							<span id="konnect_ip_string" class="text">IP:</span>
+							<span id="konnect_ipstring" class="text">xxx</span>     
+						</div>
+						<div id="konnect_mac">
+							<span id="konnect_mac_string" class="text">MAC:</span>
+							<span id="konnect_macstring" class="text">xxx</span>	
+						</div>
+						<div id="konnect_ssid">
+							<span id="konnect_ssid_string" class="text">SSID:</span>
+							<span id="konnect_ssidstring" class="text">xxx</span>	
+						</div>
+						<div id="konnect_mode">
+							<span id="konnect_mode_string" class="text">mode:</span>
+							<span id="konnect_modestring" class="text">xxx</span>	
+						</div>
+						<div id="konnect_strength">
+							<span id="konnect_strength_string" class="text">Signal Strength:</span>
+							<span id="konnect_strengthstring" class="text">xxx</span>
+						</div>
+						<br>
+						</div>
+                    </div>
+                </div>
+				
+				
+				<!--the above tab was added by TF-Team for Kohler Konnect on 01-03-2018-->
+				<div id="tabs-Spa">
+                    <div style="width=100%;padding: 20px 0 0 20px;" id="order_div">
+						<p></p>
+						<p></p>
+						<span class="water_spa_string title">Water Spa</span>
+						<p></p>
+                        <div id ="spa_borderbottom">
+                        <table id="spa_outlet_table" style="width:100%;">
+                            <tr>
+                                <!--BREATHE //Changed the title to Spa 1 from breathe as per the call on 1-6-2016-->
+                                <td id="spa_breathe" class="valves_cell borderright">
+                                    <span class="title breathe_title_string">Breathe</span>
+                                    <p></p>
+                                    <div class="valves_cell_box">
+                                        <div class="outlet_div">
+                                            <input type="button" id="breathe_id" class="outlet breathe">
+                                        </div>
+                                        <div class="valves_cell_text">
+                                            <div class="radio-div">
+                                                <input type="checkbox" id="enable1" name="enable_1" value="0" onchange="spa_selection(this, '#breathe_id', 1);">
+                                                <label for="enable1">
+												<span class="text radio_button_label enable1_string">Enable</span>
+                                                </label>
+                                            </div>
+                                            <br/>
+                                        </div>
+                                    </div>
+                                </td>
+                                <!--RELEASE //Changed the title to Spa 2 from release as per the call on 1-6-2016-->
+                                <td id="spa_release" class="valves_cell borderright">
+                                    <span class="title release_title_string">Release</span>
+                                    <p></p>
+                                    <div class="valves_cell_box">
+                                        <div class="outlet_div">
+                                            <input type="button" id="release_id" class="outlet release">
+                                        </div>
+                                        <div class="valves_cell_text">
+                                            <div class="radio-div">
+                                                <input type="checkbox" id="enable2" name="enable_2" value="0" onchange="spa_selection(this, '#release_id', 2);">
+                                                <label for="enable2">
+                                                   <span class="text radio_button_label enable2_string">Enable</span>
+                                                </label>
+                                            </div>
+                                            <br/>
+                                        </div>
+                                    </div>
+                                </td>
+                                <!--EXHILERATE  //Changed the title to Spa 3 from exhilerate as per the call on 1-6-2016-->
+                                <td id="spa_exhilerate" class="valves_cell">
+                                    <span class="title exhilerate_title_string">Exhilerate</span>
+                                    <p></p>
+                                    <div class="valves_cell_box">
+                                        <div class="outlet_div">
+                                            <input type="button" id="exhilerate_id" class="outlet exhilerate">
+                                        </div>
+                                        <div class="valves_cell_text">
+                                            <div class="radio-div">
+                                                <input type="checkbox" id="enable3" name="enable_3" value="0" onchange="spa_selection(this, '#exhilerate_id', 3);">
+                                                <label for="enable3">
+                                                    <span class="text radio_button_label enable3_string">Enable</span>
+                                                </label>
+                                            </div>
+                                            <br/>
+                                        </div>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr id="spa_row2">
+                                <!--FLEX-->
+                                <td id="spa_flex" class="valves_cell borderright">
+                                    <div style="text-align:center;">
+                                    <hr/>
+                                    </div>
+                                    <p></p>
+                                    <span class="title flex_title_string">Flex</span>
+                                    <p></p>
+                                    <div class="valves_cell_box">
+                                        <div class="outlet_div">
+                                            <input type="button" id="flex_id" class="outlet flex">
+                                        </div>
+                                        <div class="valves_cell_text">
+                                            <div class="radio-div">
+                                                <input type="checkbox" id="enable4" name="enable_4" value="0" onchange="spa_selection(this, '#flex_id', 4);">
+                                                <label for="enable4">
+                                                   <span class="text radio_button_label enable4_string">Enable</span>
+                                                </label>
+                                            </div>
+                                            <br/>
+                                        </div>
+                                    </div>
+                                    <br>
+                                </td>
+                                <!--WARMUP-->
+                                <td id="spa_warmup" class="valves_cell borderright">
+                                    <div style="text-align:center;">
+                                    <hr/>
+                                    </div>
+                                    <p></p>
+                                    <span class="title cooldown_title_string">Warmup</span>
+                                    <p></p>
+                                    <div class="valves_cell_box">
+                                        <div class="outlet_div">
+                                            <input type="button" id="warmup_id" class="outlet warmup">
+                                        </div>
+                                        <div class="valves_cell_text">
+                                            <div class="radio-div">
+                                                <input type="checkbox" id="enable5" name="enable_5" value="0" onchange="spa_selection(this, '#warmup_id', 5);">
+                                                <label for="enable5">
+                                                  <span class="text radio_button_label enable5_string">Enable</span>
+                                                </label>
+                                            </div>
+                                            <br/>
+                                        </div>
+                                    </div>
+                                    <br>
+                                </td>
+                                <!--COOLDOWN-->
+                                <td id="spa_cooldown" class="valves_cell">
+                                    <div style="text-align:center;">
+                                    <hr/>
+                                    </div>
+                                    <p></p>
+                                    <span class="title cooldown_title_string">Cooldown</span>
+                                    <p></p>
+                                    <div class="valves_cell_box">
+                                        <div class="outlet_div">
+                                            <input type="button" id="cooldown_id"= class="outlet cooldown">
+                                        </div>
+                                        <div class="valves_cell_text">
+                                            <div class="radio-div">
+                                                <input type="checkbox" id="enable6" name="enable_6" value="0" onchange="spa_selection(this, '#cooldown_id', 6);">
+                                                <label for="enable6">
+                                                   <span class="text radio_button_label enable6_string">Enable</span>
+                                                </label>
+                                            </div>
+                                            <br/>
+                                        </div>
+                                    </div>
+                                    <br>
+                                </td>
+                            </tr>
+							<tr id="spa_row3">
+                                <!--RENEW-->
+                                <td id="spa_renew" class="valves_cell borderright">
+                                    <div style="text-align:center;">
+                                    <hr/>
+                                    </div>
+                                    <p></p>
+                                    <span class="title renew_title_string">Renew</span>
+                                    <p></p>
+                                    <div class="valves_cell_box">
+                                        <div class="outlet_div">
+                                            <input type="button" id="renew_id" class="outlet renew">
+                                        </div>
+                                        <div class="valves_cell_text">
+                                            <div class="radio-div">
+                                                <input type="checkbox" id="enable7" name="enable_7" value="0" onchange="spa_selection(this, '#renew_id', 7);">
+                                                <label for="enable7">
+                                                   <span class="text radio_button_label enable7_string">Enable</span>
+                                                </label>
+                                            </div>
+                                            <br/>
+                                        </div>
+                                    </div>
+                                    <br>
+                                </td>
+                                <!--HEADAID-->
+                                <td id="spa_headaid" class="valves_cell borderright">
+                                    <div style="text-align:center;">
+                                    <hr/>
+                                    </div>
+                                    <p></p>
+                                    <span class="title headaid_title_string">Headaid</span>
+                                    <p></p>
+                                    <div class="valves_cell_box">
+                                        <div class="outlet_div">
+                                            <input type="button" id="headaid_id" class="outlet headaid">
+                                        </div>
+                                        <div class="valves_cell_text">
+                                            <div class="radio-div">
+                                                <input type="checkbox" id="enable8" name="enable_8" value="0" onchange="spa_selection(this, '#headaid_id', 8);">
+                                                <label for="enable8">
+                                                  <span class="text radio_button_label enable8_string">Enable</span>
+                                                </label>
+                                            </div>
+                                            <br/>
+                                        </div>
+                                    </div>
+                                    <br>
+                                </td>
+								</tr>
+                        </table>
+						<br>
+						<br>
+						<br>
+						<br>
+						<br>
+						<br>
+						<br>
+						<br>
+                    </div>
+					<div id ="spa_borderbottom1">
+                        <table id="spa_outlet_table" style="width:100%;">
+                            <tr>
+							<!--EXHILERATE  //Changed the title to Spa 3 from exhilerate as per the call on 1-6-2016-->
+                                <td id="spa_exhilerate1" class="valves_cell borderright">
+                                    <span class="title exhilerate_title_string">Exhilerate</span>
+                                    <p></p>
+                                    <div class="valves_cell_box">
+                                        <div class="outlet_div">
+                                            <input type="button" id="exhilerate_id" class="outlet exhilerate">
+                                        </div>
+                                        <div class="valves_cell_text">
+                                            <div class="radio-div">
+                                                <input type="checkbox" id="enable3_1" name="enable1_3" value="0" onchange="spa_selection(this, '#exhilerate_id', 3);">
+                                                <label for="enable3_1">
+                                                    <span class="text radio_button_label enable3_string">Enable</span>
+                                                </label>
+                                            </div>
+                                            <br/>
+                                        </div>
+                                    </div>
+                                </td>
+								<!--FLEX-->
+                                <td id="spa_flex1" class="valves_cell borderright">
+                                    <div style="text-align:center;">
+                                    </div>
+                                    <p></p>
+                                    <span class="title flex_title_string">Flex</span>
+                                    <p></p>
+                                    <div class="valves_cell_box">
+                                        <div class="outlet_div">
+                                            <input type="button" id="flex_id" class="outlet flex">
+                                        </div>
+                                        <div class="valves_cell_text">
+                                            <div class="radio-div">
+                                                <input type="checkbox" id="enable4_1" name="enable1_4" value="0" onchange="spa_selection(this, '#flex_id', 4);">
+                                                <label for="enable4_1">
+                                                   <span class="text radio_button_label enable4_string">Enable</span>
+                                                </label>
+                                            </div>
+                                            <br/>
+                                        </div>
+                                    </div>
+                                    <br>
+                                </td>
+								<!--WARMUP-->
+                                <td id="spa_warmup1" class="valves_cell">
+                                    <div style="text-align:center;">
+                                    </div>
+                                    <p></p>
+                                    <span class="title warmup_title_string">Warmup</span>
+                                    <p></p>
+                                    <div class="valves_cell_box">
+                                        <div class="outlet_div">
+                                            <input type="button" id="warmup_id" class="outlet warmup">
+                                        </div>
+                                        <div class="valves_cell_text">
+                                            <div class="radio-div">
+                                                <input type="checkbox" id="enable5_1" name="enable1_5" value="0" onchange="spa_selection(this, '#warmup_id', 5);">
+                                                <label for="enable5_1">
+                                                  <span class="text radio_button_label enable5_string">Enable</span>
+                                                </label>
+                                            </div>
+                                            <br/>
+                                        </div>
+                                    </div>
+                                    <br>
+                                </td>
+                            </tr>
+                            <tr id="spa_row2">
+                                <!--COOLDOWN-->
+                                <td id="spa_cooldown1" class="valves_cell borderright">
+                                    <div style="text-align:center;">
+                                    <hr/>
+                                    </div>
+                                    <p></p>
+                                    <span class="title cooldown_title_string">Cooldown</span>
+                                    <p></p>
+                                    <div class="valves_cell_box">
+                                        <div class="outlet_div">
+                                            <input type="button" id="cooldown_id"= class="outlet cooldown">
+                                        </div>
+                                        <div class="valves_cell_text">
+                                            <div class="radio-div">
+                                                <input type="checkbox" id="enable6_1" name="enable1_6" value="0" onchange="spa_selection(this, '#cooldown_id', 6);">
+                                                <label for="enable6_1">
+                                                   <span class="text radio_button_label enable6_string">Enable</span>
+                                                </label>
+                                            </div>
+                                            <br/>
+                                        </div>
+                                    </div>
+                                    <br>
+                                </td>
+								<!--RENEW-->
+                                <td id="spa_renew1" class="valves_cell">
+                                    <div style="text-align:center;">
+                                    <hr/>
+                                    </div>
+                                    <p></p>
+                                    <span class="title renew_title_string">Renew</span>
+                                    <p></p>
+                                    <div class="valves_cell_box">
+                                        <div class="outlet_div">
+                                            <input type="button" id="renew_id" class="outlet renew">
+                                        </div>
+                                        <div class="valves_cell_text">
+                                            <div class="radio-div">
+                                                <input type="checkbox" id="enable7_1" name="enable1_7" value="0" onchange="spa_selection(this, '#renew_id', 7);">
+                                                <label for="enable7_1">
+                                                   <span class="text radio_button_label enable7_string">Enable</span>
+                                                </label>
+                                            </div>
+                                            <br/>
+                                        </div>
+                                    </div>
+                                    <br>
+                                </td>
+                                <!--BREATHE  //Changed the title to Spa 1 from breathe as per the call on 1-6-2016-->
+                                <td id="spa_breathe1" class="valves_cell borderright">
+								<hr/>
+                                    <span class="title breathe_title_string">Breathe</span>
+                                    <p></p>
+                                    <div class="valves_cell_box">
+                                        <div class="outlet_div">
+                                            <input type="button" id="breathe_id" class="outlet breathe">
+                                        </div>
+                                        <div class="valves_cell_text">
+                                            <div class="radio-div">
+                                                <input type="checkbox" id="enable1_1" name="enable1_1" value="0" onchange="spa_selection(this, '#breathe_id', 1);">
+                                                <label for="enable1_1">
+												<span class="text radio_button_label enable1_string">Enable</span>
+                                                </label>
+                                            </div>
+                                            <br/>
+                                        </div>
+                                    </div>
+                                </td>
+                            </tr>
+							<tr id="spa_row3">
+                                 <!--RELEASE //Changed the title to Spa 2 from release as per the call on 1-6-2016-->
+                                <td id="spa_release1" class="valves_cell">
+								<hr/>
+                                    <span class="title release_title_string">Release</span>
+									
+                                    <p></p>
+                                    <div class="valves_cell_box">
+                                        <div class="outlet_div">
+                                            <input type="button" id="release_id" class="outlet release">
+                                        </div>
+                                        <div class="valves_cell_text">
+                                            <div class="radio-div">
+                                                <input type="checkbox" id="enable2_1" name="enable1_2" value="0" onchange="spa_selection(this, '#release_id', 2);">
+                                                <label for="enable2_1">
+                                                   <span class="text radio_button_label enable2_string">Enable</span>
+                                                </label>
+                                            </div>
+                                            <br/>
+                                        </div>
+                                    </div>
+                                </td>
+                                <!--HEADAID-->
+                                <td id="spa_headaid1" class="valves_cell borderright">
+                                    <div style="text-align:center;">
+                                    <hr/>
+                                    </div>
+                                    <p></p>
+                                    <span class="title headaid_title_string">Headaid</span>
+                                    <p></p>
+                                    <div class="valves_cell_box">
+                                        <div class="outlet_div">
+                                            <input type="button" id="headaid_id" class="outlet headaid">
+                                        </div>
+                                        <div class="valves_cell_text">
+                                            <div class="radio-div">
+                                                <input type="checkbox" id="enable8_1" name="enable1_8" value="0" onchange="spa_selection(this, '#headaid_id', 8);">
+                                                <label for="enable8_1">
+                                                  <span class="text radio_button_label enable8_string">Enable</span>
+                                                </label>
+                                            </div>
+                                            <br/>
+                                        </div>
+                                    </div>
+                                    <br>
+                                </td>
+								</tr>
+                        </table>
+						<br>
+						<br>
+						<br>
+						<br>
+						<br>
+						<br>
+						<br>
+						<br>
+                    </div>
+					<br>
+					<div id="steam_spa_separation_line" class="bordertop">
+					</div>
+					<br>
+					<span id="steam_spa_title" class="steam_spa_string title">Steam Spa</span>
+					<p></p>
+					<table id="spa_outlet_table" style="width:100%;">
+						<tr>
+							<!--DETOX //Changed the title to Spa 4 from detox as per the call on 1-6-2016-->
+							<td id="spa_detox" class="valves_cell borderright">
+								<span class="title detox_title_string">Detox</span>
+								<p></p>
+								<div class="valves_cell_box">
+									<div class="outlet_div">
+										<input type="button" id="detox_id" class="outlet detox">
+									</div>
+									<div class="valves_cell_text">
+										<div class="radio-div">
+											<input type="checkbox" id="enable9" name="enable_9" value="0" onchange="spa_selection(this, '#detox_id', 9);">
+											<label for="enable9">
+											<span class="text radio_button_label enable9_string">Enable</span>
+											</label>
+										</div>
+										<br/>
+									</div>
+								</div>
+							</td>
+							<!--STEAM_COACH //Changed the title to Spa 5 from steam coach as per the call on 1-6-2016-->
+							<td id="spa_steam_coach" class="valves_cell borderright">
+								<span class="title steam_coach_title_string">Steam Coach</span>
+								<p></p>
+								<div class="valves_cell_box">
+									<div class="outlet_div">
+										<input type="button" id="steam_coach_id" class="outlet steam_coach">
+									</div>
+									<div class="valves_cell_text">
+										<div class="radio-div">
+											<input type="checkbox" id="enable10" name="enable_10" value="0" onchange="spa_selection(this, '#steam_coach_id', 10);">
+											<label for="enable10">
+											   <span class="text radio_button_label enable10_string">Enable</span>
+											</label>
+										</div>
+										<br/>
+									</div>
+								</div>
+							</td>
+							<!--REPAIR  //Changed the title to Spa 6 from repair as per the call on 1-6-2016-->
+							<td id="spa_repair" class="valves_cell">
+								<span class="title repair_title_string">Repair</span>
+								<p></p>
+								<div class="valves_cell_box">
+									<div class="outlet_div">
+										<input type="button" id="repair_id" class="outlet repair">
+									</div>
+									<div class="valves_cell_text">
+										<div class="radio-div">
+											<input type="checkbox" id="enable11" name="enable_11" value="0" onchange="spa_selection(this, '#repair_id', 11);">
+											<label for="enable11">
+												<span class="text radio_button_label enable11_string">Enable</span>
+											</label>
+										</div>
+										<br/>
+									</div>
+								</div>
+							</td>
+						</tr>
+					</table>
+                    </div>
+                </div>
+				<!--End of add for spa selection by TF-Team on 17-11-2015-->
+				<div id="tabs-Music">
+				    <div style="padding: 20px 0 0 20px;">
+                    <div style="float:left; margin:0; width:250px;padding:10px;">
+                        <div style="width:200px;">
+                            <span class="title default_string">Default</span>
+                            <p></p>
+                            <div class="lblslider" style="padding-left: 10px;padding-right: 10px;"><span class="subtitle volume_string">Volume</span>
+                                <table style="width:200px">
+                                    <tr>
+                                        <td>
+                                            <div id="volume_slider" style="width:160px;"></div>
+                                        </td>
+                                        <td style="padding-left: 10px;">
+                                            <input type="text" id="volume_val" />
+                                        </td>
+                                    </tr>
+                                </table>
+                            </div>
+                            <div class="lblslider" style="padding-left: 10px;padding-right: 10px;">	<span class="subtitle treble_string">Treble</span>
+                                <table style="width:200px">
+                                    <tr>
+                                        <td>
+                                            <div id="treble_slider" style="width:160px;"></div>
+                                        </td>
+                                        <td style="padding-left: 10px;">
+                                            <input type="text" id="treble_val" />
+                                        </td>
+                                    </tr>
+                                </table>
+                            </div>
+                            <div class="lblslider" style="padding-left: 10px;padding-right: 10px;">	<span class="subtitle bass_string">Bass</span>
+                                <table style="width:200px">
+                                    <tr>
+                                        <td>
+                                            <div id="bass_slider" style="width:160px;"></div>
+                                        </td>
+                                        <td style="padding-left: 10px;">
+                                            <input type="text" id="bass_val" />
+                                        </td>
+                                    </tr>
+                                </table>
+                            </div>
+                            <div class="lblslider" style="padding-left: 10px;padding-right: 10px;">	<span class="subtitle balance_string">Balance</span>
+                                <table style="width:200px">
+                                    <tr>
+                                        <td>
+                                            <div id="bal_slider" style="width:160px;"></div>
+                                        </td>
+                                        <td style="padding-left: 10px;">
+                                            <input type="text" id="bal_val" />
+                                        </td>
+                                    </tr>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="borderleft borderright" style="float:left; margin:0; width:350px;padding:10px 10px 10px 30px;">
+                        <span class="title BT_string">Bluetooth</span>
+                    	<p></p>
+                        <span class="subtitle BT_device_string">Current Bluetooth Connected Device</span>
+                        <p></p>
+						<span id="bt_device" size="35" class="text"></span> <!-- Added by TF team 27-05-2015-->
+                        <!-- <input id="bt_device" disabled type="text" size="35"> --> <!-- Commented by TF team 27-05-2015-->
+                        <p></p>
+                        <br>
+						<!-- issue : 1044  - TF team altered to restrict 15 + characters on the input text box-->
+                        <span class="subtitle BT_key_string">Reporting Key:</span>&nbsp;&nbsp;<span class="text" id="bt_key"></span>
+						<p></p>
+                        <span class="text">New Key:</span>
+						<!-- <div class="search"> -->   <!--Commented by TF team-->
+						<span class="search"> <!--Added by TF team-->
+                            <input id="key" type="text" onkeypress='validate_user(event)' maxlength="15" size="15" onchange="update_bluetooth_key(const_music_BT_key,document.getElementById('key').value);">
+                        </span> <!-- </div> --> <!--Commented by TF team--> <!--Added by TF team-->
+                        <p></p>
+                        <br>
+                        <span class="subtitle BT_pass_string">Bluetooth Pin:</span>&nbsp;&nbsp;<span class="text" id="bt_pin"></span>
+                        <p></p>
+                        <span class="text">New Pin :</span>
+                        <!-- <div class="search"> -->  <!--Commented by TF team-->
+						<span class="search">  <!--Added by TF team-->
+                            <input id="pin" onkeypress='validate(event)' maxlength="4" type="text" size="4" onchange="update_bluetooth_pin(const_music_BT_password,document.getElementById('pin').value);">
+                        </span> <!-- </div> --> <!--Commented by TF team--> <!--Added by TF team-->
+                    </div>
+					<!--
+                    <div style="float:left; margin:0; width:250px;padding:10px 10px 10px 30px;">
+                        <span class="title" id="input_name_1">Input 1</span>
+                        <p></p>
+                        <span class="subtitle">Rename:</span>
+                        <input id="input1_rename" onkeypress='validate_user(event)' type="text" maxlength="16" size="16" onchange="update_input_name(1);">
+                        <p></p>
+                        <input type="button" class="centered_button" value="Reset Input" onclick="reset_input(1);">
+                        <p></p>
+                        <br>
+                        <span class="title" id="input_name_2">Input 2</span>
+                        <p></p>
+                        <span class="subtitle">Rename:</span>
+                        <input id="input2_rename" type="text" onkeypress='validate_user(event)' maxlength="16" size="16" onchange="update_input_name(2);">
+                        <p></p>
+                        <input type="button" class="centered_button" value="Reset Input" onclick="reset_input(2);">
+                    </div>
+					-->
+                    </div>
+                </div>
+
+                <div id="tabs-Steam">
+                    <div style="padding: 20px;">
+                    <table id="steam_table">
+                        <tr>
+                            <td><span class="title def_temp_string">Default Temperature</span>
+                            </td>
+                            <td>
+                                <input style="width:100%" id="steam_default_temp" type="number" onchange="number_blur(this);update_value(const_steam_def_temp,this.value);">
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+								<span class="title max_temp_string">Max Temperature</span>
+                            </td>
+                            <td>
+                                <input style="width:100%" id="steam_max_temp" type="number" onchange="max_change(this,document.getElementById('steam_default_temp'));update_value(const_steam_max_temp,this.value);">
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>	<span class="title def_time_string">Default Time</span>
+								<span class="text minutes_string">(Minutes)</span>
+                            </td>
+                            <td>
+                                <input style="width:100%" id="steam_def_time" type="number" min="1" max="20" onchange="number_blur(this);if(parseInt(this.value)>parseInt(this.max)){this.value=this.max;}else if(parseInt(this.value)<parseInt(this.min)){this.value=this.min}update_value(const_steam_def_time,this.value);">
+                            </td>
+                        </tr>
+						<!--Added by TF team-->
+						<tr>
+							<td>
+								<div class="radio-div">
+									<input type="checkbox" id="max_steam_runtime_check" onchange="max_steam_runtime(this.checked);">
+									<label for="max_steam_runtime_check">
+										<span class="text radio_button_label max_steam_runtime_string">Max Run Time</span>
+									</label>
+								</div>
+							</td>
+							<td>
+								<select size='1' id="max_steam_runtime" onchange='update_value_steam_runtime(const_max_steam_runtime,1,1,this.value);'>
+									<option value='1'>No Limit</option>
+									<option value='2'>20 Minutes</option>
+									<option value='3'>25 Minutes</option>
+									<option value='4'>30 Minutes</option>
+									<option value='5'>35 Minutes</option>
+								</select>
+							</td>
+						</tr>
+						<!--End of add by TF team-->
+                    </table>
+                    <div style="width:60%;" class="bordertop">
+                        <br>
+                        <span class="title power_clean_string">Power Clean</span>
+                        <p></p>
+                        <span class="text power_clean_time_string">Time Remaining before Power Clean (minutes)</span>
+                        <p></p>
+                        <span class="title" id="steam_power_clean"></span>
+
+                        <p></p>
+                        <input type="button" class="power_clean_button" value="Start Power Clean" style="width:200px" onclick="run_power_clean();">
+						<!----------------------------------------  //Added by TF2 for power clean  dialog - TF2*March 2nd 2015 - Bug 279------------------------------------------------------->
+						<div id="dialog-steam-powerclean" title="Steam Generator Power Clean in Progress!!! Please Wait ">
+								<span class="ui-icon ui-icon-alert text"></span>
+						</div>
+						<!----------------------------------------  //End of Add by TF2 - TF2*March 2nd 2015 - Bug 279 ------------------------------------------------------->
+                    </div>
+                    </div>
+                </div>
+
+                <div id="tabs-About">
+                    <div style="padding: 20px;">
+					<div style="float:left;width:300px;">
+						<span class="title networkTabString">Network</span>
+						<p></p>
+						<div style="padding: 0 0 0 30px;">
+						<span class="title controller_ip_string">Controller IP Address</span>
+						<br>
+						<span style="padding:20px;" class="text" id="controller_ip">xxxx</span>
+						</p><p>
+						<span class="title controller_gateway_string">Gateway</span>
+						<br>
+						<span style="padding:20px;" class="text" id="controller_gateway">xxxx</span>
+						</p><p>
+						<span class="title controller_mac_string">MAC Address</span>
+						<br>
+						<span style="padding:20px;" class="text" id="controller_mac">xxxx</span>
+						</p>
+						</div>
+					</div>
+
+					<div class="borderleft" style="float:left;padding: 0 30px 0 30px;">
+						<span class="title version_string">Software Version</span>
+						<p></p>
+						<div style="padding: 0 0 0 30px;float:left;">
+						<div id="konnectconnected">
+						<span id="int4_about_div" class="title konnect_dev_string">Kohler Konnect</span>
+						<br>
+						<div id="am4_ver_div">
+							<span class="text amulet_ver_string">OS:&nbsp;&nbsp;</span>
+							<span class="text" id="amulet4_version"></span>
+						</div>
+						<div id="co4_ver_div">
+							<span class="text coproc_ver_string">Graphics:&nbsp;&nbsp;</span>
+							<span class="text" id="coproc4_version"></span>
+						</div>
+						<br>
+						</div>
+						<span id="int1_about_div" class="title interface1_dev_string">User Interface 1</span>
+						<br>
+						<div id="am_ver_div">
+							<span class="text amulet_ver_string">OS:&nbsp;&nbsp;</span>
+							<span class="text" id="amulet_version">xxx</span>
+						</div>
+						<div id="co_ver_div">
+							<span class="text coproc_ver_string">Graphics:&nbsp;&nbsp;</span>
+							<span class="text" id="coproc_version">xxx</span>
+						</div>
+						<div id="lang_ver_div">
+							<span class="text lang_ver_string">Language:&nbsp;&nbsp;</span>
+							<span class="text" id="lang_version">xxx</span>
+						</div>
+						<div id="touch_ver_div">
+							<span class="text touch_ver_string">Touch Panel:&nbsp;&nbsp;</span>
+							<span class="text" id="touch_version">xxx</span>
+						</div>
+						<br>
+
+						<span id="int2_about_div" class="title interface2_dev_string">User Interface 2</span>
+						<br>
+						<div id="am2_ver_div">
+							<span class="text amulet_ver_string">OS:&nbsp;&nbsp;</span>
+							<span class="text" id="amulet2_version">xxx</span>
+						</div>
+						<div id="co2_ver_div">
+							<span class="text coproc_ver_string">Graphics:&nbsp;&nbsp;</span>
+							<span class="text" id="coproc2_version">xxx</span>
+						</div>
+						<div id="lang2_ver_div">
+							<span class="text lang_ver_string">Language:&nbsp;&nbsp;</span>
+							<span class="text" id="lang2_version">xxx</span>
+						</div>
+						<div id="touch2_ver_div">
+							<span class="text touch_ver_string">Touch Panel:&nbsp;&nbsp;</span>
+							<span class="text" id="touch2_version">xxx</span>
+						</div>
+						<br>
+
+						<span id="int3_about_div" class="title interface3_dev_string">User Interaface 3</span>
+						<br>
+						<div id="am3_ver_div">
+							<span class="text amulet_ver_string">OS:&nbsp;&nbsp;</span>
+							<span class="text" id="amulet3_version"></span>
+						</div>
+						<div id="co3_ver_div">
+							<span class="text coproc_ver_string">Graphics:&nbsp;&nbsp;</span>
+							<span class="text" id="coproc3_version"></span>
+						</div>
+						<div id="lang3_ver_div">
+							<span class="text lang_ver_string">Language:&nbsp;&nbsp;</span>
+							<span class="text" id="lang3_version"></span>
+						</div>
+						<div id="touch3_ver_div">
+							<span class="text touch_ver_string">Touch Panel:&nbsp;&nbsp;</span>
+							<span class="text" id="touch3_version">xxx</span>
+						</div>
+						<br>
+						</div>
+
+
+  					    <div style="float:left;padding: 0 0 0 50px;">
+
+						<div id="valve1_ver_div">
+							<span class="title valve1_ver_string">Valve 1</span>
+							<br>
+							<span class="text" id="valve1_version">xxx</span>
+							<br>
+							<br>
+						</div>
+						<div id="valve2_ver_div">
+							<span class="title valve2_ver_string">Valve 2</span>
+							<br>
+							<span class="text" id="valve2_version">xxx</span>
+							<br>
+							<br>
+						</div>
+						<div id="controller_ver_div">
+							<span class="title controller_string">Controller (S)</span>
+							<br>
+							<span class="text" id="controller_version">xxx</span>
+							<br>
+							<br>
+						</div>
+						<div id="music_ver_div">
+							<span class="title music_dev_string">Music Module</span>
+							<br>
+							<span class="text" id="music_version">xxx</span>
+							<br>
+							<br>
+						</div>
+						<div id="light_ver_div">
+							<span class="title light_dev_string">Lighting Bridge</span>
+							<br>
+							<span class="text" id="lighting_version">xxx</span>
+							<br>
+							<br>
+						</div>
+						<div id="steam_ver_div">
+							<span class="title steam_dev_string">Steam</span>
+							<br>
+							<span class="text" id="steam_version">xxx</span>
+							<br>
+							<br>
+						</div>
+						
+						<div id="amp_ver_div">
+							<span class="title amp_dev_string">Amplifier</span>
+							<br>
+							<span class="text" id="amp_version">xxx</span>
+							<br>
+							<br>
+						</div>
+						<div id="rain_ver_div">
+                            <!--Changed rain_dev_string to rain_dev1_string by TF2 March*16*2015 - Bug 967 - Was taking label name from language.csv-->
+                            <!--Changed WaterTile Ambient Rain to WaterTile Rain by TF2 March*16*2015 - Bug 967 - Gave a new label name-->
+							<span class="title rain_dev1_string">WaterTile Rain 1</span>
+							<br>
+							<span class="text" id="watertile_version">xxx</span>
+							<br>
+							<br>
+						</div>
+						<div id="rain_ver2_div">
+							<span class="title rain_dev2_string">WaterTile Rain 2</span>     <!--Changed WaterTile Ambient Rain 2 to WaterTile Rain by TF2 March*16*2015 - Bug 967 - Gave a new label name-->
+							<br>
+							<span class="text" id="watertile_2_version">xxx</span>
+							<br>
+							<br>
+						</div>
+
+						</div>
+					</div>
+                </div>
+			</div>
+
+			<!----------------------------------------  //Added by TF on 13-10-2015 for Light_add_dialog  ------------------------------------------------------->
+			<div id="dialog-add-light-module" title="Press the Identification Button on the load module">
+					<span class="ui-icon ui-icon-alert text"></span>
+			</div>
+			<!----------------------------------------  //End of Add - TF-team on 13-10-2015 Light_add_dialog  ------------------------------------------------------->
+			<!----------------------------------------  //Added by TF on 16-12-2015 for Light_remove_dialog------------------------------------------------------->
+			<div id="dialog-remove-light-module" title="Removal In Progress">
+					<span class="ui-icon ui-icon-alert text"></span>
+			</div>
+			<!----------------------------------------  //End of Add - TF-team  Light_remove_dialog  ------------------------------------------------------->
+            <div id="tabs-Lighting">
+              <div id="Light_bridge" style="padding: 20px 0 0 20px;">
+                <div class="borderbottom" style='padding-bottom:10px; width:100%;'>
+                    <table id="light_modules_table">
+                    <tr>
+                    <td>
+                    <input type="button" id="new_light_modual" class="new_light_modual" style="width:250px" value="ID New Load Module" onclick="add_light_module(const_light_add_module,0);">
+                    </td>
+                    <td>
+                    <input type="button" class="del_light_modual" style="width:250px" id="del_light_modual" value="Remove Load Module" onclick="rem_module();">
+					</td>
+					<td>
+					<!-- selections populated by JS code -->
+                    <select id="remove_modules" style="width:200px" size=2> </select>
+					<br>
+					<span id = "wrong_selection" hidden="hidden" style="display:none;color:red;font-size:75%;">Please Select A Module</span>
+                    </td>
+                    </tr>
+                    </table>
+                </div>
+                <div class="borderbottom" style="float:left;padding-bottom:10px; width:100%;">
+                    <!--Module 1-->
+                    <div id="module_1" style='float:left; margin:0; width:280px;padding:10px;'>
+                        <span class="title light_1_string">Light 1</span>
+                        <p></p>
+						<span class="subtitle name_string">Name:&nbsp;&nbsp;</span> <span class="text" id="name_1"></span>
+						<p></p>
+						<span class="subtitle rename_string">Rename:</span>
+						<p></p>
+                        <div class="search">
+                            <input id="new_name_1" type="text" maxlength="10" onchange="update_module_name(const_light_name,this.value,1);">
+                        </div>
+                        <p></p>
+                        <br>
+                        <span class="subtitle load_type_string">Load Type:&nbsp;&nbsp;</span> <span id="light1_type" class="text"></span>
+                        <p></p>
+                        <br>
+                        <div id='hide_this_1'>
+                            <label id='fade_label' for='fade_1'>
+								<span class="subtitle light_fade_speed_string">Light Fade Speed</span>
+                            </label>
+                            <p></p>
+                            <select id='fade_1' onchange="update_module(const_light_fade_speed, this.value, 1);" style="width:80%;">
+                                <option value='5'>Slow</option>   <!--- Changed value from 1 to 5 according to the ramp value on 15-10-2015--->
+                                <option value='30' selected>Medium</option>   <!--- Changed value from 2 to 10 according to the ramp value on 15-10-2015--->
+                                <option value='0'>Fast</option>      <!--- Changed value from 0 to 0 according to the ramp value on 15-10-2015--->
+                            </select>
+                            <p></p>
+                            <br>
+                            <div class="lblslider">
+                                <span class="subtitle default_brightness_string">Default Brightness</span>
+                                <table style="width:200px">
+                                    <tr>
+                                        <td style="padding: 0;">
+                                            <div id="slider_1" style="width:160px;"></div>
+                                        </td>
+                                        <td style="padding-left: 10px;">
+                                            <input type="text" id="amount_1" />
+                                        </td>
+                                    </tr>
+                                </table>
+                            </div>
+                        </div>
+                        <div class="spacer" id="spacer_1">
+                        	<p>&nbsp;</p>
+                        </div>
+                        <br>
+                        <br>
+                        <div class="radio-div">
+                            <input type='checkbox' id='delay_1' onchange="set_light_delay(1);">
+                            <label for="delay_1">
+							<span class="text delay_string radio_button_label">Delay off for</span>
+                            </label>
+                            <select id="delay_off_for" onchange="set_light_delay_minutes(1);" style="width:125px">
+                                <option value="2">2 Minutes</option>  <!--Changed the value from 1 to appropriate timer value by tf-team 12-10-2015-->
+                                <option value="5" selected>5 Minutes</option>
+                                <option value="10">10 Minutes</option>
+                                <option value="15">15 Minutes</option>
+								<option value="20">20 Minutes</option>
+                            </select>
+                        </div>
+                    </div>
+                    <!--Module 2-->
+                    <div id="module_2" class="borderleft" style='float:left; margin:0; width:280px;padding: 10px;'>
+                        <span class="title light_2_string">Light 2</span>
+                        <p></p>
+						<span class="subtitle name_string">Name:&nbsp;&nbsp;</span> <span class="text" id="name_2"></span>
+                        <p></p>
+						<span class="subtitle rename_string">Rename:</span>
+						<p></p>
+                        <div class="search">
+                           <input id="new_name_2" type="text" maxlength="10" onchange="update_module_name(const_light_name,document.getElementById('new_name_2').value,2);">
+                        </div>
+                        <p></p>
+                        <br>
+                        <span class="subtitle load_type_string">Load Type:&nbsp;&nbsp;</span> <span id="light2_type" class="text"></span>
+                        <p></p>
+                        <br>
+                        <div id='hide_this_2'>
+                            <label id='fade_label_2' for='fade_2'>
+								<span class="subtitle light_fade_speed_string">Light Fade Speed</span>
+                            </label>
+                            <p></p>
+                            <select id='fade_2' onchange="update_module(const_light_fade_speed,this.value,2);" style="width:80%">
+                                <option value='5'>Slow</option>   <!--- Changed value from 1 to 5 according to the ramp value on 15-10-2015--->
+                                <option value='30' selected>Medium</option>   <!--- Changed value from 2 to 10 according to the ramp value on 15-10-2015--->
+                                <option value='0'>Fast</option>      <!--- Changed value from 0 to 0 according to the ramp value on 15-10-2015--->
+                            </select>
+                            <p></p>
+                            <br>
+                            <div class="lblslider">
+                                <span class="subtitle default_brightness_string">Default Brightness</span>
+                                <table style="width:200px">
+                                    <tr>
+                                        <td style="padding: 0;">
+                                            <div id="slider_2" style="width:160px;"></div>
+                                        </td>
+                                        <td style="padding-left: 10px;">
+                                            <input type="text" id="amount_2" />
+                                        </td>
+                                    </tr>
+                                </table>
+                            </div>
+                        </div>
+                        <div class="spacer" id="spacer_2">
+                        	<p>&nbsp;</p>
+                        </div>
+                        <br>
+                        <br>
+                        <div class="radio-div">
+                            <input type='checkbox' id='delay_2' onchange="set_light_delay(2);">
+                            <label for="delay_2">
+							<span class="text radio_button_label delay_string">Delay off for</span>
+                            </label>
+                            <select id="delay_off_for2" onchange="set_light_delay_minutes(2);" style="width:125px">
+                                <option value="2">2 Minutes</option>     <!--Changed the value from 1 to appropriate timer value by tf-team 12-10-2015-->
+                                <option value="5" selected>5 Minutes</option>
+                                <option value="10">10 Minutes</option>
+                                <option value="15">15 Minutes</option>
+								<option value="20">20 Minutes</option>
+							</select>
+                        </div>
+                    </div>
+                    <!--Module 3-->
+                    <div id="module_3" class="borderleft" style='float:left; margin:0; width:280px;padding:10px;'>
+                        <span class="title light_3_string">Light 3</span>
+                        <p></p>
+						<span class="subtitle name_string">Name:&nbsp;&nbsp;</span>	<span class="text" id="name_3"></span>
+						<p></p>
+						<span class="text rename_string">Rename:</span>
+						<p></p>
+                        <div class="search">
+                            <input id="new_name_3" type="text" maxlength="10" onchange="update_module_name(const_light_name,document.getElementById('new_name_3').value,3);">
+                        </div>
+                        <p></p>
+                        <br>
+                        <span class="subtitle load_type_string">Load Type:&nbsp;&nbsp;</span> <span id="light3_type" class="text"></span>
+                        <p></p>
+                        <br>
+                        <div id='hide_this_3'>
+                            <label id='fade_label_3' for='fade_3'>
+								<span class="subtitle light_fade_speed_string">Light Fade Speed</span>
+                            </label>
+                            <p></p>
+                            <select id='fade_3' onchange="update_module(const_light_fade_speed,this.value,3);" style="width:80%">
+                                <option value='5'>Slow</option>   <!--- Changed value from 1 to 5 according to the ramp value on 15-10-2015--->
+                                <option value='30' selected>Medium</option>   <!--- Changed value from 2 to 10 according to the ramp value on 15-10-2015--->
+                                <option value='0'>Fast</option>      <!--- Changed value from 0 to 0 according to the ramp value on 15-10-2015--->
+                            </select>
+                            <p></p>
+                            <br>
+                            <div class="lblslider" style="padding-left: 10px;padding-right: 10px;">
+                                <span class="subtitle default_brightness_string">Default Brightness</span>
+                                <table style="width:200px">
+                                    <tr>
+                                        <td style="padding:0;">
+                                            <div id="slider_3" style="width:160px;"></div>
+                                        </td>
+                                        <td style="padding-left: 10px;">
+                                            <input type="text" id="amount_3" />
+                                        </td>
+                                    </tr>
+                                </table>
+                            </div>
+                        </div>
+                        <div class="spacer" id="spacer_3">
+                        	<p>&nbsp;</p>
+                        </div>
+                        <br>
+                        <br>
+                        <div class="radio-div">
+                            <input type='checkbox' id='delay_3' onchange="set_light_delay(3);">
+                            <label for="delay_3">
+							<span class="text radio_button_label delay_string">Delay off for</span>
+                            </label>
+                            <select id="delay_off_for3" onchange="set_light_delay_minutes(3);" style="width:125px">
+                                <option value="2">2 Minutes</option>  <!--Changed the value from 1 to appropriate timer value by tf-team 12-10-2015-->
+                                <option value="5" selected>5 Minutes</option>
+                                <option value="10">10 Minutes</option>
+                                <option value="15">15 Minutes</option>
+								<option value="20">20 Minutes</option>
+							</select>
+                        </div>
+                    </div>
+                </div>
+				</div>
+
+                <div id="chroma_settings_div" class="wideselects" style="padding: 20px 0 0 20px;">
+                	<p></p>
+                    <span class="title watertile_string">WaterTile Ambient Rain</span>
+                    <p></p>
+                    <table>
+                        <tr>
+                            <td>
+							<span class="text light_fade_speed_string">Light Fade Speed</span>
+                            </td>
+                            <td>
+							<span class="text white_color_string">Default White</span>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 0 0 20px 0;">
+                                <select id="fade_speed_select" onchange='update_value(const_rain_fade_speed,this.value);'>
+                                    <option value='0'>Slow</option>
+                                    <option value='1'>Medium</option>
+                                    <option value='2'>Fast</option>
+                                </select>
+                            </td>
+                            <td style="padding: 0 0 20px 0;">
+                                <select id="white_color_select" onchange="update_value(const_rain_white_color,this.value);">
+                                    <option value='0'>Cool</option>
+                                    <option value='1'>Neutral</option>
+                                    <option value='2'>Warm</option>
+                                </select>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+							<span class="text default_brightness_string">Default Brightness</span>
+                            </td>
+                            <td>
+							<span class="text effects_string">Effects Speed</span>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 0 0 20px 0;">
+                                <div class="lblslider" style="padding-right: 10px;">
+                                    <table style="width:200px">
+                                        <tr>
+                                            <td style="padding: 0;">
+                                                <div id="slider_chroma" style="width:160px;"></div>
+                                            </td>
+                                            <td style="padding-left: 10px;">
+                                                <input type="text" id="amount_chroma" />
+                                            </td>
+                                        </tr>
+                                    </table>
+                                </div>
+                            </td>
+                            <td style="padding: 0 0 20px 0;">
+                                <select id="effect_speed_select" onchange="update_value(const_rain_effect_speed,this.value);">
+                                    <option value='0'>Slow</option>
+                                    <option value='1'>Medium</option>
+                                    <option value='2'>Fast</option>
+                                </select>
+                            </td>
+                        </tr>
+                    </table>
+					</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+<!--(issue : 1159) Tf team added to for the FATAL error warning for valves -->
+<div id="valveFatalWarning" title="FATAL ERROR OCCURED !! to : " >
+	<div id="valve1_FATAL" hidden="hidden" style="display:none;>
+	<label for="valve1_fatal_error">
+	<span>VALVE 1 </span>
+	</label>
+	</div>
+	<div id="valve2_FATAL" hidden="hidden" style="display:none;>
+	<label for="valve2_fatal_error">
+	<span>VALVE 2</span>
+	</label>			
+	</div>					
+	<span class="ui-icon ui-icon-alert text"></span>
+</div>											
+
+
+
+</body>
+</html>

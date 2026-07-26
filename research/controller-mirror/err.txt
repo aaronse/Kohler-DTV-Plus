@@ -1,0 +1,11 @@
+*   Trying 192.168.0.115:80...
+* Established connection to 192.168.0.115 (192.168.0.115 port 80) from 192.168.0.12 port 59052 
+* using HTTP/1.x
+> GET /values.cgi HTTP/1.1
+> Host: 192.168.0.115
+> User-Agent: curl/8.18.0
+> Accept: */*
+> 
+* Request completely sent off
+* Received HTTP/0.9 when not allowed
+< {closing connection #0

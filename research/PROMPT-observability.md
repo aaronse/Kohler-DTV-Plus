@@ -24,10 +24,32 @@ nothing commanded it off — the valve stops and the controller finds out late.
 The setpoint also reverted 97 → 96 °F on its own during that session, and 96 is
 `def_temp`.
 
-Leading hypotheses, in order: valve power loss or reset; RS-485 comms loss;
-a valve-side fault it can't report. The controller's error log holds exactly one
-entry — the UI detach from when I pulled the interface connector — which either
-means these events aren't logged, or the log was cleared. That's the biggest gap.
+**The most important fact, and it constrains everything:** I cleared the
+controller's error log *before* filming that session, reproduced the shutoff on
+camera, and captured the log *after*. It said `No errors are logged from
+Controller`. Cleared before, reproduced during, empty after — a controlled
+negative. Captures are in `research/diagnostics/2026-07-14-*.log`.
+
+So the shutoff writes **nothing**: no detach, no valve fault, no task exception,
+no link drop. And we know the mechanism works, because pulling the interface
+connector on 07-25 logged code 100 within seconds.
+
+That demoted what had been the leading theory. If the valve lost power or fell
+off the RS-485 bus, code 100 is exactly what should have appeared.
+
+**Current leading hypothesis: something mechanical or hydraulic stops the water
+and the electronics never find out** — a thermal or anti-scald cutoff, hot supply
+exhaustion, or supply pressure loss. That explains every observation at once,
+including the silence.
+
+**Which means you should be sceptical about what controller telemetry can
+achieve here.** If the cause is mechanical, a trace will only ever show "running,
+then timed out ~1 min later" — which we already know. Confirming that negative is
+cheap and worth doing, but please think about what signal would actually
+discriminate the hypotheses, and tell me if that means instrumenting something
+other than the controller (outlet temperature, flow, supply-side behaviour). I'd
+rather hear "polling the controller won't answer this, here's what would" than
+get a beautifully engineered logger that cannot see the fault.
 
 Separately: the K-99693 interface is physically disconnected (its internal
 wire-to-board connector was pulled out when I removed the housing — the original
@@ -122,5 +144,20 @@ Append anything significant to `STORY-LOG.md` per the convention in `AGENT.md`.
 This is being documented for YouTube (@azab2c) and may go to Kohler support, so
 findings, reversals and mistakes are all worth capturing as they happen.
 
-Start by telling me what you found on the transport question and what you'd
-capture, before writing code.
+## How I want to work through this
+
+1. Tell me what you found on the transport question, and — more importantly —
+   **whether controller telemetry can actually discriminate the hypotheses**,
+   given the controlled negative above. If it can't, say so and tell me what
+   would.
+2. Propose what to capture and the JSONL record shape, before writing code.
+3. Build it, and get it capturing on the dev box.
+4. **Stop there and show me real captured traces.** I want to look at actual
+   content — a few minutes of idle capture — and understand what's in each field
+   before I run any water.
+5. Only once I've reviewed that and confirmed will I start a shower. Treat "the
+   operator has reviewed the trace and said go" as a hard gate. Do not ask me to
+   start the shower before step 4 is done.
+
+Sample output I can eyeball matters more than completeness — if a field is
+cryptic, tell me what it means and why it's worth logging.

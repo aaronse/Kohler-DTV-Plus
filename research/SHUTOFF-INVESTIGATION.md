@@ -57,7 +57,58 @@ independently sceptical of. It is struck from the ranking below.
 
 ## Instrument evidence
 
-### The controller's error log is almost empty
+### A controlled negative: the shutoff logs nothing at all
+
+**This is the strongest single piece of evidence we have.**
+
+The operator cleared the controller's error log **before** filming the
+2026-07-14 session, reproduced the shutoff on camera, and captured the log
+**after**. Raw captures:
+[2026-07-14-controller_Error-after-repro.log](diagnostics/2026-07-14-controller_Error-after-repro.log),
+[2026-07-14-konnect_Error-after-repro.log](diagnostics/2026-07-14-konnect_Error-after-repro.log).
+
+```
+Controller (S): v0.0.3.89
+...
+No errors are logged from Controller
+```
+
+Cleared before, reproduced during, **still empty after**. This is a properly
+controlled negative result, not an ambiguous one.
+
+It eliminates everything that writes to the log:
+
+| Ruled out | Code |
+| --- | --- |
+| Device detach — valve, amplifier, anything | 100 |
+| Device unresponsive | 101-103 |
+| Configuration / flash filesystem errors | 102-110 |
+| Ethernet / Wi-Fi link drop | 105 / 106 |
+| RTOS task exception | 130-137 |
+| RTOS task abort | 138-146 |
+| Valve faults (`OVERTEMP_*`, `ALG_*`, `RELAY_FAULT`) | 2-39 |
+
+**The detach mechanism demonstrably works** — the UI disconnection on 2026-07-25
+was logged as code 100 within seconds. So the controller is perfectly capable of
+noticing and recording a device dropping off the bus. It did not do so here.
+
+That is bad news for the valve-power and RS-485 hypotheses: if the valve had lost
+power or fallen off the bus, code 100 is exactly what we should see.
+
+### Interface firmware, recorded while it was still attached
+
+The captured log header preserves versions we can no longer read, since the
+interface now reports `not_seen`:
+
+```
+User Interface1 (S):  OS v0.0.7.44 · Graphics v0.0.1.7
+                      Language v0.1.1.0 · Touch Panel v0.0.0.2
+Kohler Konnect:       OS v0.0.1.77 · Graphics v0.0.1.9
+Valve 1:              FW v0.12
+Controller (S):       v0.0.3.89
+```
+
+### The log today
 
 `cerror_logs.cgi`, read 2026-07-26 (raw:
 [diagnostics/error-log-2026-07-26.txt](diagnostics/error-log-2026-07-26.txt)):
@@ -72,14 +123,13 @@ timestamped to the interface disconnection. This is a **99-entry circular buffer
 in flash that survives power cycles**
 ([xagon0 error-codes.md](xagon0/docs/troubleshooting/error-codes.md)).
 
-So two months of shutoffs recorded **no** valve detach, no valve fault, no task
-exception, no link drop. `valve1_ErrorFatal` and `valve1_ErrorResettable` are
-both `0`.
+Consistent with the controlled capture above: the only thing ever logged is the
+UI detach. `valve1_ErrorFatal` and `valve1_ErrorResettable` are both `0`.
 
-⚠️ **We cannot prove the log was never cleared.** One entry in 99 slots is
-consistent with "nothing was logged" *or* "the log was emptied". This is the
-single biggest gap in the evidence, and it matters a lot: the video shows the
-controller losing the valve, which *should* log a detach.
+*(An earlier revision of this document flagged "we cannot prove the log was
+never cleared" as the biggest gap. That is now resolved — it was cleared
+deliberately, before the repro, which is what makes the empty result meaningful
+rather than ambiguous.)*
 
 ### A transient valve dropout, caught once
 
@@ -103,18 +153,56 @@ suspected failure mode, caught while idle.
 
 ## Hypotheses, ranked
 
-### 1. Valve loses power or resets — leading
+> **Re-ranked 2026-07-26** after the controlled log capture. Any hypothesis that
+> would write to the error log is now heavily penalised, because a reproduced
+> shutoff wrote nothing while a real detach (the UI, 07-25) wrote immediately.
 
-Fits everything: water stops instantly, the controller is unaware because
-nothing told it, it times out ~1 minute later, and the setpoint reverts to
-default because the valve came back up with defaults loaded.
+### 0. Something mechanical or hydraulic stops the water, and the electronics never know — new leading
 
-Candidates: an intermittent power connection to the valve, a valve-side brownout
-or watchdog reset, or a thermal/overcurrent cutout in the valve.
+The combination we have to explain is: water stops instantly · nothing was
+commanded · the controller believes it is still running · **nothing is logged**
+· no fault flags · no status LEDs.
+
+An electrical or bus failure struggles with the last three. A *mechanical* or
+*hydraulic* cutoff explains all of them trivially, because there is nothing in
+that path that reports to firmware:
+
+- **Thermal/anti-scald mechanical cutoff.** Many thermostatic mixing valves
+  close flow mechanically if the cold supply fails or outlet temperature exceeds
+  a limit. Purely hydraulic, invisible to the controller.
+- **Hot supply exhaustion.** A tank running down after a few minutes at the flow
+  rate of these outlets fits the 2-4 minute timing well, and could trip the above.
+- **Supply pressure loss**, e.g. a pump cycling, a pressure-balancing element, or
+  another fixture drawing.
+- **A valve mechanism closing without reporting** — a mixing motor driving to a
+  closed position, or an internal safety that firmware does not surface.
+
+The setpoint reverting 97 → 96 still needs explaining and is the one detail that
+does not obviously fit; it may be unrelated, or may be the valve reinitialising
+after the event.
+
+**Why this matters for instrumentation:** if the cause is mechanical, **the
+controller's telemetry will never show it.** A trace would only ever record
+"running, then timed out" — which we already know. Confirming that negative is
+cheap and worth doing, but the informative signal is almost certainly *outside*
+the controller: outlet water temperature, flow, and supply-side behaviour.
+
+### 1. Valve loses power or resets — demoted
+
+Previously the leading hypothesis. It fits the observable behaviour — water
+stops, controller unaware, ~1 minute timeout, setpoint reverting to default as a
+reset signature.
+
+**What demotes it:** a valve losing power or resetting should drop off the RS-485
+bus, and the controller demonstrably logs that as code 100 within seconds. The
+controlled capture shows no such entry. Not impossible — a reset fast enough to
+recover before the detach timeout might slip through — but it now has to explain
+the silence rather than being supported by it.
 
 **Instrument:** `valve_1_con_string` and `valve1_installed` sampled through a
 shower, plus the error log polled for new entries. A power loss should show as
-`conn` → `dis`/`not_seen` at, or shortly after, the moment water stops.
+`conn` → `dis`/`not_seen` at, or shortly after, the moment water stops. If a
+trace ever catches that, this hypothesis is back at the top immediately.
 
 ### 2. RS-485 comms loss between controller and valve — close second
 
@@ -194,8 +282,15 @@ The unit is ~$1500, which is what justifies the effort over replacement.
 
 ## Open questions
 
-- Was the error log ever cleared? Without an answer, the empty log cannot be
-  trusted as evidence of absence.
+- ~~Was the error log ever cleared?~~ **Answered.** Cleared deliberately before
+  the 2026-07-14 repro; still empty afterwards. The negative is real.
+- What is the hot water source, its capacity, and the combined flow rate of the
+  outlets in use? A tank running down would fit the timing.
+- Does the valve or the install include a **mechanical** anti-scald or
+  cold-supply-failure cutoff that closes flow without telling the electronics?
+- Does the shutoff happen with a single low-flow outlet (handshower alone) as
+  readily as with several? The 2026-07-14 repro ran the handshower alone and
+  still failed, which argues against pure flow demand — worth confirming.
 - Does the valve have its own power feed that could be independently
   instrumented or monitored?
 - Does shutoff timing cluster or scatter?

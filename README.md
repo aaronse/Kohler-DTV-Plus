@@ -33,6 +33,7 @@ is the replacement input.
 | [PROTOCOL.md](PROTOCOL.md) | The controller's CGI API — transport quirks, endpoints, payload fields, safety ratings. |
 | [DESIGN.md](DESIGN.md) | Architecture, decisions, testing, and what the Android/Capacitor port needs. |
 | [DISCLAIMER.md](DISCLAIMER.md) | Safety warnings, CGI risk scale, and how this repo enforces it. |
+| [research/FIELD-NOTES.md](research/FIELD-NOTES.md) | What breaks when you automate a DTV+ — failure reports from the community, sourced, with what we changed in response. |
 | [research/controller-mirror/](research/controller-mirror/) | Verbatim mirror of the controller's own web UI, plus live payload captures. |
 | [research/xagon0/](research/xagon0/) | Vendored third-party analysis — see [PROVENANCE.md](research/xagon0/PROVENANCE.md). |
 | [research/reference/](research/reference/) | Kohler's user guide, rendered for interface reference. |

@@ -1,8 +1,16 @@
 # Open investigation: shower stops mid-use
 
-**Status: open.** Leading hypothesis changed 2026-07-26 after reviewing a video
-recorded on 2026-07-14, which rules out the explanation this document previously
-led with.
+**Status: open.** Leading hypothesis has changed twice on 2026-07-26.
+
+| Revision | Leading hypothesis | What changed it |
+| --- | --- | --- |
+| Initial | Failing K-99693 sending spurious stop commands | — |
+| 2nd | Valve power loss or RS-485 comms loss | Video: the controller still reports "running" for ~1 min after the water stops, so nothing commanded it |
+| **Current** | **Tankless minimum-flow cutout → valve cannot reach setpoint → valve shuts off** | Hot source is tankless; and valve errors never reach the controller's on-board log, so the empty log does not exclude them |
+
+**The cheapest next step is an experiment, not code:** run the shower with several
+outlets open, well above any minimum firing flow, and see whether it survives
+materially longer than the handshower-alone case. See hypothesis 0.
 
 ## The symptom
 
@@ -269,7 +277,7 @@ controller's telemetry will never show it.** A trace would only ever record
 cheap and worth doing, but the informative signal is almost certainly *outside*
 the controller: outlet water temperature, flow, and supply-side behaviour.
 
-### 1. Valve loses power or resets — demoted
+### 2. Valve loses power or resets — demoted
 
 Previously the leading hypothesis. It fits the observable behaviour — water
 stops, controller unaware, ~1 minute timeout, setpoint reverting to default as a
@@ -286,7 +294,7 @@ shower, plus the error log polled for new entries. A power loss should show as
 `conn` → `dis`/`not_seen` at, or shortly after, the moment water stops. If a
 trace ever catches that, this hypothesis is back at the top immediately.
 
-### 2. RS-485 comms loss between controller and valve — close second
+### 3. RS-485 comms loss between controller and valve — close second
 
 Mechanically similar from the controller's side, and hard to distinguish from
 (1) without valve-side visibility. xagon0 documents signal-integrity failure
@@ -300,18 +308,22 @@ power and RS-485 wiring, or a scope on the bus.
 running* until its own safety timeout — yet the water stops immediately. That
 argues for (1) over (2), or for a valve that fails closed on comms loss.
 
-### 3. Valve-side fault that cannot be reported
+### 4. Valve-side fault that cannot be reported
 
 An `OVERTEMP_*`, `ALG_*_TIMEOUT` or `RELAY_FAULT` condition that trips the valve
-— but if the valve then loses comms or resets, it never gets to report it, which
-would explain the empty log.
+for a reason *other than* the tankless chain in hypothesis 0 — a failing
+thermistor, a sticking mixing motor, or a relay that intermittently fails to hold.
 
-The hot-supply angle deserves attention: `ALG_HOT_TIMEOUT` / `ALG_COLD_TIMEOUT`
-would fit a failure that appears a few minutes in, which is roughly when a
-supply-side limitation would bite. The operator notes hot/cold shutoffs and a
-steam isolation switch in the same cabinet.
+This is no longer a separate story from hypothesis 0 so much as the same
+mechanism with a different upstream cause: in both cases the valve trips, the
+flag is transient, and nothing persists. It stays listed because if the high-flow
+experiment shows the shutoff happens regardless of flow, this becomes the leading
+explanation and points at the valve hardware itself.
 
-### 4. Controller crash-and-reboot — unlikely
+Same instrumentation either way: `valve1_ErrorResettable` / `ErrorFatal` sampled
+through a shutoff.
+
+### 5. Controller crash-and-reboot — unlikely
 
 Would leave a task exception (130-146) and make the controller unreachable for
 30-60 s. The video shows the controller responsive and displaying throughout.

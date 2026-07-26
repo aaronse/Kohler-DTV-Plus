@@ -37,19 +37,31 @@ connector on 07-25 logged code 100 within seconds.
 That demoted what had been the leading theory. If the valve lost power or fell
 off the RS-485 bus, code 100 is exactly what should have appeared.
 
-**Current leading hypothesis: something mechanical or hydraulic stops the water
-and the electronics never find out** — a thermal or anti-scald cutoff, hot supply
-exhaustion, or supply pressure loss. That explains every observation at once,
-including the silence.
+**Important caveat on that negative:** it rules out things that write to the
+controller's on-board log (codes 100-204). It does **not** rule out *valve*
+errors, which travel the Saturn serial protocol and surface only as the transient
+flags `valve1_ErrorFatal` / `valve1_ErrorResettable`. Those are current state, not
+history — read them the next day and you learn nothing. Sampling them *during* a
+shutoff is the single highest-value thing this work can do.
 
-**Which means you should be sceptical about what controller telemetry can
-achieve here.** If the cause is mechanical, a trace will only ever show "running,
-then timed out ~1 min later" — which we already know. Confirming that negative is
-cheap and worth doing, but please think about what signal would actually
-discriminate the hypotheses, and tell me if that means instrumenting something
-other than the controller (outlet temperature, flow, supply-side behaviour). I'd
-rather hear "polling the controller won't answer this, here's what would" than
-get a beautifully engineered logger that cannot see the fault.
+**Current leading hypothesis — tankless heater minimum-flow cutout.** My hot
+water is **tankless**. Tankless units have a minimum activation flow (~0.5-0.75
+GPM) and no reservoir, so if flow drops below it the burner stops and hot water
+goes cold within seconds. The valve then can't reach setpoint and shuts off
+rather than deliver cold water — which is behaviour I expect from it. Nothing
+reaches the controller log because valve errors don't go there.
+
+This fits the detail that previously looked contradictory: in the 07-14 repro I'd
+**turned off the overhead and left only the handshower running** to save water,
+about 3.5 minutes before it failed. Low flow is the trigger under this
+hypothesis, not a counter-example.
+
+**So be sceptical about what controller polling can achieve.** The chain above is
+mostly invisible to it. Please tell me what would actually discriminate the
+hypotheses — including instrumenting things that aren't the DTV+ at all (outlet
+temperature, flow rate, the tankless unit's own fault log). I'd rather hear
+"polling the controller won't answer this, here's what would" than get a
+beautifully engineered logger that cannot see the fault.
 
 Separately: the K-99693 interface is physically disconnected (its internal
 wire-to-board connector was pulled out when I removed the housing — the original
@@ -118,10 +130,21 @@ I'd like that established rather than assumed.
 
 | Hypothesis | Signature |
 | --- | --- |
+| **Tankless min-flow → valve cutout** | `valve1_ErrorResettable` sets transiently (look for `ALG_COLD_TIMEOUT` 38 / `ALG_HOT_TIMEOUT` 39); outlet temperature falls before the stop |
 | Valve power loss / reset | `valve_1_con_string` → `dis`, setpoint reverts to `def_temp`, controller still reports running for ~1 min |
 | RS-485 comms loss | `conn` → `dis`, no setpoint reversion |
-| Valve fault | New `cerror_logs.cgi` entry, or `ErrorFatal`/`ErrorResettable` set |
 | Controller reboot | Unreachable 30-60 s |
+| Purely mechanical/hydraulic | Nothing anywhere — controller simply times out |
+
+Note the last row: if the trace shows *nothing*, that is itself a result, and it
+points outside the controller.
+
+**Before building anything, tell me whether this experiment is cheaper than the
+code:** run the shower with several outlets open, well above any minimum firing
+flow, and see whether it survives materially longer than the handshower-alone
+case. If high flow is stable and low flow fails, that's close to conclusive with
+no instrumentation at all. I'm happy to build the logger too — I want the traces
+regardless — but say so if the experiment should come first.
 
 Also worth capturing: wall-clock duration from shower start to shutoff, across
 many events, so we can see whether it clusters (timer) or scatters (fault).

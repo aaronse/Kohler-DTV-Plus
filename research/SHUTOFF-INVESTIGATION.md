@@ -76,7 +76,7 @@ No errors are logged from Controller
 Cleared before, reproduced during, **still empty after**. This is a properly
 controlled negative result, not an ambiguous one.
 
-It eliminates everything that writes to the log:
+It eliminates everything that writes to **the controller's on-board log**:
 
 | Ruled out | Code |
 | --- | --- |
@@ -86,7 +86,6 @@ It eliminates everything that writes to the log:
 | Ethernet / Wi-Fi link drop | 105 / 106 |
 | RTOS task exception | 130-137 |
 | RTOS task abort | 138-146 |
-| Valve faults (`OVERTEMP_*`, `ALG_*`, `RELAY_FAULT`) | 2-39 |
 
 **The detach mechanism demonstrably works** — the UI disconnection on 2026-07-25
 was logged as code 100 within seconds. So the controller is perfectly capable of
@@ -94,6 +93,29 @@ noticing and recording a device dropping off the bus. It did not do so here.
 
 That is bad news for the valve-power and RS-485 hypotheses: if the valve had lost
 power or fallen off the bus, code 100 is exactly what we should see.
+
+### ⚠️ What it does *not* rule out: valve errors
+
+An earlier revision of this document listed valve faults (`OVERTEMP_*`, `ALG_*`,
+`RELAY_FAULT`, codes 2-39) as ruled out by the empty log. **That was wrong**, and
+the distinction matters a great deal:
+
+- **Valve error codes** are *"reported by the mixing valve hardware over the
+  Saturn serial protocol"* — they surface as `valveN_ErrorFatal` /
+  `valveN_ErrorResettable`, which are **current-state flags, not history**.
+- **The on-board error log** explicitly holds *"Codes 100-204... logged by the
+  DTV+ controller itself"*.
+
+Both quotes from [xagon0 error-codes.md](xagon0/docs/troubleshooting/error-codes.md).
+
+So a transient valve error — the valve trips, then recovers or is reset — would
+leave **no trace at all** once the flag clears. Reading `ErrorResettable` the next
+day, as we did, tells us nothing about what happened during the shutoff.
+
+**A valve algorithm fault is therefore fully back in contention**, and is the
+mechanism the tankless hypothesis below depends on. Catching it requires sampling
+those flags *during* a shutoff, which is now the single highest-value thing the
+telemetry work can do.
 
 ### Interface firmware, recorded while it was still attached
 
@@ -157,7 +179,69 @@ suspected failure mode, caught while idle.
 > would write to the error log is now heavily penalised, because a reproduced
 > shutoff wrote nothing while a real detach (the UI, 07-25) wrote immediately.
 
-### 0. Something mechanical or hydraulic stops the water, and the electronics never know — new leading
+### 0. Tankless heater minimum-flow cutout → valve cannot reach setpoint → valve shuts off — new leading
+
+**The hot water source is a tankless heater** (operator, 2026-07-26). That
+supplies the missing mechanism, and it fits every observation including the
+awkward ones.
+
+The chain:
+
+1. **Tankless heaters have a minimum activation flow rate** — typically around
+   0.5-0.75 GPM. Below it the burner will not fire, or drops out. Unlike a tank,
+   a tankless unit has no reservoir: when it stops firing, hot supply goes cold
+   within seconds.
+2. **Hot supply becomes unavailable** to the DTV+ mixing valve.
+3. **The valve cannot reach its 96 °F setpoint.** All proportional mixing logic
+   runs inside the valve's own firmware
+   ([temperature-system.md](xagon0/docs/control-logic/temperature-system.md));
+   the controller only sends a setpoint and reads back actual temperature.
+4. **The valve shuts off rather than deliver water at the wrong temperature.**
+   This is the operator's own expectation, stated in the video at 04:14: *"I know
+   it's supposed to cut off if they can't achieve the desired temperature."*
+   Candidate codes: `ALG_COLD_TIMEOUT` (38) — *"hot supply may be unavailable"* —
+   or `ALG_HOT_TIMEOUT` (39).
+5. **Nothing reaches the controller's on-board log**, because valve errors travel
+   the Saturn protocol as transient flags, not as log codes 100-204 (see above).
+   The controller keeps reporting a running shower until its own ~1 minute
+   timeout.
+
+#### Why this explains the detail that previously didn't fit
+
+The 2026-07-14 repro is *stronger* evidence for this than it first appeared. At
+03:10 the operator **turned off the overhead and left only the handshower
+running** — deliberately reducing flow to save water. The shutoff followed about
+3.5 minutes later.
+
+Under every other hypothesis, running a single low-flow outlet is neutral or
+protective. Under this one it is **the trigger**: one handshower is exactly the
+regime where a tankless unit can fall below its minimum firing flow.
+
+The setpoint reverting 97 → 96 also fits: the operator raised the target while
+the system was already struggling, and it fell back to `def_temp`.
+
+#### How to test it cheaply, without any code
+
+**Run the shower with several outlets open** — overhead plus body sprays, well
+above any plausible minimum flow — and see whether it survives materially longer
+than the low-flow case. If high flow is stable and low flow fails, that is close
+to conclusive and needs no instrumentation at all.
+
+Conversely, if it fails just as readily at high flow, the tankless minimum-flow
+mechanism is wrong and attention should move to the heater's own fault history.
+
+#### What to capture
+
+- `valve1_ErrorResettable` and `valve1_ErrorFatal` at 5 s through a shutoff.
+  **These are transient** — this is the one signal that would confirm the chain,
+  and it is invisible after the fact.
+- The tankless unit's **own error/diagnostic log**, if it has one. Many report
+  minimum-flow or flame-loss faults. This is outside the DTV+ entirely and may be
+  the fastest route to an answer.
+- Outlet water temperature over time — a drop preceding the shutoff is the
+  signature.
+
+### 1. Something else mechanical or hydraulic, electronics never know
 
 The combination we have to explain is: water stops instantly · nothing was
 commanded · the controller believes it is still running · **nothing is logged**
@@ -170,16 +254,14 @@ that path that reports to firmware:
 - **Thermal/anti-scald mechanical cutoff.** Many thermostatic mixing valves
   close flow mechanically if the cold supply fails or outlet temperature exceeds
   a limit. Purely hydraulic, invisible to the controller.
-- **Hot supply exhaustion.** A tank running down after a few minutes at the flow
-  rate of these outlets fits the 2-4 minute timing well, and could trip the above.
 - **Supply pressure loss**, e.g. a pump cycling, a pressure-balancing element, or
   another fixture drawing.
 - **A valve mechanism closing without reporting** — a mixing motor driving to a
   closed position, or an internal safety that firmware does not surface.
 
-The setpoint reverting 97 → 96 still needs explaining and is the one detail that
-does not obviously fit; it may be unrelated, or may be the valve reinitialising
-after the event.
+Retained as a fallback if hypothesis 0 is disproved by the high-flow test.
+Hot-supply *exhaustion* specifically is ruled out: the source is tankless, so
+there is no reservoir to run down.
 
 **Why this matters for instrumentation:** if the cause is mechanical, **the
 controller's telemetry will never show it.** A trace would only ever record
@@ -284,13 +366,18 @@ The unit is ~$1500, which is what justifies the effort over replacement.
 
 - ~~Was the error log ever cleared?~~ **Answered.** Cleared deliberately before
   the 2026-07-14 repro; still empty afterwards. The negative is real.
-- What is the hot water source, its capacity, and the combined flow rate of the
-  outlets in use? A tank running down would fit the timing.
+- ~~What is the hot water source?~~ **Answered: tankless.** No reservoir, so
+  exhaustion is out and minimum-flow cutout is in — see hypothesis 0.
+- **What is the tankless unit's make, model and minimum activation flow?** And
+  does it keep its own fault log? This may answer the whole question without
+  touching the DTV+.
+- **Does the shutoff still happen at high flow?** The cheapest, highest-value
+  experiment available: several outlets open, well above any minimum firing flow.
+  The 2026-07-14 repro failed with the handshower *alone*, which under hypothesis
+  0 is the trigger rather than a counter-example.
 - Does the valve or the install include a **mechanical** anti-scald or
   cold-supply-failure cutoff that closes flow without telling the electronics?
-- Does the shutoff happen with a single low-flow outlet (handshower alone) as
-  readily as with several? The 2026-07-14 repro ran the handshower alone and
-  still failed, which argues against pure flow demand — worth confirming.
+- Is there a recirculation pump, and does its cycling correlate?
 - Does the valve have its own power feed that could be independently
   instrumented or monitored?
 - Does shutoff timing cluster or scatter?

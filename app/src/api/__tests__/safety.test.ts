@@ -1,6 +1,8 @@
 import { describe, expect, it } from 'vitest';
 // @ts-expect-error -- plain .mjs, shared with the server
 import { CGI, MAX_RISK, checkAccess, exposedEndpoints } from '../../../server/cgi-safety.mjs';
+// @ts-expect-error -- plain .mjs, shared with the server
+import { losesAValve } from '../../../server/middleware.mjs';
 import { isScaldRange, SCALD_C, SCALD_F } from '../model';
 
 interface Entry {
@@ -97,6 +99,34 @@ describe('CGI safety gate', () => {
       expect(e.risk, name).toBeLessThanOrEqual(5);
       expect(e.note, name).toBeTruthy();
     }
+  });
+});
+
+describe('transient bad-read guard', () => {
+  // values.cgi occasionally reports a healthy valve as absent for one read.
+  // Caching that payload blanks the UI for the whole TTL — see FIELD-NOTES.md §6.
+  const healthy = { valve1_installed: true, valve2_installed: false };
+  const degraded = { valve1_installed: false, valve2_installed: false };
+
+  it('flags a payload that drops a previously-installed valve', () => {
+    expect(losesAValve(degraded, healthy)).toBe(true);
+  });
+
+  it('accepts a steady state, and a valve appearing', () => {
+    expect(losesAValve(healthy, healthy)).toBe(false);
+    expect(losesAValve(degraded, degraded)).toBe(false);
+    expect(losesAValve(healthy, degraded)).toBe(false);
+  });
+
+  it('has nothing to compare against on the first read', () => {
+    expect(losesAValve(degraded, null)).toBe(false);
+  });
+
+  it('notices a second valve dropping too', () => {
+    expect(losesAValve({ valve1_installed: true, valve2_installed: false }, {
+      valve1_installed: true,
+      valve2_installed: true,
+    })).toBe(true);
   });
 });
 

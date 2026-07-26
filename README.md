@@ -34,6 +34,7 @@ is the replacement input.
 | [DESIGN.md](DESIGN.md) | Architecture, decisions, testing, and what the Android/Capacitor port needs. |
 | [DISCLAIMER.md](DISCLAIMER.md) | Safety warnings, CGI risk scale, and how this repo enforces it. |
 | [LICENSE.md](LICENSE.md) | Open Maker License, plus what it does and does not cover. |
+| [CONTRIBUTING.md](CONTRIBUTING.md) / [CLA.md](CLA.md) | How to contribute safely, and the contributor agreement. |
 | [AGENT.md](AGENT.md) / [CLAUDE.md](CLAUDE.md) | Contract for agents working here, including the story-log convention. |
 | [STORY-LOG.md](STORY-LOG.md) | Significant events and reversals, newest first. |
 | [research/SHUTOFF-INVESTIGATION.md](research/SHUTOFF-INVESTIGATION.md) | Open investigation into the shower stopping mid-use. |

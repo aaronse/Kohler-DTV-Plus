@@ -1,0 +1,198 @@
+import { OUTLET_TYPES, parseOutletType } from './outlets';
+import type { KohlerSystemInfo, KohlerValues, StatusResponse } from './types';
+
+export interface Outlet {
+  /** 1-6. This is the digit quick_shower.cgi expects in valveN_outlet. */
+  position: number;
+  typeId: number;
+  label: string;
+  massageCapable: boolean;
+  /** Configured on this valve (type is not "outlet_0"). */
+  configured: boolean;
+  /**
+   * The controller's own armed selection for this outlet (system_info.cgi's
+   * valveNoutletM). Careful: this is *selection*, not flow — it stays true for
+   * the default outlet while the shower is off. Use `flowing` for "water is
+   * coming out of this".
+   */
+  selected: boolean;
+  isDefault: boolean;
+}
+
+export interface Valve {
+  num: 1 | 2;
+  installed: boolean;
+  connected: boolean;
+  outlets: Outlet[];
+  targetTemp: number;
+  minTemp: number;
+  maxTemp: number;
+  massage: number;
+  /** Free text from the controller, e.g. "" or "Heating". */
+  statusText: string;
+}
+
+export interface Preset {
+  id: number;
+  name: string;
+  enabled: boolean;
+}
+
+export interface ShowerModel {
+  online: boolean;
+  error?: string;
+  ts: number;
+  showerOn: boolean;
+  steamRunning: boolean;
+  /** True when *any* outlet is flowing or a preset is running. */
+  running: boolean;
+  massageEnabled: boolean;
+  valves: Valve[];
+  presets: Preset[];
+  currentUser: number;
+  audio: { installed: boolean; playing: boolean; volume: number; muted: boolean };
+  steam: { installed: boolean; running: boolean; temp: number; minutesRemaining: number };
+  units: 'F' | 'C';
+  degree: string;
+  controllerVersion: string;
+  controllerIp: string;
+  /** The K-99693 wall interface. false here is exactly the fault we route around. */
+  interfacePresent: boolean;
+  clock: string;
+}
+
+const POS_KEYS = ['one', 'two', 'three', 'four', 'five', 'six'] as const;
+
+function num(v: unknown, fallback = 0): number {
+  const n = typeof v === 'number' ? v : parseFloat(String(v ?? ''));
+  return Number.isFinite(n) ? n : fallback;
+}
+
+function bool(v: unknown): boolean {
+  if (typeof v === 'boolean') return v;
+  const s = String(v ?? '').toLowerCase();
+  return s === 'true' || s === '1' || s === 'on' || s === 'yes';
+}
+
+function buildValve(
+  n: 1 | 2,
+  values: KohlerValues | null,
+  system: KohlerSystemInfo | null,
+): Valve {
+  const p = n === 2 ? 'v2_' : '';
+  const installed = bool(values?.[n === 1 ? 'valve1_installed' : 'valve2_installed']);
+  const defaultOutlet = num(values?.[n === 1 ? 'def_outlet' : 'v2_def_outlet']);
+
+  const outlets: Outlet[] = POS_KEYS.map((key, i) => {
+    const typeId = parseOutletType(values?.[`${p}${key}_type`]);
+    const meta = OUTLET_TYPES[typeId] ?? OUTLET_TYPES[0];
+    return {
+      position: i + 1,
+      typeId,
+      label: meta.label,
+      // The controller stores a per-outlet massage flag, but Real Rain and the
+      // bath spouts can never take part regardless of how it is configured.
+      massageCapable: meta.massageCapable && bool(values?.[`${p}${key}_massage`]),
+      configured: typeId !== 0,
+      selected: bool(system?.[`valve${n}outlet${i + 1}`]),
+      isDefault: i + 1 === defaultOutlet,
+    };
+  });
+
+  const isF = num(values?.units) === 0;
+  const setpoint = num(system?.[`valve${n}Setpoint`], NaN);
+  const fallbackTemp = num(values?.[n === 1 ? 'valve1_temp_string' : 'valve2_temp_string']);
+
+  return {
+    num: n,
+    installed,
+    connected: String(values?.[n === 1 ? 'valve_1_con_string' : 'valve_2_con_string']) === 'conn',
+    outlets,
+    targetTemp: Number.isFinite(setpoint) ? setpoint : fallbackTemp,
+    minTemp: isF ? 86 : 26,
+    maxTemp: num(values?.[n === 1 ? 'max_temp' : 'v2_max_temp'], isF ? 113 : 45),
+    massage: num(system?.[`valve${n}_massage`]),
+    statusText: String(system?.[`valve${n}_Currentstatus`] ?? '').trim(),
+  };
+}
+
+export function buildModel(res: StatusResponse | null): ShowerModel {
+  const values = res?.values ?? null;
+  const system = res?.system ?? null;
+  const online = Boolean(res?.ok && (values || system));
+
+  const valves = ([1, 2] as const).map((n) => buildValve(n, values, system));
+  // Only these two say whether water is actually moving. The per-outlet flags
+  // are the armed selection and are true at rest for the default outlet.
+  const showerOn = bool(values?.shower_on) || bool(system?.ui_shower_on);
+
+  const presets: Preset[] = [1, 2, 3, 4, 5, 6].map((id) => ({
+    id,
+    name: String(values?.[`user_${id}`] ?? `Preset ${id}`),
+    enabled: bool(values?.[`user_${id}_enabled`]),
+  }));
+
+  const isF = num(values?.units) === 0;
+
+  return {
+    online,
+    error: res?.error,
+    ts: res?.ts ?? 0,
+    showerOn,
+    steamRunning: bool(values?.steam_running) || bool(system?.ui_steam_running),
+    running: showerOn || bool(system?.devices_running),
+    massageEnabled: bool(values?.massage_enabled) && bool(values?.massage),
+    valves,
+    presets,
+    currentUser: num(values?.CurrentUser),
+    audio: {
+      installed: bool(values?.amp_installed),
+      playing: String(system?.musicStatus ?? 'Off').toLowerCase() !== 'off',
+      volume: num(system?.volStatus?.toString().replace('%', ''), num(values?.volume, 50)),
+      muted: String(system?.muteStatus ?? 'Off').toLowerCase() !== 'off',
+    },
+    steam: {
+      installed: bool(values?.steam_installed),
+      running: bool(system?.ui_steam_running),
+      temp: num(system?.steamTempStatus),
+      minutesRemaining: num(system?.steamTimeMinutes),
+    },
+    units: isF ? 'F' : 'C',
+    degree: isF ? '°' : '°',
+    controllerVersion: String(values?.controller_version_string ?? ''),
+    controllerIp: String(values?.IP ?? res?.host ?? ''),
+    interfacePresent: num(values?.num_interface) > 0,
+    clock: String(values?.time ?? ''),
+  };
+}
+
+/** The outlets a UI should offer for a valve: configured ones only. */
+export function usableOutlets(valve: Valve): Outlet[] {
+  return valve.outlets.filter((o) => o.configured);
+}
+
+/** True when water is actually coming out of this fitting. */
+export function isFlowing(model: ShowerModel, outlet: Outlet): boolean {
+  return model.showerOn && outlet.selected;
+}
+
+/**
+ * Scald threshold. Water above 43 °C / 109 °F can scald, and faster than most
+ * people expect — see DISCLAIMER.md. The controller's own `max_temp` may sit
+ * above this (113 °F on this system), so the limit alone is not a safe signal
+ * and the UI marks anything past it.
+ */
+export const SCALD_F = 109;
+export const SCALD_C = 43;
+
+export function isScaldRange(temp: number, units: 'F' | 'C'): boolean {
+  return temp > (units === 'F' ? SCALD_F : SCALD_C);
+}
+
+/**
+ * quick_shower.cgi wants the selected positions concatenated into one string —
+ * outlets 1, 3 and 4 are sent as "134". Empty string means "none".
+ */
+export function encodeOutlets(positions: Iterable<number>): string {
+  return [...positions].sort((a, b) => a - b).join('');
+}

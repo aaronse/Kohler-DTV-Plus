@@ -1,26 +1,65 @@
 # Open investigation: shower stops mid-use
 
-**Status: open. Hypotheses ranked, not proven.**
+**Status: open.** Leading hypothesis changed 2026-07-26 after reviewing a video
+recorded on 2026-07-14, which rules out the explanation this document previously
+led with.
 
 ## The symptom
 
-For roughly two months before 2026-07-25, the shower would stop of its own
-accord partway through use. Reported durations before shutoff: "a couple of
-minutes" on one occasion, "about 4 minutes" on another. No pattern identified by
-the operator.
+For roughly two months, the shower stops of its own accord partway through use.
+Observed durations before shutoff: "a couple of minutes", "about 4 minutes", and
+~3.5 minutes in the recorded session. No pattern identified.
 
-Separately, on the evening of 2026-07-25 the internal power cable was
-disconnected from the K-99693 digital interface's wire-to-board connector,
-leaving the system with no working user interface. That is what prompted this
-project.
+Separately, on 2026-07-25 at 22:32 the K-99693 interface's internal power
+connector was pulled out — see [Interface failure](#interface-failure-separate-cause)
+below. That is a **separate, understood event**, not a cause of the shutoffs.
 
-**These two facts may not be independent.** See hypothesis 1.
+## Direct observation — 2026-07-14 recording
 
-## Evidence
+Source: `E:\proj-med\build-661-diag-kohler-shower\2026-07-14-DTV-shower-unexpectedly-stops.txt`
+(operator's own timestamped transcript; not copied into this repo).
+
+The decisive observations, in the operator's words:
+
+| Time | Observation |
+| --- | --- |
+| 00:57 | "Showers disappeared. No, it says, thinks it's running. Sort of problem with the valve." |
+| 03:10 | "randomly off for a few minutes, this thing will just decide to stop" |
+| 04:58-05:23 | Target raised to 97 °F — then "**Target's gone down to 96**", reverting on its own |
+| 05:53 | "I don't see any error messages on display" |
+| ~06:40 | "**it just kind of seized up and stopped**" — water stops, nothing was touched |
+| 06:46 | "**if I go over to the shower, it says that it's still running.** It thinks that it's still pushing water out, or at least the controller does, but obviously it's not" |
+| 07:11 | "this display will stay like this for a little bit... we'll see it here **within about a minute**... at some point it figures out, oh, either the poor valve has lost power or shut down" |
+| 07:47 | No status LEDs or flashing lights anywhere |
+| 08:21 | Controller returns to the clock screen, now correctly showing not-running |
+
+### What this proves
+
+**The shower was not commanded off.** After the water stops, the controller
+still believes it is running and continues to display a running shower for
+about a minute before timing out and reverting to idle.
+
+A stop command — from the interface, the app, or anything else — sets the
+controller's state to off *immediately*. That is not what happens. The water
+stops first and the controller finds out later.
+
+**This eliminates the previous leading hypothesis** (a failing interface sending
+spurious stop commands, including "phantom touches"), which the operator was
+independently sceptical of. It is struck from the ranking below.
+
+### Two further clues
+
+- **The setpoint reverted 97 → 96 on its own.** 96 °F is `def_temp`, the
+  configured default. Something reloaded defaults, which is the signature of a
+  valve or control-loop reset rather than a smooth handover.
+- **The controller takes ~1 minute to notice.** That is a timeout, and it puts
+  a bound on the detection path we can instrument.
+
+## Instrument evidence
 
 ### The controller's error log is almost empty
 
-`cerror_logs.cgi`, read 2026-07-26 (raw capture:
+`cerror_logs.cgi`, read 2026-07-26 (raw:
 [diagnostics/error-log-2026-07-26.txt](diagnostics/error-log-2026-07-26.txt)):
 
 ```
@@ -28,135 +67,148 @@ project.
 [10:32.42 p.m. 07/25/2026] 100:  UI Error
 ```
 
-One entry. Code **100 = `DETACH_EVENT`** — "a device has disconnected from the
-bus" — with the UI as the source, device byte `0x30` (primary UI). Timestamp
-22:32 on 2026-07-25, matching when the interface cable came off.
+One entry: code **100 = `DETACH_EVENT`**, source UI (device byte `0x30`),
+timestamped to the interface disconnection. This is a **99-entry circular buffer
+in flash that survives power cycles**
+([xagon0 error-codes.md](xagon0/docs/troubleshooting/error-codes.md)).
 
-This log is a **99-entry circular buffer stored in flash that survives power
-cycles** ([xagon0 error-codes.md](xagon0/docs/troubleshooting/error-codes.md)).
-So over two months of mid-shower shutoffs, the controller recorded **nothing**:
+So two months of shutoffs recorded **no** valve detach, no valve fault, no task
+exception, no link drop. `valve1_ErrorFatal` and `valve1_ErrorResettable` are
+both `0`.
 
-| Would have logged | Code | Present? |
-| --- | --- | --- |
-| Device detach (valve, amp, UI) | 100 | Only the UI, last night |
-| Valve/UI unresponsive | 101-103 | No |
-| Ethernet / Wi-Fi link drop | 105 / 106 | No |
-| Flash filesystem fatal | 103 | No |
-| RTOS task exception | 130-137 | No |
-| RTOS task abort | 138-146 | No |
+⚠️ **We cannot prove the log was never cleared.** One entry in 99 slots is
+consistent with "nothing was logged" *or* "the log was emptied". This is the
+single biggest gap in the evidence, and it matters a lot: the video shows the
+controller losing the valve, which *should* log a detach.
 
-`kerror_logs.cgi` reports no Konnect errors.
+### A transient valve dropout, caught once
 
-⚠️ **Caveat:** we do not know the log was never cleared. A single entry in a
-99-slot persistent buffer is consistent with either "nothing happened" or "the
-log was emptied at some point". Treat the negative result as strong but not
-conclusive.
+On 2026-07-26 at 11:43, a routine `values.cgi` read returned
+`valve_1_con_string: 'dis'` and `valve1_installed: false`, recovering on the next
+read ([FIELD-NOTES.md](FIELD-NOTES.md) §6).
 
-### Valve fault flags are clear
+This was previously written off as a partially-populated HTTP response. **In
+light of the video it deserves promotion**: "controller has lost the valve" is
+precisely the state the video shows during a shutoff. One clean sample of the
+suspected failure mode, caught while idle.
 
-`valve1_ErrorFatal = 0`, `valve1_ErrorResettable = 0`. No latched valve fault.
-The valve reports firmware `0.12` and `conn`.
+### Ruled out
 
-### Runtime limits are disabled
-
-`max_valve1_runtime_enable = 0`, `max_valve1_runtime = 0`. The configurable
-runtime cutoff is off, so it cannot explain the shutoffs.
-
-### The 30-minute valve watchdog does not fit
-
-xagon0 documents an 1800-second safety timeout on **Prompt 3** valves that shuts
-all outlets off if the controller stops talking to them
-([saturn-protocol.md](xagon0/docs/protocols/saturn-protocol.md)). Two reasons
-this is not our answer: the timeout is 30 minutes, not 2-4, and this system has a
-**six-port valve** (`valve1PortsAvailable = 6`), not a Prompt 3.
+| Cause | Why not |
+| --- | --- |
+| Configurable runtime limit | `max_valve1_runtime_enable = 0`, `max_valve1_runtime = 0` |
+| Prompt 3 valve watchdog | 1800 s, not 2-4 min — and this is a six-port valve, not a Prompt 3 |
+| Commanded stop (any source) | Controller still reports running after water stops |
+| Interface corrosion | Contacts inspected: clean copper/gold, vapor-tight sealed, recessed away from water |
 
 ## Hypotheses, ranked
 
-### 1. The failing interface was stopping the shower — most likely
+### 1. Valve loses power or resets — leading
 
-A K-99693 with a failing power connection is a device that can brown out,
-reset, or register phantom touches. A "stop" sent by the interface is a
-*legitimate command*, not a fault, so the controller would carry it out and log
-nothing — which is exactly what we see.
+Fits everything: water stops instantly, the controller is unaware because
+nothing told it, it times out ~1 minute later, and the setpoint reverts to
+default because the valve came back up with defaults loaded.
 
-This also explains the timeline: months of worsening random shutoffs, ending in
-an interface that finally had to be disconnected. Same root cause, two symptoms.
+Candidates: an intermittent power connection to the valve, a valve-side brownout
+or watchdog reset, or a thermal/overcurrent cutout in the valve.
 
-**Prediction, and it is a strong one:** with the interface now fully
-disconnected, **the shutoffs should stop.** Nothing else can issue that command.
+**Instrument:** `valve_1_con_string` and `valve1_installed` sampled through a
+shower, plus the error log polled for new entries. A power loss should show as
+`conn` → `dis`/`not_seen` at, or shortly after, the moment water stops.
 
-**How we test it:** run showers from this app and record whether any stop
-unexpectedly. This is why the trace capture matters — it converts "it feels
-better" into evidence.
+### 2. RS-485 comms loss between controller and valve — close second
 
-### 2. Controller crash-and-reboot
-
-Owner reviews of this hardware describe crashes that "take 30 seconds to 1
-minute to reboot, during which water may or may not shut off randomly"
-(second-hand via search summary — see [FIELD-NOTES.md](FIELD-NOTES.md) §7, weak
-evidence).
-
-Against it: a reboot should leave a task exception or abort (130-146) in a log
-that persists across power cycles, and there are none. Also testable — a reboot
-would make the controller unreachable for ~30-60 s, which a trace would catch
-plainly.
-
-### 3. Thermal or supply-side fault
-
-Codes exist for exactly this shape of failure: `OVERTEMP_CONTROL_ERROR` (3),
-`OVERTEMP_OUTLET_ERROR` (7), `ALG_COLD_TIMEOUT` (38), `ALG_HOT_TIMEOUT` (39) —
-several of which shut the valve down deliberately. A hot-water supply that runs
-out after a few minutes would fit the *duration* well.
-
-Against it: all of these log, and none are logged. Unless the log was cleared.
-
-### 4. RS-485 comms instability
-
-xagon0 documents signal-integrity problems on long runs, missing 120 Ω
-termination, or cabling routed near AC
+Mechanically similar from the controller's side, and hard to distinguish from
+(1) without valve-side visibility. xagon0 documents signal-integrity failure
+modes: runs over 50 ft, missing 120 Ω termination, cabling near AC lines
 ([known-issues.md](xagon0/docs/troubleshooting/known-issues.md)).
 
-We saw `valve_1_con_string` read `dis` with `valve1_installed: false` once on
-2026-07-26 at 11:43, recovering immediately
-([FIELD-NOTES.md](FIELD-NOTES.md) §6). That looked like a comms dropout.
+Distinguishing (1) from (2) probably needs physical inspection of the valve's
+power and RS-485 wiring, or a scope on the bus.
 
-**But the error log argues against it:** a genuine valve detach should log code
-100 with a valve device byte, and no such entry exists. On balance that single
-bad read was more likely a partially-populated HTTP response than a real bus
-event. Worth continuing to watch rather than concluding.
+**Note:** if the valve merely lost comms but kept power, it would normally *keep
+running* until its own safety timeout — yet the water stops immediately. That
+argues for (1) over (2), or for a valve that fails closed on comms loss.
+
+### 3. Valve-side fault that cannot be reported
+
+An `OVERTEMP_*`, `ALG_*_TIMEOUT` or `RELAY_FAULT` condition that trips the valve
+— but if the valve then loses comms or resets, it never gets to report it, which
+would explain the empty log.
+
+The hot-supply angle deserves attention: `ALG_HOT_TIMEOUT` / `ALG_COLD_TIMEOUT`
+would fit a failure that appears a few minutes in, which is roughly when a
+supply-side limitation would bite. The operator notes hot/cold shutoffs and a
+steam isolation switch in the same cabinet.
+
+### 4. Controller crash-and-reboot — unlikely
+
+Would leave a task exception (130-146) and make the controller unreachable for
+30-60 s. The video shows the controller responsive and displaying throughout.
+Effectively excluded by the recording, retained only because the log may be
+unreliable.
 
 ## What would settle it
 
-Passive trace capture during real showers, recording at minimum:
+A trace spanning a real shutoff, sampling at the app's existing 5 s active rate
+(no added controller load — see [FIELD-NOTES.md](FIELD-NOTES.md) §1):
 
-- `valveN_Currentstatus`, `ui_shower_on`, per-outlet armed state
-- `valve_N_con_string` and all `*_con_string` values
-- `valveN_ErrorFatal` / `ErrorResettable`
-- `cerror_logs.cgi` on change
-- Controller reachability, including the gaps that indicate a reboot
-- Setpoint and any temperature the controller exposes
-
-With a timeline around a shutoff event, hypotheses 1-4 separate cleanly:
-
-| Hypothesis | Signature in a trace |
+| Hypothesis | Signature |
 | --- | --- |
-| Interface command | Clean stop, controller reachable throughout, no error, no detach |
-| Controller reboot | Controller unreachable ~30-60 s, then back with uptime reset |
-| Thermal / supply | New error-log entry (3, 7, 38, 39) and/or fault flag set |
-| RS-485 | `valve_1_con_string` drops to `dis` **and** a detach entry appears |
+| Valve power loss / reset | `conn` → `dis`, setpoint reverts to `def_temp`, controller still reports running for ~1 min |
+| RS-485 comms loss | `conn` → `dis` with no setpoint reversion |
+| Valve fault | New `cerror_logs.cgi` entry and/or `ErrorFatal`/`ErrorResettable` set |
+| Controller reboot | Controller unreachable 30-60 s |
 
-Design of that capture is pending — sampling rate has to be traded off against
-the controller's documented tendency to lock up under polling
-([FIELD-NOTES.md](FIELD-NOTES.md) §1).
+The ~1 minute detection timeout means 5 s sampling has roughly 12 samples across
+the transition — ample resolution.
 
-## Separately: the interface may be repairable
+**Also worth capturing:** wall-clock duration from start to shutoff across many
+events. The operator's instinct at 08:21 — "maybe there's a hint there in the
+clue... I'll figure out exactly the exact time" — is right. If the interval
+clusters, that points at a timer; if it scatters, at a fault.
 
-The failure was a disconnected wire-to-board power connector, not a dead panel.
-Reseating it is plausibly all that is required. xagon0's
-[hardware.md](xagon0/docs/hardware.md) and board photograph are the reference.
+## Interface failure — separate cause
 
-Worth doing regardless of this app — a working K-99693 is also the control of
-the experiment. If shutoffs resume once it is reconnected, hypothesis 1 is
-confirmed outright.
+The K-99693 interface is **not** implicated in the shutoffs, but it is why this
+project exists.
 
-⚠️ Mains-adjacent work. Power down at the breaker first.
+The original installation silicone-sealed the interface housing to the wall, and
+sealed the blue seal plug along with it. Removing the interface left the blue
+plug attached to the wall, which pulled the internal wire-to-board connector out
+of its socket. Logged at 22:32 on 2026-07-25 as `DETACH_EVENT`.
+
+The connector is **not reachable without opening the housing**. Contacts were
+inspected while accessible and were clean copper/gold with no corrosion — the
+housing was vapor-tight and recessed away from direct water.
+
+Plan of record:
+
+1. Contact Kohler technical support for a recommended reconnection method.
+2. Only if there is no supported route: 3D scan the interface, generate a CNC
+   toolpath, and cut a surgical access opening over the connector.
+
+The unit is ~$1500, which is what justifies the effort over replacement.
+
+⚠️ Mains-adjacent. Power down at the breaker before any physical work.
+
+## Open questions
+
+- Was the error log ever cleared? Without an answer, the empty log cannot be
+  trusted as evidence of absence.
+- Does the valve have its own power feed that could be independently
+  instrumented or monitored?
+- Does shutoff timing cluster or scatter?
+- Does the shutoff still happen with the interface disconnected? (Now testable —
+  the interface has been out since 2026-07-25.)
+- Is hot supply exhaustion plausible on this install given tank size and the
+  flow rate of the outlets in use?
+
+## Confounders to note
+
+During the 2026-07-14 recording the operator had **a web browser open on the
+controller's own web page** while testing. The controller supports only two
+concurrent HTTP sessions ([FIELD-NOTES.md](FIELD-NOTES.md) §1). This is unlikely
+to explain shutoffs that predate the browser being connected — the operator notes
+"web browser is not normally connected" — but any future trace should record
+whether other clients were active.

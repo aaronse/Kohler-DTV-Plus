@@ -76,6 +76,11 @@ describe('CGI safety gate', () => {
         'values.cgi',
         'system_info.cgi',
         'languages.cgi',
+        // Read-only fault history. Exposed deliberately: it is the primary
+        // evidence for the mid-shower shutoffs under investigation, and it is
+        // what identified the interface detach. See SHUTOFF-INVESTIGATION.md.
+        'cerror_logs.cgi',
+        'kerror_logs.cgi',
         'stop_shower.cgi',
         'stop_user.cgi',
         'steam_off.cgi',

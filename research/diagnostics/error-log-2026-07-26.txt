@@ -1,0 +1,23 @@
+Captured 2026-07-26T19:01:36.971Z from 192.168.0.115
+
+===== cerror_logs.cgi =====
+['Hr:M:S D/M/Y']:         ['ID':  'SOURCE']        [DESCRIPTION]
+[10:32.42 p.m. 07/25/2026] 100:  UI Error
+
+===== kerror_logs.cgi =====
+No errors are logged from Kohler Konnect
+
+===== fault flags =====
+  valve1_ErrorFatal            = 0
+  valve1_ErrorResettable       = 0
+  valve2_ErrorFatal            = 0
+  valve2_ErrorResettable       = 0
+  max_valve1_runtime_enable    = 0
+  max_valve1_runtime           = 0
+  auto_purge                   = 1
+  auto_purge_enable            = 1
+  cold_water                   = 1
+  valve_1_con_string           = "conn"
+  controller_version_string    = "0.0.3.89"
+  valve_1_version_string       = "0.12"
+  time                         = "7/26/2026 12:01 P -0800"

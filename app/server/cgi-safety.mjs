@@ -37,8 +37,12 @@ export const CGI = {
   'files.cgi': { risk: 0, expose: false, note: 'File listing. Unused.' },
   'files_available.cgi': { risk: 0, expose: false, note: 'File listing. Unused.' },
   'ftp_status.cgi': { risk: 0, expose: false, note: 'FTP transfer status. Unused.' },
-  'cerror_logs.cgi': { risk: 0, expose: false, note: 'Controller error log. Unused.' },
-  'kerror_logs.cgi': { risk: 0, expose: false, note: 'Konnect error log. Unused.' },
+  'cerror_logs.cgi': {
+    risk: 0,
+    expose: 'read',
+    note: 'Controller error log — 99-entry circular buffer, persists across power cycles. Read-only, and the primary evidence for diagnosing faults. Home Assistant ships it in its diagnostics download.',
+  },
+  'kerror_logs.cgi': { risk: 0, expose: 'read', note: 'Konnect error log. Read-only.' },
 
   // ------------------------------------------------------------ 1: low risk
   'stop_shower.cgi': { risk: 1, expose: 'command', note: 'Stops water. Failure-safe direction.' },

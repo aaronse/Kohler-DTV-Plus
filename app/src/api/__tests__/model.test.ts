@@ -135,6 +135,89 @@ describe('buildModel degradation', () => {
   });
 });
 
+/**
+ * Regressions for failures other DTV+ integrations hit in the field. See
+ * research/FIELD-NOTES.md for the reports these come from.
+ */
+describe('field-report regressions', () => {
+  it('counts PurgeActive as running (niemyjski#45)', () => {
+    // Auto-purge is enabled on this system, so the warm-up runs cold water
+    // before shower_on is set. Missing it means offering "start" mid-shower.
+    const model = buildModel(
+      status({
+        system: {
+          ...(systemFixture as unknown as KohlerSystemInfo),
+          valve1_Currentstatus: 'PurgeActive',
+        },
+      }),
+    );
+    expect(model.valves[0].purging).toBe(true);
+    expect(model.valves[0].running).toBe(true);
+    expect(model.showerOn).toBe(true);
+    expect(model.purging).toBe(true);
+  });
+
+  it('counts a plain On status as running without flagging purge', () => {
+    const model = buildModel(
+      status({
+        system: { ...(systemFixture as unknown as KohlerSystemInfo), valve1_Currentstatus: 'On' },
+      }),
+    );
+    expect(model.showerOn).toBe(true);
+    expect(model.purging).toBe(false);
+  });
+
+  it('tolerates the empty status this controller reports at rest', () => {
+    // Ours returns "" rather than "Off" when idle.
+    expect((systemFixture as unknown as KohlerSystemInfo).valve1_Currentstatus).toBe('');
+    expect(buildModel(status()).showerOn).toBe(false);
+  });
+
+  it('reads outlet state via valveN_outletM_func.id, not the slot (niemyjski#39)', () => {
+    // Turning on outlet 2 lit outlet 6 for that reporter because the two index
+    // spaces were conflated. Here slot 3 is remapped to report under index 6.
+    const remapped = buildModel(
+      status({
+        values: {
+          ...(valuesFixture as unknown as KohlerValues),
+          valve1_outlet3_func: { func: 8, id: 6 },
+        },
+        system: {
+          ...(systemFixture as unknown as KohlerSystemInfo),
+          valve1outlet3: false,
+          valve1outlet6: true,
+        },
+      }),
+    );
+    const handshower = remapped.valves[0].outlets[2];
+    expect(handshower.position).toBe(3); // what quick_shower.cgi is sent
+    expect(handshower.statusIndex).toBe(6); // where system_info reports it
+    expect(handshower.selected).toBe(true);
+  });
+
+  it('falls back to the slot number when a func entry is absent', () => {
+    // This valve reports six ports but only four are configured; slots 5 and 6
+    // have no func key at all. Dereferencing them blindly is a live NPE in one
+    // community driver.
+    const valve = buildModel(status()).valves[0];
+    expect(valve.outlets[4].statusIndex).toBe(5);
+    expect(valve.outlets[5].statusIndex).toBe(6);
+    expect(valve.outlets.map((o) => o.statusIndex)).toEqual([1, 2, 3, 4, 5, 6]);
+  });
+
+  it('prefers live system_info over possibly-cached values for run state', () => {
+    // The proxy serves values.cgi from a 30 s cache, so a stale shower_on must
+    // not keep the UI claiming water is running.
+    const model = buildModel(
+      status({
+        values: { ...(valuesFixture as unknown as KohlerValues), shower_on: true },
+        valuesCached: true,
+      }),
+    );
+    expect(model.showerOn).toBe(false);
+  });
+});
+
 describe('outlet icons', () => {
   it('resolves per theme and selection state', () => {
     expect(outletIcon(8, true, 'dark')).toBe('/fittings/dark/8_on.png');

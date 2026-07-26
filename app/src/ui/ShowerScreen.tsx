@@ -93,9 +93,7 @@ export function ShowerScreen({
               above {model.units === 'F' ? '109°F' : '43°C'} — can scald
             </div>
           )}
-          {valve.statusText && valve.statusText.toLowerCase() !== 'off' && (
-            <div className="temp-caption">{valve.statusText}</div>
-          )}
+          {model.purging && <div className="temp-caption">warming up — purging cold water</div>}
         </div>
 
         <div className="outlet-grid">

@@ -1,0 +1,8 @@
+# Page renders of the Kohler user guide — 11 MB and fully regenerable from the
+# PDF that is committed alongside them. See research/reference/README.md.
+research/reference/guide-pages/
+
+# Scratch output
+*.tmp
+.DS_Store
+Thumbs.db

@@ -1,0 +1,1261 @@
+
+
+.ui-progressbar-value{
+    height:30px!important;
+    border: 0 none!important;
+    border-radius: 15px!important;
+    background: white!important;
+}
+
+/* start here - base classes */
+/* ************************* */
+body {
+    background-color: #000000;
+    outline: none;
+}
+
+A,a:visited{
+    color:white;
+    text-decoration:none;
+}
+
+.title {
+    font-size: 20px;
+    color: white;
+    font-family: Arial,Helvectica,sans-serif;
+}
+/*(issue 983) - revamping devices page*/
+.titleDevices {   
+    color: white;
+    font-family: VERDANA;
+}
+
+.warning-title {
+    font-size: 20px;
+    font-family: Arial,Helvectica,sans-serif;
+    color:#cc0000;
+    font-weight: bold;
+}
+
+.subtitle {
+    font-size: 18px;
+    color: white;
+    font-family: Arial,Helvectica,sans-serif;
+}
+
+.text {
+    font-size: 18px;
+    color: #BBBBBB;
+    font-family: Arial,Helvectica,sans-serif;
+}
+
+table {
+    border-spacing: 0px;
+}
+
+.hide
+{
+    display: none;
+}
+
+.borderright {
+    border-right: 3px solid #757575;
+}
+
+.borderleft {
+    border-left: 3px solid #757575;
+}
+
+.bordertop {
+    border-top: 3px solid #757575;
+}
+
+.borderbottom {
+    border-bottom: 3px solid #757575;
+}
+
+.spacer {
+    padding: 113px 0 0 0;
+	display: none;
+}
+
+/* header and top tabs config */
+/* ************************** */
+.logo {
+  clear:both;
+  float:right;
+  width:180px;
+  height:40px;
+}
+
+#top-tabs {
+  height:35px;
+}
+
+#tabs {
+    padding-top:20px;
+    background: none;
+    border-width: 0px;
+    margin-left: auto;
+    margin-right: auto;
+    width: 1000px;
+    display: block;
+}
+
+#top-tabs .active {
+    cursor: default;
+    background-color: #4a4a4a !important;
+}
+
+#top-tabs a {
+    border-top-right-radius:15px;
+    border-top-left-radius:15px;
+    padding:20px;
+    padding-top:10px;
+    padding-bottom:25px;
+    height: 40px;
+    font-weight: bold;
+    font-family: Arial,Helvectica,sans-serif;
+    font-size: 22px;
+}
+
+#top-tabs a:not(.active) {
+    
+/* IE 8-9 */
+    -ms-filter: "progid:DXImageTransform.Microsoft.gradient(startColorstr='#4a4a4a', endColorstr='#000000', GradientType=0)";
+/* IE10 Consumer Preview */
+    background-image: -ms-linear-gradient(top, #4a4a4a 0%, #000000 100%);
+/* Mozilla Firefox */
+    background-image: -moz-linear-gradient(top, #4a4a4a 0%, #000000 100%);
+/* Opera */
+    background-image: -o-linear-gradient(top, #4a4a4a 0%, #000000 100%);
+/* Webkit (Safari/Chrome 10) */
+    background-image: -webkit-gradient(linear, left top, left bottom, color-stop(0, #4a4a4a), color-stop(1, #000000));
+/* Webkit (Chrome 11+) */
+    background-image: -webkit-linear-gradient(top, #4a4a4a 0%, #000000 100%);
+/* W3C Markup, IE10 Release Preview */
+    background-image: linear-gradient(to bottom, #4a4a4a 0%, #000000 100%);
+    -pie-background: linear-gradient(to bottom, #4a4a4a, #000000);
+ /*ie 6-9 via PIE*/;
+}
+
+/* main settings box config */
+#tabs-Control {
+  height:1200px; 
+  padding: 20px 30px;
+}
+
+#tabs-Settings {
+  height:1200px; 
+  padding: 10px;
+}
+
+#tabs-Service {
+  height:900px; 
+  padding: 20px 30px;
+}
+
+/*(issue 983) - revamping devices page*/
+#tabs-Devices {
+  height:1200px; 
+  padding: 10px;
+}
+
+
+
+#tabs-Control .ui-tabs-nav .ui-state-default,
+#tabs-Settings .ui-tabs-nav .ui-state-default,
+#tabs-Devices.ui-tabs-nav .ui-state-default,		/*(issue 983) - revamping devices page*/
+#tabs-Service  .ui-tabs-nav .ui-state-default
+{
+    height: 40px;
+    vertical-align: middle;
+}
+
+#tabs-Control,
+#tabs-Settings,
+#tabs-Devices,	/*(issue 983) - revamping devices page*/
+#tabs-Service
+{
+    background-color: #000000;
+    border: 1px solid #444444;
+/* IE 8-9 */
+    -ms-filter: "progid:DXImageTransform.Microsoft.gradient(startColorstr='#4a4a4a', endColorstr='#000000', GradientType=0)";
+/* IE10 Consumer Preview */
+    background-image: -ms-linear-gradient(top, #4a4a4a 0%, #000000 75%);
+/* Mozilla Firefox */
+    background-image: -moz-linear-gradient(top, #4a4a4a 0%, #000000 75%);
+/* Opera */
+    background-image: -o-linear-gradient(top, #4a4a4a 0%, #000000 75%);
+/* Webkit (Safari/Chrome 10) */
+    background-image: -webkit-gradient(linear, left top, left bottom, color-stop(0, #4a4a4a), color-stop(1, #000000));
+/* Webkit (Chrome 11+) */
+    background-image: -webkit-linear-gradient(top, #4a4a4a 0%, #000000 75%);
+/* W3C Markup, IE10 Release Preview */
+    background-image: linear-gradient(to bottom, #4a4a4a 0%, #000000 75%);
+    -pie-background: linear-gradient(to bottom, #4a4a4a, #000000);
+ /*ie 6-9 via PIE*/;
+}
+
+
+/* generic settings for form components, all pages */
+/* *********************************************** */
+.radio-div {
+    margin-bottom: 5px;
+    height: 20px;
+}
+
+.radio_button_label {
+    padding: 0 0 0 10px;
+}
+
+select {
+    width: 100%;
+}
+
+input[type='radio'],
+input[type='checkbox']
+{
+    opacity: 0;
+    float: left;
+    width: 0;
+    height: 0px;
+    padding: 0px;
+    margin: 0px;
+}
+
+input[type='radio'] + label,
+input[type='checkbox'] + label
+{
+    clear: none;
+    padding: 5px 0 4px 24px;
+    /* Make look clickable because they are */
+    cursor: pointer;
+    background: url(../images/unchecked.PNG) left center no-repeat;
+}
+
+input[type='radio']:checked + label,
+input[type='checkbox']:checked + label
+{
+    background-image: url(../images/checked.PNG);
+}
+
+input[type="text"],
+input[type="password"]
+{
+    background-color: #5a5a5a;
+    color: white;
+    border: 0 none;
+}
+
+input[type="button"]:not(.outlet),
+input[type="submit"]
+{
+    color: white;
+    font-size: .9em;
+	background-color:#000000;
+    border: 0 none;
+    height: 40px;
+    font-weight: bold;
+    border-radius: 15px;
+	font-family: Arial,Helvectica,sans-serif;
+/* IE 8–9 */
+    -ms-filter: "progid:DXImageTransform.Microsoft.gradient(startColorstr='#4a4a4a', endColorstr='#000000', GradientType=0)";
+/* IE10 Consumer Preview */
+    background-image: -ms-linear-gradient(top, #4a4a4a 0%, #000000 100%);
+/* Mozilla Firefox */
+    background-image: -moz-linear-gradient(top, #4a4a4a 0%, #000000 100%);
+/* Opera */
+    background-image: -o-linear-gradient(top, #4a4a4a 0%, #000000 100%);
+/* Webkit (Safari/Chrome 10) */
+    background-image: -webkit-gradient(linear, left top, left bottom, color-stop(0, #4a4a4a), color-stop(1, #000000));
+/* Webkit (Chrome 11+) */
+    background-image: -webkit-linear-gradient(top, #4a4a4a 0%, #000000 100%);
+/* W3C Markup, IE10 Release Preview */
+    background-image: linear-gradient(to bottom, #4a4a4a 0%, #000000 100%);
+    -pie-background: linear-gradient(to bottom, #4a4a4a, #000000);
+ /*ie 6-9 via PIE*/;
+}
+
+
+/* Control page specific config */
+/* **************************** */
+#shower_status td {
+    padding: 0 20px 0 0;
+    vertical-align: text-top;
+}
+
+#control_div {
+    width:100%;
+    clear:both;
+}
+
+/*  #user_control_div {
+    float:left; 
+    margin:0; 
+    width:200px;
+} */					/*TF team for control page*/
+
+.userbutton {
+    width:170px;
+}
+
+/*  #shower_control_div {
+    float:left;
+    width:305px;
+    margin:0;
+    padding-left: 10px;
+    padding-right: 10px;
+} */							/*TF Team for control page*/
+
+.highlightbox {
+    background-color:#000000;
+    width:300px;
+    border:2px solid #757575;
+    border-radius: 10px;
+}
+
+.highlightbox_text {
+    padding: 15px;
+}
+
+.outlets_border {
+    width:100%;
+    border-bottom:2px solid #404040;
+}
+
+.showerbutton {
+    width:145px;
+}
+
+/*     #steam_control_div {
+    float:left;
+    margin:0;
+    padding-left: 10px;
+} */							/*TF Team for control page*/
+
+.steambutton {
+    width: 145px;    /*Changed from 100px to 145px by TF team*/
+}
+
+/* settings page specific config */
+/* ***************************** */
+/* these are for the inner menu */
+#tabs .ui-tabs-nav
+{
+    padding: 10px;
+    background: transparent;
+    border-width: 0px 0px 1px 0px;
+    -moz-border-radius: 0px;
+    -webkit-border-radius: 0px;
+    border-radius: 0px;
+}
+
+#tabs-Service .ui-widget-header:not(.ui-progressbar-value),
+#tabs-Settings  .ui-widget-header:not(.ui-progressbar-value)
+{
+    background: transparent;
+    border: none;
+    -moz-border-radius: 0px;
+    -webkit-border-radius: 0px;
+    border-radius: 0px;
+}
+
+#tabs-Service  .ui-state-default:not(.outlet),
+#tabs-Settings  .ui-state-default:not(.outlet)
+{
+    background: transparent;
+    color: #BBBBBB;
+    border: none;
+    border-left: 3px solid white;
+    border-radius: 0px;
+    border-top: none;
+    border-bottom: none;
+    border-right: none;
+}
+
+#settings_tabs_id .ui-tabs-panel {
+    border: 0 none;
+}
+/*(issue 983) - revamping devices page*/
+#devices_tabs_id .ui-tabs-panel {
+    border: 0 none;
+}
+
+.ui-tabs-panel {
+    height: 800px;
+    padding: 0px !important;
+}
+
+
+/* these are for the main section, settings page */
+
+#inner_save_current
+{
+	width: 50%;
+	margin: 0 auto;
+	padding-top:100px;
+	text-align: center;
+}
+
+.valve_picker_popout {
+        position:absolute;
+        z-index:20000;
+        top: 0px;
+        left: 0px;
+        display: none;
+	background-color:#000;
+	border: 3px solid white;
+	width: 450px;
+}
+
+/* these styles hide the steam deluge radio buttons - will not be used for release 1 */
+/* Commenting to show the steam deulge option - TF Team 07-07
+.v1_deluge {
+	display: none;
+}
+.v2_deluge {
+	display: none;
+}
+Commenting to show the steam deulge option - TF Team 07-07*/
+
+.popout_titlebar {
+    width: 91%;
+    background-color: #757575;
+    padding: 20px;
+}
+
+.popout_interior {
+    width: 100%;
+    padding: 20px;
+}
+
+.user_table_column {
+    width: 33%;
+}
+
+.valves_table {
+    width:100%;
+    float:left;
+    padding-bottom:10px;
+}
+
+.valves_cell {
+    width:33%;
+    padding:0 20px 10px 20px;
+}
+/*(issue 983) - revamping devices page*/
+.valves_cell1 {
+    width:33%;
+    padding:0 30px 10px 2px;
+}
+
+
+
+.valves_cell_box {
+    float:left;
+    width:100%;
+}
+
+.valves_cell_text {
+    float:left;
+    padding-left:5px;
+}
+
+#valve_outlet_table hr {
+    width:90%;
+    color:#757575;
+    border-width: 1px;
+}
+
+.valve_temp_block {
+    clear:both;
+    display: block;
+    position: relative;
+}
+
+.valve_temp_block_border {
+    float: left; 
+    display: block; 
+    position: relative;
+    padding:20px;
+}
+
+#valve_temp_table {
+    width: 400px;
+}
+
+#valve_temp_table tr, td {
+    padding: 10px;
+}
+
+.valve_massage_block {
+    float: left; 
+    display: block; 
+    position: relative;
+    padding:20px;
+}
+
+.valve_massage_block_border {
+    clear:both;
+    float: left; 
+    display: block;
+    position: relative;
+}
+
+.valve_temp_number_box {
+    width:55px; 
+}
+
+.valve_temp_entry_box {
+}
+
+.massage_box {
+    width: 300px;
+}
+
+#light_modules_table tr, td {
+    padding: 10px;
+}
+
+
+#steam_table tr,td {
+    padding: 0 10px 20px 0;
+}
+
+#spa_outlet_table hr {
+    width:90%;
+    color:#757575;
+    border-width: 1px;
+}
+
+/* service page specific config */
+/* **************************** */
+
+.innerDiv {
+    padding: 20px 0;
+}
+
+#yourBtn{
+    position: relative;
+    color: white;
+    font-size: .9em;
+    background-color:#000000;
+    border: 0 none;
+    height: 40px;
+    width:300px;
+    font-weight: bold;
+    border-radius: 15px;
+    text-align: center;
+    padding:0px;
+    vertical-align:bottom;
+	
+/* IE 8–9 */
+    -ms-filter: "progid:DXImageTransform.Microsoft.gradient(startColorstr='#4a4a4a', endColorstr='#000000', GradientType=0)";
+/* IE10 Consumer Preview */
+    background-image: -ms-linear-gradient(top, #4a4a4a 0%, #000000 100%);
+/* Mozilla Firefox */
+    background-image: -moz-linear-gradient(top, #4a4a4a 0%, #000000 100%);
+/* Opera */
+    background-image: -o-linear-gradient(top, #4a4a4a 0%, #000000 100%);
+/* Webkit (Safari/Chrome 10) */
+    background-image: -webkit-gradient(linear, left top, left bottom, color-stop(0, #4a4a4a), color-stop(1, #000000));
+/* Webkit (Chrome 11+) */
+    background-image: -webkit-linear-gradient(top, #4a4a4a 0%, #000000 100%);
+/* W3C Markup, IE10 Release Preview */
+    background-image: linear-gradient(to bottom, #4a4a4a 0%, #000000 100%);
+    -pie-background: linear-gradient(to bottom, #4a4a4a, #000000);
+ /*ie 6-9 via PIE*/;
+  }
+  
+.fileUpload input.upload {
+    -webkit-appearance:none; 
+    position:absolute;
+    top:0; left:0;
+    opacity:0; 
+}
+
+.main-dialog-class {
+    left: 0;
+    outline: 0 none;
+    border: 3px solid #757575;
+    padding: 0 0 20px 20px;
+    position: absolute;
+    top: 0;
+}
+/* Added by TF-Team on 01-12-2015 for factreset page confirmation dialog*/
+.main-dialog-class1 {
+    left: 0;
+    outline: 0 none;
+    border: 3px solid #757575;
+    padding: 0 0 20px 20px;
+    position: fixed!important;
+    top: 50%!important;
+}
+/* End of add by TF-Team on 01-12-2015*/
+/* //Added by TF2 March*16*2015 */
+/* Bug - 1154 For Upload dialog pop up transparency */
+.dialog-class-transparent {
+    left: 0;
+    outline: 0 none;
+    border: 3px solid #757575;
+    padding: 0 0 20px 20px;
+    position: absolute;
+    top: 0;
+	opacity:0.4;
+}
+/* //End of Add by TF2 March*16*2015 */
+
+/*Added by TF Team*/
+    .device-dialog-class {
+    left: 0;
+    outline: 0 none;
+    border: 3px solid #757575;
+    padding: 0 0 20px 20px;
+    position: absolute;
+    top: 0;
+	width:auto;
+	height:auto;
+}
+	.device-dialog-class .ui-dialog-content {
+    background: none repeat scroll 0 0 transparent;
+	color: #bbbbbb;
+    border: 0 none;
+    overflow: auto;
+    position: relative;
+    top:0;
+	padding: 0 !important;
+}
+/*End of Added by TF Team*/
+.main-dialog-class .ui-dialog-content {
+    background: none repeat scroll 0 0 transparent;
+    border: 0 none;
+    overflow: auto;
+    position: relative;
+    padding: 0 !important;
+}
+
+.main-dialog-class .yesButtonClass {
+	color: white;
+}
+
+.upload_wait_string {
+    color: red;
+}
+.upload_done_string {
+    color: green;
+}
+
+.upload_string {
+    width: 300px;
+}
+
+
+.diag input[type="button"]
+{
+    width: 300px;
+    height: 40px;
+}
+
+.password
+{
+    font-size: 15px;
+    color: #BBBBBB;
+}
+
+tr.spacetop > td {
+    padding-top: 50px;
+}
+
+.ui-dialog
+{
+    display: inline-block;
+    background: #000000;
+}
+
+.ui-dialog-titlebar
+{
+    background: #000000;
+    color: #BBBBBB;
+    padding-left: 15px;
+    border-top-right-radius: 10px;
+    border-top-left-radius: 10px;
+    display: inline;
+}
+
+.ui-dialog-buttonpane
+{
+    background: #000000;
+    color: #FFFFFF !important;
+    padding: 0 0 15px 0;
+    border-bottom-right-radius: 10px;
+    border-bottom-left-radius: 10px;
+}
+
+
+
+
+
+.outlet
+{
+    width: 90px;
+    height: 60px;
+    border: 0px solid #000000;
+    outline-color: #000000;
+    border-radius: 15px;
+    cursor: pointer;
+}
+
+.outlet_div
+{
+    border-radius: 15px;
+    border: 1px solid #BBBBBB;
+    background: #000000;
+    float: left;
+    width: 90px;
+    cursor: pointer;
+}
+
+.outlet_0
+{
+    background: url('../images/outlets/0.png')!important;
+}
+
+.outlet_1
+{
+    background: url('../images/outlets/1_off.png')!important;
+}
+
+.outlet_2
+{
+    background: url('../images/outlets/2_off.png')!important;
+}
+
+.outlet_3
+{
+    background: url('../images/outlets/3_off.png')!important;
+}
+
+.outlet_4
+{
+    background: url('../images/outlets/4_off.png')!important;
+}
+
+.outlet_5
+{
+    background: url('../images/outlets/5_off.png')!important;
+}
+
+.outlet_6
+{
+    background: url('../images/outlets/6_off.png')!important;
+}
+
+.outlet_7
+{
+    background: url('../images/outlets/7_off.png')!important;
+}
+
+.outlet_8
+{
+    background: url('../images/outlets/8_off.png')!important;
+}
+
+.outlet_9
+{
+    background: url('../images/outlets/9_off.png')!important;
+}
+
+.outlet_10
+{
+    background: url('../images/outlets/10_off.png')!important;
+}
+
+.outlet_11
+{
+    background: url('../images/outlets/11_off.png')!important;
+}
+
+.outlet_12
+{
+    background: url('../images/outlets/12_off.png')!important;
+}
+
+.outlet_13
+{
+    background: url('../images/outlets/13_off.png')!important;
+}
+
+.outlet_14
+{
+    background: url('../images/outlets/14_off.png')!important;
+}
+
+.outlet_15
+{
+    background: url('../images/outlets/15_off.png')!important;
+}
+
+.outlet_16
+{
+    background: url('../images/outlets/16_off.png')!important;
+}
+
+.outlet_17
+{
+    background: url('../images/outlets/17_off.png')!important;
+}
+
+.outlet_18
+{
+    background: url('../images/outlets/18_off.png')!important;
+}
+
+.outlet_19
+{
+    background: url('../images/outlets/19_off.png')!important;
+}
+
+.outlet_20
+{
+    background: url('../images/outlets/20_off.png')!important;
+}
+
+.outlet_21
+{
+    background: url('../images/outlets/21_off.png')!important;
+}
+
+.outlet_22
+{
+    background: url('../images/outlets/22_off.png')!important;
+}
+
+.outlet_23
+{
+    background: url('../images/outlets/rr_sm_highlighted.png')!important;
+}
+
+.outlet_1.ui-selected
+{
+    background: url('../images/outlets/1_on.png')!important;
+}
+
+.outlet_2.ui-selected
+{
+    background: url('../images/outlets/2_on.png')!important;
+}
+
+.outlet_3.ui-selected
+{
+    background: url('../images/outlets/3_on.png')!important;
+}
+
+.outlet_4.ui-selected
+{
+    background: url('../images/outlets/4_on.png')!important;
+}
+
+.outlet_5.ui-selected
+{
+    background: url('../images/outlets/5_on.png')!important;
+}
+
+.outlet_6.ui-selected
+{
+    background: url('../images/outlets/6_on.png')!important;
+}
+
+.outlet_7.ui-selected
+{
+    background: url('../images/outlets/7_on.png')!important;
+}
+
+.outlet_8.ui-selected
+{
+    background: url('../images/outlets/8_on.png')!important;
+}
+
+.outlet_9.ui-selected
+{
+    background: url('../images/outlets/9_on.png')!important;
+}
+
+.outlet_10.ui-selected
+{
+    background: url('../images/outlets/10_on.png')!important;
+}
+
+.outlet_11.ui-selected
+{
+    background: url('../images/outlets/11_on.png')!important;
+}
+
+.outlet_12.ui-selected
+{
+    background: url('../images/outlets/12_on.png')!important;
+}
+
+.outlet_13.ui-selected
+{
+    background: url('../images/outlets/13_on.png')!important;
+}
+
+.outlet_14.ui-selected
+{
+    background: url('../images/outlets/14_on.png')!important;
+}
+
+.outlet_15.ui-selected
+{
+    background: url('../images/outlets/15_on.png')!important;
+}
+
+.outlet_16.ui-selected
+{
+    background: url('../images/outlets/16_on.png')!important;
+}
+
+.outlet_17.ui-selected
+{
+    background: url('../images/outlets/17_on.png')!important;
+}
+
+.outlet_18.ui-selected
+{
+    background: url('../images/outlets/18_on.png')!important;
+}
+
+.outlet_19.ui-selected
+{
+    background: url('../images/outlets/19_on.png')!important;
+}
+
+.outlet_20.ui-selected
+{
+    background: url('../images/outlets/20_on.png')!important;
+}
+
+.outlet_21.ui-selected
+{
+    background: url('../images/outlets/21_on.png')!important;
+}
+
+.outlet_22.ui-selected
+{
+    background: url('../images/outlets/22_on.png')!important;
+}
+
+.outlet_23.ui-selected
+{
+    background: url('../images/outlets/rr_sm_active.png')!important;
+}
+
+.breathe
+{
+    background: url('../images/spa/breathe.png')!important;
+}
+
+.release
+{
+    background: url('../images/spa/release.png')!important;
+}
+
+.exhilerate
+{
+    background: url('../images/spa/exhilerate.png')!important;
+}
+
+.warmup
+{
+    background: url('../images/spa/warmup.png')!important;
+}
+
+.cooldown
+{
+    background: url('../images/spa/cooldown.png')!important;
+}
+
+.renew
+{
+    background: url('../images/spa/renew.png')!important;
+}
+
+.headaid
+{
+    background: url('../images/spa/headaid.png')!important;
+}
+
+.flex
+{
+    background: url('../images/spa/flex.png')!important;
+}
+
+.detox
+{
+    background: url('../images/spa/detox.png')!important;
+}
+
+.steam_coach
+{
+    background: url('../images/spa/steamcoach.png')!important;
+}
+
+.repair
+{
+    background: url('../images/spa/repair.png')!important;
+}
+
+.ui-dialog-titlebar-close
+{
+    visibility: hidden;
+}
+
+.centered_button
+{
+    position: relative;
+    left: 25%;
+}
+
+
+
+
+#feedback
+{
+    font-size: 1.4em;
+}
+
+#valve_1_control
+{
+    list-style-type: none;
+    margin: 0;
+    padding: 0;
+    width: 350px;
+}
+
+#valve_1_control li
+{
+    margin: 3px 3px 3px 0;
+    padding: 1px;
+    float: left;
+    width: 90px;
+    height: 60px;
+    font-size: 4em;
+    text-align: center;
+}
+
+#valve_2_control
+{
+    list-style-type: none;
+    margin: 0;
+    padding: 0;
+    width: 350px;
+}
+
+#valve_2_control li
+{
+    margin: 3px 3px 3px 0;
+    padding: 1px;
+    float: left;
+    width: 90px;
+    height: 60px;
+    font-size: 4em;
+    text-align: center;
+}
+
+#one_order
+{
+    list-style-type: none;
+    margin: 0;
+    padding: 0;
+    width: 300px;
+}
+
+#one_order li
+{
+    margin: 3px 3px 3px 0;
+    padding: 1px;
+    float: left;
+    width: 90px;
+    height: 60px;
+    font-size: 4em;
+    text-align: center;
+}
+
+#two_order
+{
+    list-style-type: none;
+    margin: 0;
+    padding: 0;
+    width: 300px;
+}
+
+#two_order li
+{
+    margin: 3px 3px 3px 0;
+    padding: 1px;
+    float: left;
+    width: 90px;
+    height: 60px;
+    font-size: 4em;
+    text-align: center;
+}
+
+/*TODO: selects cant really be styled via CSS
+select
+{
+	
+  background-color: #FFFFFF;
+  color:white;
+  border: 0 none;
+}
+select[selected]
+{
+	
+  background-color: #000000;
+  color:white;
+  border: 0 none;
+}*/
+
+.no-close .ui-dialog-titlebar-close
+{
+    display: none;
+}
+
+.wideselects select
+{
+    width: 200px;
+}
+
+
+
+.lblslider input[type="text"]
+{
+    width: 50px;
+    background-color: rgba(255, 255, 255, 0);
+	color: white;
+    border: 0 none;
+	left:50%;
+}
+
+.search
+{
+    border: 1px solid #000000;
+    background-color: #5a5a5a;
+    width: 95%;
+    height: 25px;
+}
+
+.search input[type="text"]
+{
+    outline-style: none;
+    border: 0 none;
+    /* float: left; */    /*Commented by TF Team*/
+    height: 25px;
+    margin: 0;
+    padding: 0 0 0 0;
+    width: 60%;/* width: 90%; */ /*Changed by TF Team*/
+}
+
+.search input[type="button"]
+{
+    background: url("../images/update.PNG") no-repeat;
+    border: 0 none;
+    height: 25px;
+    width: 25px;
+    margin: 0;
+}
+
+input[type="button"]:hover
+{
+    cursor: pointer;
+}
+
+textarea
+{
+    background-color: #5a5a5a;
+    color: white;
+    border: 0 none;
+}
+
+::placeholder {
+  color: #b6b6b6;
+  opacity: 100; 
+}
+.textname
+{
+    width: 100px;
+}
+
+
+#ui-id-4
+{
+    border: none;
+}
+
+
+#tabs-Service .ui-corner-top,
+#tabs-Settings .ui-corner-top,
+#tabs-Devices .ui-corner-top /*(issue 983) - revamping devices page*/
+{
+    background: transparent;
+    border-left: none;
+    border-top: none;
+    border-bottom: none;
+    border-right: none;
+    border-radius: 0px;
+}
+
+#tabs-Service ul li a,
+#tabs-Settings ul li a, 
+#tabs-Devices ul li a       /*(issue 983) - revamping devices page*/
+{
+    background: transparent;
+    color: #BBBBBB;
+    border-right: none;
+    border-bottom: none;
+    border-left: none;
+    border-top: none;
+}
+
+#tabs-Service div
+#tabs-Settings div
+#tabs-Devices div   /*(issue 983) - revamping devices page*/
+{
+    background: transparent;
+    border-right: none;
+    border-left: none;
+    border-top: none;
+}
+
+#one-order li,
+#two-order li
+{
+    border-left:none!important;
+}
+#tabs-Service .ui-tabs-nav .ui-state-active a,
+#tabs-Settings .ui-tabs-nav .ui-state-active a,
+#tabs-Devices .ui-tabs-nav .ui-state-active a  /*(issue 983) - revamping devices page*/
+{
+    font-size: 1.2em;
+    color: white;
+    padding: 0.25em 0.5em 0.25em 0.75em;
+}
+
+
+.ui-slider .ui-slider-range
+{
+    background-color: #5a5a5a!important;
+}
+
+.rightmost
+{
+    border-right: 3px solid white!important;
+}
+
+.cal_code_err_string
+{
+	color: red;
+	font-size: 0.7em;
+	display: none;
+}

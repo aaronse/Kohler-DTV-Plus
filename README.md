@@ -65,7 +65,7 @@ gate.
 The controller has no authentication and exposes endpoints that can wipe or
 brick it. Every known endpoint is rated 0-5 in
 [app/server/cgi-safety.mjs](app/server/cgi-safety.mjs), and the proxy refuses
-anything above **2/5** before a packet is sent. 16 endpoints are reachable out of
+anything above **2/5** before a packet is sent. 18 endpoints are reachable out of
 ~50 known; `reset_factory.cgi`, `clear_dt.cgi`, `fileupload.cgi`,
 `unpack_bin.cgi`, `edit_dt.cgi`, `rpc.cgi` and friends are permanently
 unreachable.

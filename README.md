@@ -1,79 +1,90 @@
-# Kohler-DTV-
-Results of analyzing the Kohler DTV+ system controller and associated web page.
+# Kohler DTV+
 
-The Kohler DTV+ system controller (K-99695-NA and K-99693-P-NA) has an associated web page that is used to confogure the system components.
+Analysis of the Kohler DTV+ system controller (K-99695-NA / K-99693-P-NA), and a
+working replacement interface for it.
 
-I spent some time looking into the web page and controller code and found a few useful pieces of information that would provie very useful if someone was inclined to interface withi this controller from another automation system.
+> ⚠️ **Read [DISCLAIMER.md](DISCLAIMER.md) before running anything here.** This
+> drives water temperature and flow on undocumented, unauthenticated hardware.
+> Water above **43 °C / 109 °F can scald**, and some controller endpoints can
+> brick the unit. Not affiliated with, endorsed by, or supported by Kohler Co.
 
-By taking advantage of the discovered CGI scripts, someone could easily create a custom interface to manipulate the DTV+ components (Turn shower on, off, Turn on massage, Manipulate Audio or Lighting, etc).
+## Why
 
-None of this is documented by Kohler and as such such you will assume all responsibility for issues that may present themselves from interfacing with the controller in this way.
+The K-99693 wall interface on this system failed. The controller still reports
+every other component as healthy — valve, amplifier, controller all `conn` — and
+simply has nothing left to command it:
 
-Here is a list of all CGI scripts I found that were coded into the controller. These can be executed by appending them to the end of the system controller url. For example: http://192.168.1.222/check_updates.cgi
+```
+num_interface        = 0
+ui1_con_string       = not_seen      <- the failed touchscreen
+valve_1_con_string   = conn
+amp_con_string       = conn
+controller_con_string = conn
+```
 
-Important: Through some initial testing I have found that some of these work and others do not. When some are executed the controller web page appears to freeze and a reboot is required. Proceed with caution. I will do some more digging and see if I can find details on whether or not any of the below cgi scripts require inputs and what those may be. Happy hacking!
+The controller exposes an undocumented CGI API that its own web pages use. That
+is the replacement input.
 
-check_updates.cgi
-landing_url.cgi
-mac.cgi
-serial.cgi
-clear_dt.cgi
-files_available.cgi
-reset_fault.cgi
-saveDT.cgi
-values.cgi
-languages.cgi
-rpc.cgi
-datatable.cgi
-edit_dt.cgi
-set_device.cgi
-swapvalves.cgi
-unpack_bin.cgi
-quick_shower.cgi
-start_user.cgi
-stop_user.cgi
-light_on.cgi
-light_off.cgi
-music_on.cgi
-music_off.cgi
-steam_on.cgi
-steam_off.cgi
-rain_on.cgi
-rain_off.cgi
-id_interface.cgi
-saveUI.cgi
-reset_factory.cgi
-forget_devices.cgi
-reset_default.cgi
-save_default.cgi
-reset_users.cgi
-reset_user.cgi
-fileupload.cgi
-BTKey.cgi
-BTPin.cgi
-save_variable.cgi
-change_user.cgi
-files.cgi
-system_info.cgi
-ftp_status.cgi
-hiding.cgi
-update_change.cgi
-bt_disconnect.cgi
-sim_dev_values.cgi
-massage_toggle.cgi
-powerclean_check.cgi
-stop_shower.cgi
+## What's here
 
-Regarding the controller itself.
+| | |
+| --- | --- |
+| [app/](app/) | React + Vite interface styled after the K-99693. Runs on a dev machine, a LAN box, or a phone browser. |
+| [PROTOCOL.md](PROTOCOL.md) | The controller's CGI API — transport quirks, endpoints, payload fields, safety ratings. |
+| [DESIGN.md](DESIGN.md) | Architecture, decisions, testing, and what the Android/Capacitor port needs. |
+| [DISCLAIMER.md](DISCLAIMER.md) | Safety warnings, CGI risk scale, and how this repo enforces it. |
+| [research/controller-mirror/](research/controller-mirror/) | Verbatim mirror of the controller's own web UI, plus live payload captures. |
+| [research/xagon0/](research/xagon0/) | Vendored third-party analysis — see [PROVENANCE.md](research/xagon0/PROVENANCE.md). |
+| [research/reference/](research/reference/) | Kohler's user guide, rendered for interface reference. |
 
-I have found that it is not possible to SSH into the contorller through the DHCP provided IP address. However, through analysis of the system operating system I see that they have an implementation of SSHD active on the chip. I assume that it is not enabled. There is also no active USB port. However, the board itself has pins for one. I believe Kohler has removed the USB port in the latest models.
+## Quick start
 
-Without a USB port and no SSH access it will be very difficult to devise another way of interfcing with the controller other than through the discovered cgi scripts.
+```bash
+cd app
+npm install
+npm run dev            # http://localhost:5180, and on your LAN IP
+```
 
-** UPDATE **
+Set `KOHLER_HOST` if your controller is not at `192.168.0.115`.
 
-I have found a few references to what looks to be a REST api in some of the files Iwas able to peep into.
+```bash
+npm test               # unit tests, no hardware
+npm run selftest       # live checks, strictly read-only — never opens a valve
+```
 
-In particular, I see a reference to "/api/v1/device/status/"
+See [app/README.md](app/README.md) for hosting, the API surface, and the safety
+gate.
 
-I will be spending some time looking into this to see what I can find. Stay tuned.
+## Safety gate
+
+The controller has no authentication and exposes endpoints that can wipe or
+brick it. Every known endpoint is rated 0-5 in
+[app/server/cgi-safety.mjs](app/server/cgi-safety.mjs), and the proxy refuses
+anything above **2/5** before a packet is sent. 16 endpoints are reachable out of
+~50 known; `reset_factory.cgi`, `clear_dt.cgi`, `fileupload.cgi`,
+`unpack_bin.cgi`, `edit_dt.cgi`, `rpc.cgi` and friends are permanently
+unreachable.
+
+## Hardware
+
+<img src="Images/KohlerBoardOverall.webp" alt="Kohler DTV+ system controller circuit board, overall view" style="width:100%;">
+
+The DTV+ system controller board — photograph by
+[xagon0](https://github.com/xagon0/Kohler-DTV-Plus/blob/master/Images/Images.md),
+re-encoded from the upstream 11 MB PNG to a 962 KB WebP at full 3710×2242
+resolution (see [research/xagon0/PROVENANCE.md](research/xagon0/PROVENANCE.md)).
+The controller
+speaks RS-485 to the valve and amplifier, and HTTP/0.9-flavoured CGI to
+everything else; [PROTOCOL.md](PROTOCOL.md) covers the latter.
+
+## Credits
+
+- [xagon0/Kohler-DTV-Plus](https://github.com/xagon0/Kohler-DTV-Plus) — CGI
+  safety ratings, RS-485 protocol analysis, hardware and repair documentation.
+- [dcmeglio/kohler-python](https://github.com/dcmeglio/kohler-python) — endpoint
+  and parameter reference.
+- Kohler's *User Guide — Digital Interface and System Controller for DTV+*
+  (1241234-5-D) for the interface design.
+
+Original CGI enumeration and controller notes from this repository's earlier
+revisions are preserved in [PROTOCOL.md](PROTOCOL.md).

@@ -12,6 +12,42 @@ See the Story log section of [AGENT.md](AGENT.md) for what to append and how.
 
 ## 2026-07-26
 
+### 13:30 — Tankless heater reframes everything, and I had over-claimed
+
+The hot water source is a **tankless** heater. Two consequences.
+
+First, a correction to my own analysis. I had listed valve faults among the
+things the empty controller log ruled out. **That was wrong.** Valve error codes
+travel the Saturn serial protocol and surface as `valve1_ErrorFatal` /
+`valve1_ErrorResettable` — *current-state flags, not history*. The on-board log
+holds controller codes 100-204 only. A valve error that trips and clears leaves
+no trace, so reading those flags the next day proves nothing.
+
+Second, tankless supplies the mechanism that was missing:
+
+1. Tankless units have a minimum activation flow (~0.5-0.75 GPM) and no
+   reservoir — below it the burner stops and hot water goes cold in seconds.
+2. The valve can't reach its 96 °F setpoint.
+3. The valve shuts off rather than deliver cold water — exactly what the operator
+   expected on camera: *"it's supposed to cut off if they can't achieve the
+   desired temperature."*
+4. Nothing appears in the controller's log, because valve errors don't go there.
+
+**And it explains the detail that didn't fit.** In the 07-14 repro the operator
+turned off the overhead and left *only the handshower* running, to save water,
+~3.5 minutes before it failed. Under every other theory that's neutral. Under
+this one it's the trigger — a single handshower is exactly where a tankless unit
+can fall below minimum firing flow.
+
+**Why it matters:** there is now a test that costs nothing and beats any amount
+of code — run the shower with several outlets open, well above minimum flow, and
+see if it survives longer. If high flow is stable and low flow fails, that's
+close to conclusive.
+**For Kohler:** when the valve cannot achieve setpoint and shuts off, is that
+surfaced anywhere persistent? Right now it appears to leave no record once the
+transient flag clears, which makes the failure very hard for an owner to
+diagnose.
+
 ### 13:05 — The shutoff logs absolutely nothing, and that is now proven
 
 The operator cleared the controller's error log **before** filming the

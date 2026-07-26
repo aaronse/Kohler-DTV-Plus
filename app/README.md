@@ -113,11 +113,18 @@ if you re-mirror the controller.
 
 - `quick_shower.cgi` takes the whole desired state each time, so selecting an
   outlet, changing temperature and pressing start are all the same call.
+- **Polling is 15 s idle / 5 s active, deliberately.** The controller's web
+  server locks up under sustained polling — for hours, sometimes needing a power
+  cycle — and other integrations hit this repeatedly before settling on these
+  values. `values.cgi` is cached 30 s server-side so a normal poll costs one
+  request, not two. See [../research/FIELD-NOTES.md](../research/FIELD-NOTES.md).
 - Temperature changes are debounced ~450 ms — this controller does not enjoy a
   request per arrow tap.
 - After any command the UI holds its own state for 5 s so a poll landing
   mid-flight doesn't snap the display back.
-- `valve1outletN` from the controller is the *armed selection*, not water flow.
-  Water is running only when `shower_on` / `ui_shower_on` is set.
+- `valve1outletN` from the controller is the *armed selection*, not water flow,
+  and it is indexed by `valveN_outletM_func.id` rather than the slot number.
+- `valveN_Currentstatus` of `PurgeActive` means water is already running — it is
+  the auto-purge warm-up.
 
 See [../PROTOCOL.md](../PROTOCOL.md) for the full protocol.

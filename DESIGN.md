@@ -85,14 +85,41 @@ place that interprets them; the UI sees a `ShowerModel`.
 
 This caught the bug that mattered most: **`valve1outletN` is the armed
 selection, not water flow.** The default outlet reads `true` while the shower is
-off, so the first build reported "water running" on an idle system. Water is
-running only per `shower_on` / `ui_shower_on`; `isFlowing()` combines the two.
+off, so the first build reported "water running" on an idle system.
 
-### One queue, and a grace window
+Two more corrections came out of other people's field reports rather than our
+own hardware, because this system does not exhibit either:
+
+- **Outlet numbering is two index spaces.** Slot numbers go into
+  `quick_shower.cgi`; `system_info.cgi` reports under `valveN_outletM_func.id`.
+  They coincide here, which is why conflating them looked fine — and why someone
+  else's outlet 2 turned on their outlet 6.
+- **`PurgeActive` means running.** Auto-purge is enabled on this system, so the
+  warm-up flows cold water before `shower_on` is set. Watching only that flag
+  would have offered "start" mid-shower.
+
+Both are pinned by regression tests that deliberately construct the non-identity
+case. See [research/FIELD-NOTES.md](research/FIELD-NOTES.md) §2-3.
+
+### One queue, and a deliberately slow poll
 
 Every controller request funnels through a single promise chain with a 120 ms
 floor between calls, because overlapping requests are what actually wedge this
-server. Polling runs at 2.5 s.
+server.
+
+Polling is **15 s idle, 5 s active**, with a 120 s tail after the shower stops.
+That is not a guess — the controller's web server locks up under sustained
+polling and other integrations converged on exactly these numbers after hitting
+it repeatedly (see [research/FIELD-NOTES.md](research/FIELD-NOTES.md) §1). Our
+first build polled at 2.5 s, about six times faster than the interval already
+suspected of causing lockups; reading the field reports caught it before the
+hardware did.
+
+`values.cgi` is configuration and changes only when someone edits it on the
+controller, so the proxy serves it from a 30 s cache and a normal poll costs one
+request rather than two. Run state is therefore read from `system_info.cgi`,
+which is always fetched live — a stale cached `shower_on` must never keep the UI
+claiming water is running.
 
 Commands are optimistic. For 5 s after any command the UI keeps showing what the
 user asked for, because the controller takes a moment to reflect a change and a

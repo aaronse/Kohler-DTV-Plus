@@ -12,6 +12,45 @@ See the Story log section of [AGENT.md](AGENT.md) for what to append and how.
 
 ## 2026-07-26
 
+### 13:05 — The shutoff logs absolutely nothing, and that is now proven
+
+The operator cleared the controller's error log **before** filming the
+2026-07-14 repro, and captured it again **after**. The result:
+
+```
+No errors are logged from Controller
+```
+
+Cleared before, shutoff reproduced during, empty after. This turns yesterday's
+ambiguous "the log might have been cleared" into a controlled negative result.
+
+It rules out everything that writes to the log: device detach, device
+unresponsive, valve faults, task exceptions and aborts, link drops, config
+errors. And we know the mechanism works, because the UI disconnection on 07-25
+was logged as code 100 within seconds.
+
+That undercuts the hypothesis this session had been building toward. If the
+valve had lost power or dropped off the RS-485 bus, code 100 is exactly what
+should have appeared. It didn't.
+
+**New leading theory:** something mechanical or hydraulic stops the water, and
+the electronics never find out — a thermal or anti-scald cutoff, hot supply
+exhaustion, or supply pressure loss. That explains every observation at once,
+including the silence.
+
+**Why it matters:** it changes what to instrument. If the cause is mechanical,
+controller telemetry will never show it — a trace would only ever record
+"running, then timed out", which we already know. The informative signal is
+probably outside the controller: outlet temperature, flow, supply behaviour.
+**For Kohler:** a reproducible condition in which the valve stops delivering
+water, the controller continues reporting a running shower for ~1 minute, and
+nothing is written to the error log. Is there any mechanical or thermal cutoff in
+the valve or its install that closes flow without signalling the controller?
+
+Bonus: the captured log header preserves the interface's own firmware versions
+(UI OS v0.0.7.44, Touch Panel v0.0.0.2), which we can no longer read now that it
+reports `not_seen`.
+
 ### 12:45 — Video review kills the leading hypothesis
 
 Reviewed the operator's 2026-07-14 recording of a live shutoff. The decisive

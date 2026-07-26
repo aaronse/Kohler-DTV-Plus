@@ -157,6 +157,8 @@ export interface StatusResponse {
   host: string;
   values: KohlerValues | null;
   system: KohlerSystemInfo | null;
+  /** values.cgi came from the proxy's short-lived cache rather than the wire. */
+  valuesCached?: boolean;
   error?: string;
 }
 

@@ -25,7 +25,66 @@ function readBody(req) {
   });
 }
 
+/**
+ * values.cgi is ~300 keys of configuration — outlet layout, temperature limits,
+ * preset names — which changes only when someone edits it on the controller's
+ * own pages. system_info.cgi carries everything that moves.
+ *
+ * Serving values.cgi from a short cache halves the request rate against a web
+ * server that is documented to lock up under sustained polling (see
+ * research/FIELD-NOTES.md). Run state is read from system_info, which is always
+ * fetched live, so the cache cannot make the UI claim water is running when it
+ * is not.
+ */
+const VALUES_TTL_MS = 30000;
+
+/**
+ * values.cgi occasionally returns a degraded payload: a valve that is present
+ * and connected comes back `valve1_installed: false` with
+ * `valve_1_con_string: "dis"`, and the very next read is normal again. Observed
+ * once in roughly 30-50 reads on our controller with nothing else going on.
+ *
+ * Left alone this is worse than a blip, because the bad payload lands in the
+ * cache and the UI insists the shower has no outlets for the next 30 seconds —
+ * potentially while someone is standing in it. So a payload that *loses* a
+ * previously-installed valve has to say so twice before we believe it. A real
+ * disconnection still surfaces, one refresh later.
+ */
+function installedValves(json) {
+  return [Boolean(json?.valve1_installed), Boolean(json?.valve2_installed)];
+}
+
+export function losesAValve(next, prev) {
+  if (!prev) return false;
+  const [p1, p2] = installedValves(prev);
+  const [n1, n2] = installedValves(next);
+  return (p1 && !n1) || (p2 && !n2);
+}
+
 export function createKohlerMiddleware({ host = DEFAULT_HOST } = {}) {
+  let valuesCache = null;
+  let lastGood = null;
+  let suspectCount = 0;
+
+  async function readValues() {
+    if (valuesCache && Date.now() - valuesCache.at < VALUES_TTL_MS) {
+      return { json: valuesCache.json, cached: true };
+    }
+    const r = await kohlerGet('values.cgi', {}, { host, timeout: 8000 });
+    if (!r.json) return { json: valuesCache?.json ?? lastGood, cached: Boolean(lastGood) };
+
+    if (losesAValve(r.json, lastGood) && suspectCount < 1) {
+      suspectCount++;
+      // Do not cache it, so the next poll re-reads rather than waiting out the TTL.
+      return { json: lastGood, cached: true, suspect: true };
+    }
+
+    suspectCount = 0;
+    lastGood = r.json;
+    valuesCache = { at: Date.now(), json: r.json };
+    return { json: r.json, cached: false };
+  }
+
   return async function kohlerMiddleware(req, res, next) {
     const url = new URL(req.url, 'http://localhost');
     if (!url.pathname.startsWith('/api/')) return next();
@@ -33,8 +92,11 @@ export function createKohlerMiddleware({ host = DEFAULT_HOST } = {}) {
     try {
       // --- Combined status: the one call the UI polls on a timer. ----------
       if (url.pathname === '/api/status') {
+        const fresh = url.searchParams.get('fresh') === '1';
+        if (fresh) valuesCache = null;
+
         const [values, system] = await Promise.allSettled([
-          kohlerGet('values.cgi', {}, { host, timeout: 8000 }),
+          readValues(),
           kohlerGet('system_info.cgi', {}, { host, timeout: 8000 }),
         ]);
         const v = values.status === 'fulfilled' ? values.value.json : null;
@@ -46,7 +108,14 @@ export function createKohlerMiddleware({ host = DEFAULT_HOST } = {}) {
             host,
           });
         }
-        return send(res, 200, { ok: true, ts: Date.now(), host, values: v, system: s });
+        return send(res, 200, {
+          ok: true,
+          ts: Date.now(),
+          host,
+          values: v,
+          system: s,
+          valuesCached: values.status === 'fulfilled' ? values.value.cached : false,
+        });
       }
 
       // --- The safety policy itself, so the UI and tests can show it. ------
@@ -75,6 +144,9 @@ export function createKohlerMiddleware({ host = DEFAULT_HOST } = {}) {
         }
         const params = await readBody(req);
         const r = await kohlerGet(name, params, { host, timeout: 12000, retries: 1 });
+        // Any command may have moved something values.cgi reports (save_variable
+        // certainly does), so drop the cache rather than serve a stale view.
+        valuesCache = null;
         return send(res, 200, { ok: true, name, params, status: r.status, body: r.body?.slice(0, 500) });
       }
 

@@ -3,7 +3,25 @@ import * as api from '../api/client';
 import { buildModel, encodeOutlets, usableOutlets, type ShowerModel } from '../api/model';
 import type { StatusResponse } from '../api/types';
 
-const POLL_MS = 2500;
+/**
+ * Polling cadence.
+ *
+ * This is deliberately slow, and the reason is other people's field reports
+ * rather than taste. The controller's embedded web server locks up under
+ * sustained polling — it stops answering HTTP *and* ping, for hours, and
+ * sometimes needs a power cycle. See research/FIELD-NOTES.md; the Home
+ * Assistant integration hit this repeatedly at a 20 s interval and settled on
+ * 15 s idle / 5 s active, which is what we match.
+ *
+ * The controller's own touchscreen keeps working through such a lockup, so the
+ * failure is confined to the network stack — but that is exactly the part this
+ * app depends on.
+ */
+const POLL_IDLE_MS = 15000;
+const POLL_ACTIVE_MS = 5000;
+/** Stay on the fast cadence briefly after the shower stops, as HA does. */
+const ACTIVE_TAIL_MS = 120000;
+
 /**
  * After we send a command the controller takes a moment to reflect it, and a
  * poll landing inside that window would yank the UI back to the old state. So
@@ -37,25 +55,40 @@ export function useShower() {
   const valve1 = model.valves[0];
 
   // --- Polling ----------------------------------------------------------
+  const lastActiveAt = useRef(0);
+
   useEffect(() => {
     let cancelled = false;
     let timer: ReturnType<typeof setTimeout>;
     const controller = new AbortController();
 
     const tick = async () => {
+      let running = false;
       try {
         const res = await api.getStatus(controller.signal);
         if (!cancelled) {
           setStatus(res);
           setLastError(null);
         }
+        // Read the run state straight off this response rather than from React
+        // state, so the next interval is chosen without waiting for a re-render.
+        const sys = res.system;
+        running =
+          Boolean(res.values?.shower_on) ||
+          Boolean(sys?.ui_shower_on) ||
+          ['On', 'PurgeActive'].includes(String(sys?.valve1_Currentstatus ?? '').trim()) ||
+          ['On', 'PurgeActive'].includes(String(sys?.valve2_Currentstatus ?? '').trim());
       } catch (err) {
         if (!cancelled && !controller.signal.aborted) {
           setLastError(err instanceof Error ? err.message : String(err));
           setStatus((prev) => (prev ? { ...prev, ok: false } : prev));
         }
       } finally {
-        if (!cancelled) timer = setTimeout(tick, POLL_MS);
+        if (!cancelled) {
+          if (running) lastActiveAt.current = Date.now();
+          const recentlyActive = Date.now() - lastActiveAt.current < ACTIVE_TAIL_MS;
+          timer = setTimeout(tick, running || recentlyActive ? POLL_ACTIVE_MS : POLL_IDLE_MS);
+        }
       }
     };
     tick();

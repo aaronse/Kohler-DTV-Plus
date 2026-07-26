@@ -33,6 +33,7 @@ is the replacement input.
 | [PROTOCOL.md](PROTOCOL.md) | The controller's CGI API — transport quirks, endpoints, payload fields, safety ratings. |
 | [DESIGN.md](DESIGN.md) | Architecture, decisions, testing, and what the Android/Capacitor port needs. |
 | [DISCLAIMER.md](DISCLAIMER.md) | Safety warnings, CGI risk scale, and how this repo enforces it. |
+| [LICENSE.md](LICENSE.md) | Open Maker License, plus what it does and does not cover. |
 | [AGENT.md](AGENT.md) / [CLAUDE.md](CLAUDE.md) | Contract for agents working here, including the story-log convention. |
 | [STORY-LOG.md](STORY-LOG.md) | Significant events and reversals, newest first. |
 | [research/SHUTOFF-INVESTIGATION.md](research/SHUTOFF-INVESTIGATION.md) | Open investigation into the shower stopping mid-use. |
@@ -84,6 +85,13 @@ everything else; [PROTOCOL.md](PROTOCOL.md) covers the latter.
 
 ## Credits
 
+This repository began as a fork of
+[timelery/Kohler-DTV-Plus](https://github.com/timelery/Kohler-DTV-Plus) (2017) by
+Tim Elery — the original CGI enumeration and controller notes, which are
+preserved in [PROTOCOL.md](PROTOCOL.md). It was detached from that fork network
+on 2026-07-26, having diverged into a different project; the full history,
+including Tim's original commits, is kept here intact.
+
 - [xagon0/Kohler-DTV-Plus](https://github.com/xagon0/Kohler-DTV-Plus) — CGI
   safety ratings, RS-485 protocol analysis, hardware and repair documentation.
 - [dcmeglio/kohler-python](https://github.com/dcmeglio/kohler-python) — endpoint
@@ -91,5 +99,13 @@ everything else; [PROTOCOL.md](PROTOCOL.md) covers the latter.
 - Kohler's *User Guide — Digital Interface and System Controller for DTV+*
   (1241234-5-D) for the interface design.
 
-Original CGI enumeration and controller notes from this repository's earlier
-revisions are preserved in [PROTOCOL.md](PROTOCOL.md).
+## License
+
+Work original to this repository is under the
+[Open Maker License](https://github.com/aaronse/OpenMakerLicense) — AGPL-3.0 with
+a maker addendum. Personal, educational, repair, and small-shop use are
+explicitly allowed; hosted-service and commercial redistribution need a licence.
+
+The third-party material vendored here — xagon0's analysis, Kohler's guide and
+controller UI, and the content inherited from `timelery` — is **not** covered and
+is **not** ours to license. See [LICENSE.md](LICENSE.md) for the scope table.

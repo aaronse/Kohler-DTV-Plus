@@ -69,7 +69,8 @@ app/src/ui/                    screens styled after the K-99693
 
 `cgi-safety.mjs` rates ~50 endpoints 0-5 and refuses anything above **2/5**
 before a packet is sent. An endpoint must *also* be explicitly exposed as `read`
-or `command` — a safe rating alone does not open it. 16 endpoints are reachable.
+or `command` — a safe rating alone does not open it. 18 endpoints are reachable:
+5 reads and 13 commands.
 
 The table self-checks at import: an entry exposed above the ceiling throws at
 startup rather than shipping. `safety.test.ts` pins the exposed set exactly, so
@@ -161,7 +162,7 @@ per theme.
 
 Nothing in the test suite can open a valve.
 
-- **`npm test`** — 39 unit tests, no hardware. Fixtures are verbatim captures
+- **`npm test`** — 49 unit tests, no hardware. Fixtures are verbatim captures
   from the live controller. Covers model derivation, the armed-vs-flowing
   distinction, degradation when the controller is unreachable, and the safety
   gate.

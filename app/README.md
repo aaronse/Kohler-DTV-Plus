@@ -62,7 +62,8 @@ proxy enforces it:
 - **Nothing above 2/5 is reachable** — rejected with `403` before a packet is
   sent.
 - **An endpoint must also be explicitly exposed** as `read` or `command`; a safe
-  rating alone is not enough. 16 endpoints are reachable out of ~50 known.
+  rating alone is not enough. 18 endpoints are reachable out of ~50 known —
+  5 reads and 13 commands.
 - **Commands are `POST` only.**
 - **The table self-checks at import**, so an over-permissive entry throws at
   startup instead of shipping.
@@ -78,7 +79,7 @@ or this app plus the controller's own web page, can still exceed that.
 
 | Route | Purpose |
 | --- | --- |
-| `GET /api/status` | Combined `values.cgi` + `system_info.cgi`. |
+| `GET /api/status` | Combined `values.cgi` + `system_info.cgi`. `values` is served from a 30 s cache (`valuesCached` says which); `?fresh=1` bypasses it. |
 | `GET /api/safety` | The live safety policy — risk ceiling and exposed endpoints. |
 | `GET /api/read/:name` | Raw read passthrough, gated. |
 | `POST /api/command/:name` | Fire a command, gated. JSON body = query params. |

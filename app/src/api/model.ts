@@ -2,18 +2,28 @@ import { OUTLET_TYPES, parseOutletType } from './outlets';
 import type { KohlerSystemInfo, KohlerValues, StatusResponse } from './types';
 
 export interface Outlet {
-  /** 1-6. This is the digit quick_shower.cgi expects in valveN_outlet. */
+  /**
+   * Configuration slot, 1-6. This is the digit quick_shower.cgi expects in
+   * valveN_outlet, and the index behind one_type..six_type.
+   */
   position: number;
+  /**
+   * The index system_info.cgi reports this outlet's state under, i.e.
+   * `valveNoutlet<statusIndex>`. Taken from valveN_outletM_func.id, which is a
+   * *different index space* from `position` — they coincide on many systems but
+   * not all. Conflating them is what made Home Assistant's integration turn on
+   * outlet 6 when the user asked for outlet 2 (niemyjski#39).
+   */
+  statusIndex: number;
   typeId: number;
   label: string;
   massageCapable: boolean;
   /** Configured on this valve (type is not "outlet_0"). */
   configured: boolean;
   /**
-   * The controller's own armed selection for this outlet (system_info.cgi's
-   * valveNoutletM). Careful: this is *selection*, not flow — it stays true for
-   * the default outlet while the shower is off. Use `flowing` for "water is
-   * coming out of this".
+   * The controller's own armed selection for this outlet. Careful: this is
+   * *selection*, not flow — it stays true for the default outlet while the
+   * shower is off. Use `isFlowing()` for "water is coming out of this".
    */
   selected: boolean;
   isDefault: boolean;
@@ -28,8 +38,12 @@ export interface Valve {
   minTemp: number;
   maxTemp: number;
   massage: number;
-  /** Free text from the controller, e.g. "" or "Heating". */
+  /** Raw valveN_Currentstatus: "", "Off", "On" or "PurgeActive". */
   statusText: string;
+  /** Water is moving — including during an auto-purge warm-up. */
+  running: boolean;
+  /** Running the cold-water purge before the shower comes up to temperature. */
+  purging: boolean;
 }
 
 export interface Preset {
@@ -43,6 +57,8 @@ export interface ShowerModel {
   error?: string;
   ts: number;
   showerOn: boolean;
+  /** Auto-purge warm-up in progress — water is flowing but still cold. */
+  purging: boolean;
   steamRunning: boolean;
   /** True when *any* outlet is flowing or a preset is running. */
   running: boolean;
@@ -84,24 +100,40 @@ function buildValve(
   const defaultOutlet = num(values?.[n === 1 ? 'def_outlet' : 'v2_def_outlet']);
 
   const outlets: Outlet[] = POS_KEYS.map((key, i) => {
+    const position = i + 1;
     const typeId = parseOutletType(values?.[`${p}${key}_type`]);
     const meta = OUTLET_TYPES[typeId] ?? OUTLET_TYPES[0];
+    // valveN_outletM_func = { func: <fitting type>, id: <system_info index> }.
+    // Absent for unconfigured slots, in which case the slot number is the only
+    // thing left to fall back on.
+    const func = values?.[`valve${n}_outlet${position}_func`] as
+      | { func?: number; id?: number }
+      | undefined;
+    const statusIndex = num(func?.id, position);
+
     return {
-      position: i + 1,
+      position,
+      statusIndex,
       typeId,
       label: meta.label,
       // The controller stores a per-outlet massage flag, but Real Rain and the
       // bath spouts can never take part regardless of how it is configured.
       massageCapable: meta.massageCapable && bool(values?.[`${p}${key}_massage`]),
       configured: typeId !== 0,
-      selected: bool(system?.[`valve${n}outlet${i + 1}`]),
-      isDefault: i + 1 === defaultOutlet,
+      selected: bool(system?.[`valve${n}outlet${statusIndex}`]),
+      isDefault: position === defaultOutlet,
     };
   });
 
   const isF = num(values?.units) === 0;
   const setpoint = num(system?.[`valve${n}Setpoint`], NaN);
   const fallbackTemp = num(values?.[n === 1 ? 'valve1_temp_string' : 'valve2_temp_string']);
+
+  // "PurgeActive" is the auto-purge warm-up: water IS flowing, but the coarse
+  // shower_on flag may not have caught up. Treating it as off makes the UI
+  // offer "start" while the shower is already running (niemyjski#45).
+  const statusText = String(system?.[`valve${n}_Currentstatus`] ?? '').trim();
+  const purging = statusText === 'PurgeActive';
 
   return {
     num: n,
@@ -112,7 +144,9 @@ function buildValve(
     minTemp: isF ? 86 : 26,
     maxTemp: num(values?.[n === 1 ? 'max_temp' : 'v2_max_temp'], isF ? 113 : 45),
     massage: num(system?.[`valve${n}_massage`]),
-    statusText: String(system?.[`valve${n}_Currentstatus`] ?? '').trim(),
+    statusText,
+    running: statusText === 'On' || purging,
+    purging,
   };
 }
 
@@ -122,9 +156,18 @@ export function buildModel(res: StatusResponse | null): ShowerModel {
   const online = Boolean(res?.ok && (values || system));
 
   const valves = ([1, 2] as const).map((n) => buildValve(n, values, system));
-  // Only these two say whether water is actually moving. The per-outlet flags
-  // are the armed selection and are true at rest for the default outlet.
-  const showerOn = bool(values?.shower_on) || bool(system?.ui_shower_on);
+  // The per-outlet flags are the armed selection and are true at rest for the
+  // default outlet, so they can never be part of this. valveN_Currentstatus is
+  // included because it reports PurgeActive during warm-up, which the coarse
+  // shower_on flag can lag behind.
+  //
+  // system_info is preferred outright when present: the proxy serves values.cgi
+  // from a short cache to halve the request rate, so values.shower_on may be
+  // stale by up to that TTL, while system_info is always fetched live.
+  const showerOn = system
+    ? bool(system.ui_shower_on) || valves.some((v) => v.running)
+    : bool(values?.shower_on);
+  const purging = valves.some((v) => v.purging);
 
   const presets: Preset[] = [1, 2, 3, 4, 5, 6].map((id) => ({
     id,
@@ -139,6 +182,7 @@ export function buildModel(res: StatusResponse | null): ShowerModel {
     error: res?.error,
     ts: res?.ts ?? 0,
     showerOn,
+    purging,
     steamRunning: bool(values?.steam_running) || bool(system?.ui_steam_running),
     running: showerOn || bool(system?.devices_running),
     massageEnabled: bool(values?.massage_enabled) && bool(values?.massage),

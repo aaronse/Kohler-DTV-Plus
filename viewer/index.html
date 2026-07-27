@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Parts Viewer</title>
+    <meta
+      name="description"
+      content="Interactive 3D viewer and STL exporter for appliance and fixture service parts."
+    />
+  </head>
+  <body>
+    <div id="app">
+      <aside id="sidebar">
+        <header id="brand">
+          <h1>Parts Viewer</h1>
+          <p>Service-part models for repair and modification</p>
+        </header>
+        <input id="search" type="search" placeholder="Search parts, SKUs, tags" autocomplete="off" />
+        <nav id="catalog" aria-label="Part catalog"></nav>
+        <div id="dropzone">
+          <strong>Drop a model here</strong>
+          <span>OBJ, STL, 3MF, glTF/GLB, 3DS, PLY</span>
+        </div>
+      </aside>
+
+      <main id="stage">
+        <div id="canvas-wrap">
+          <canvas id="canvas"></canvas>
+          <div id="status" role="status"></div>
+          <div id="readout" hidden></div>
+        </div>
+        <div id="toolbar">
+          <div class="group" role="group" aria-label="Standard views">
+            <button data-view="iso">Iso</button>
+            <button data-view="front">Front</button>
+            <button data-view="right">Right</button>
+            <button data-view="top">Top</button>
+            <button id="fit">Fit</button>
+          </div>
+          <div class="group" role="group" aria-label="Display options">
+            <label><input type="checkbox" id="wireframe" /> Wireframe</label>
+            <label><input type="checkbox" id="flat" /> Flat</label>
+            <label><input type="checkbox" id="grid" checked /> Grid</label>
+            <label><input type="checkbox" id="bounds" /> Bounds</label>
+          </div>
+        </div>
+      </main>
+
+      <aside id="inspector">
+        <section id="part-info">
+          <h2 id="part-title">No part loaded</h2>
+          <p id="part-sku"></p>
+          <p id="part-desc"></p>
+        </section>
+
+        <section id="measurements">
+          <h3>Measurements</h3>
+          <dl id="stats"></dl>
+          <p class="hint">
+            Measured in export space — millimetres, Z&nbsp;up. These are the numbers the
+            downloaded STL will have.
+          </p>
+        </section>
+
+        <section id="export">
+          <h3>Export</h3>
+          <label for="export-unit">Units</label>
+          <select id="export-unit">
+            <option value="mm" selected>Millimetres (slicers, most CAM)</option>
+            <option value="in">Inches (imperial CAM posts)</option>
+          </select>
+          <button id="download" disabled>Download binary STL</button>
+          <p id="export-note" class="hint"></p>
+        </section>
+
+        <section id="mod-notes" hidden>
+          <h3>Notes for modification</h3>
+          <p id="mod-notes-body"></p>
+        </section>
+
+        <section id="provenance">
+          <h3>Provenance</h3>
+          <p id="provenance-body" class="hint">
+            Manufacturer CAD, vendored with provenance. Units and orientation are declared
+            per file, not inferred at load.
+          </p>
+        </section>
+      </aside>
+    </div>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>

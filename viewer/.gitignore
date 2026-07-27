@@ -1,0 +1,9 @@
+node_modules/
+dist/
+
+# tsc incremental build state
+*.tsbuildinfo
+
+.env
+.env.local
+*.local

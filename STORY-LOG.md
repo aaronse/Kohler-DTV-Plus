@@ -10,6 +10,56 @@ See the Story log section of [AGENT.md](AGENT.md) for what to append and how.
 
 ---
 
+## 2026-07-27
+
+### 12:50 — A parts viewer ships, and Kohler's own CAD turns out not to be printable
+
+The K-99693 wall interface is disconnected and will need physical modification,
+so the CAD Kohler publishes for it now has a home: a **separate** web app at
+`viewer/`, sharing no code, no build and no port with the app that drives the
+valve. That separation is deliberate — the hardware app moves real water and
+stays lean; this one has no hardware surface at all and cannot open anything.
+
+It loads OBJ, STL, 3MF, glTF/GLB, 3DS and PLY, measures the part, and exports a
+binary STL for printing or CAM.
+
+Two findings came out of building it.
+
+**The published CAD is in inches, and nothing in the file says so.** No mesh
+format — OBJ, STL, 3MF, PLY — records units or which way is up. Read the K-99693
+OBJ as millimetres and you get a faceplate 5 mm wide that looks perfectly
+normal on screen. The units were settled by measurement, not assumption: the
+mesh bounding box is 5.259 × 1.214 × 3.310 along X/Y/Z, and the spec sheet says
+5¼ × 1³⁄₁₆ × 3⁵⁄₁₆ inches. Width maps to X, height to Z. So: inches, Z-up, Y is
+depth. The app now refuses to load any catalogued file that doesn't declare
+both, because a guessed unit is worse than a refusal — it looks like an answer.
+
+Measured through the export path, the part comes out **133.59 × 30.84 ×
+84.07 mm** against a published 133.35 × 30.16 × 84.14. Width and height agree to
+a quarter of a millimetre. Depth is 0.68 mm over, plausibly a trim-ring detail
+in the CAD that the published figure excludes — not yet checked against the
+physical part.
+
+**The mesh is not watertight.** 224 unshared edges: it is an open surface, not a
+solid. It displays and measures fine, but a slicer will need to repair it before
+it prints, and CAM packages that want a closed solid will refuse it or produce a
+bad toolpath. The app withholds a volume figure for this part rather than
+reporting the meaningless number a signed-volume sum gives on an open mesh.
+
+**Why it matters:** the modification work now has a measurable, exportable model
+instead of a caliper and a guess — but the file needs repairing first, and
+anyone who assumed Kohler's CAD was print-ready would have found that out on the
+printer.
+
+**For Kohler:** the CAD published for K-99693 is an open mesh with 224 unshared
+edges and cannot be printed or machined without repair. It also carries no unit
+declaration, which is unavoidable in OBJ but does mean the file is only safe
+alongside the spec sheet. Dimensionally it checks out on width and height to
+better than 0.25 mm; the published depth is 0.68 mm under what the model
+contains.
+
+---
+
 ## 2026-07-26
 
 ### 13:37 — The repo stops being a fork, and gets a licence

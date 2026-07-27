@@ -62,8 +62,9 @@ proxy enforces it:
 - **Nothing above 2/5 is reachable** — rejected with `403` before a packet is
   sent.
 - **An endpoint must also be explicitly exposed** as `read` or `command`; a safe
-  rating alone is not enough. 18 endpoints are reachable out of ~50 known —
-  5 reads and 13 commands.
+  rating alone is not enough. The reachable surface is a small subset of the ~50
+  known endpoints — `GET /api/safety` reports exactly which, and
+  `safety.test.ts` pins the set so widening it is a deliberate edit.
 - **Commands are `POST` only.**
 - **The table self-checks at import**, so an over-permissive entry throws at
   startup instead of shipping.

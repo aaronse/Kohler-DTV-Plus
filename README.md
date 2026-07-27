@@ -67,10 +67,13 @@ gate.
 The controller has no authentication and exposes endpoints that can wipe or
 brick it. Every known endpoint is rated 0-5 in
 [app/server/cgi-safety.mjs](app/server/cgi-safety.mjs), and the proxy refuses
-anything above **2/5** before a packet is sent. 18 endpoints are reachable out of
-~50 known; `reset_factory.cgi`, `clear_dt.cgi`, `fileupload.cgi`,
+anything above **2/5** before a packet is sent. Only a subset of the ~50 known
+endpoints is reachable; `reset_factory.cgi`, `clear_dt.cgi`, `fileupload.cgi`,
 `unpack_bin.cgi`, `edit_dt.cgi`, `rpc.cgi` and friends are permanently
 unreachable.
+
+The live surface is the authority, not this page — `GET /api/safety` returns the
+risk ceiling and the exact set of exposed endpoints.
 
 ## Hardware
 

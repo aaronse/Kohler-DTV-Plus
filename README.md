@@ -30,6 +30,7 @@ is the replacement input.
 | | |
 | --- | --- |
 | [app/](app/) | React + Vite interface styled after the K-99693. Runs on a dev machine, a LAN box, or a phone browser. |
+| [viewer/](viewer/) | Separate 3D parts viewer and STL exporter for modification work. No hardware surface — it cannot touch the valve. |
 | [PROTOCOL.md](PROTOCOL.md) | The controller's CGI API — transport quirks, endpoints, payload fields, safety ratings. |
 | [DESIGN.md](DESIGN.md) | Architecture, decisions, testing, and what the Android/Capacitor port needs. |
 | [DISCLAIMER.md](DISCLAIMER.md) | Safety warnings, CGI risk scale, and how this repo enforces it. |
@@ -61,6 +62,19 @@ npm run selftest       # live checks, strictly read-only — never opens a valve
 
 See [app/README.md](app/README.md) for hosting, the API surface, and the safety
 gate.
+
+The parts viewer is a separate app with its own dependencies and no connection
+to the controller:
+
+```bash
+cd viewer
+npm install
+npm run dev            # http://localhost:5181
+npm run check          # typecheck + tests + export gate + build
+```
+
+See [viewer/README.md](viewer/README.md) for why manufacturer CAD needs its
+units declared, and what the K-99693 model turned out to be missing.
 
 ## Safety gate
 

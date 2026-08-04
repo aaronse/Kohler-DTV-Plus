@@ -48,6 +48,23 @@ const GRID_CELL_MM = 10;
 const GRID_MIN_CELLS = 12;
 const BBOX_COLOR = 0x4d7cff;
 const HIGHLIGHT_COLOR = 0xffb347;
+/**
+ * How much faster dragging the CUBE orbits than dragging the model, as a
+ * multiplier on OrbitControls' `rotateSpeed`.
+ *
+ * The two surfaces are not the same size and should not have the same gearing.
+ * Dragging the model, your pointer has the whole viewport to travel in and a
+ * 1:1 feel is right — you are pushing the part around and want to be able to
+ * stop on a precise angle. The cube is a 132 px square in the corner: at 1:1 a
+ * full turn needs the pointer to cross most of the window, which means letting
+ * go of the cube, and it stops being a control you can flick.
+ *
+ * At 2x, a half-turn is about a third of the canvas height, which keeps the
+ * whole gesture inside comfortable reach of the widget. The click threshold is
+ * in PIXELS and so is unaffected — a click is still a click at the same travel,
+ * it is only the rotation each pixel buys that changes.
+ */
+const GIZMO_DRAG_ROTATE_SPEED = 2;
 
 export interface LoadedModel {
   /** Untouched source-space triangle soup. Measurement and export read this. */
@@ -306,10 +323,34 @@ export function createViewer(canvas: HTMLCanvasElement, container: HTMLElement):
   // command with no continuous form to slide into, and the four step triangles
   // sit far enough out that a drag through them would have to start ON one to
   // be affected. Deferring them would buy nothing and cost the immediacy.
+  //
+  // A cube drag is also GEARED UP — see `GIZMO_DRAG_ROTATE_SPEED`.
   const canvasElement = renderer.domElement;
+
+  /**
+   * The controls' own rotation gearing, captured before the gizmo ever touches
+   * it, so restoring cannot drift towards a hard-coded 1 if the default is ever
+   * tuned.
+   */
+  const baseRotateSpeed = controls.rotateSpeed;
 
   /** A gesture that began on a cube region and has not yet been resolved. */
   let gesture: { pointerId: number; pick: GizmoPick; probe: DragProbe } | null = null;
+
+  /**
+   * End the current cube gesture and put back everything it changed.
+   *
+   * Every exit runs through here — release, cancel, and disposal — because the
+   * gearing is global to the controls. Leaving it doubled after a gesture that
+   * ended somewhere unexpected would make dragging the MODEL twice as fast for
+   * the rest of the session, which is the kind of bug that gets blamed on the
+   * mouse.
+   */
+  function endGesture(): void {
+    gesture = null;
+    controls.rotateSpeed = baseRotateSpeed;
+    canvasElement.style.cursor = '';
+  }
 
   canvasElement.addEventListener(
     'pointerdown',
@@ -336,6 +377,11 @@ export function createViewer(canvas: HTMLCanvasElement, container: HTMLElement):
           dragThresholdPx(event.pointerType),
         ),
       };
+      // Geared up for the whole gesture, including the pixels before the drag
+      // is confirmed — those either become part of the orbit, in which case
+      // they should already be at the cube's rate, or the gesture turns out to
+      // be a click and the rotation they bought is discarded anyway.
+      controls.rotateSpeed = baseRotateSpeed * GIZMO_DRAG_ROTATE_SPEED;
       // OrbitControls captures the pointer itself, but only for the first one
       // down. Capturing here too means the `pointerup` that ends the gesture
       // arrives even if the pointer has left the canvas, whatever the controls
@@ -348,8 +394,7 @@ export function createViewer(canvas: HTMLCanvasElement, container: HTMLElement):
   canvasElement.addEventListener('pointerup', (event) => {
     const active = gesture;
     if (!active || active.pointerId !== event.pointerId) return;
-    gesture = null;
-    canvasElement.style.cursor = '';
+    endGesture();
     // It travelled: OrbitControls has already delivered the orbit the user
     // asked for, and there is nothing left to do.
     if (!active.probe.isClick) return;
@@ -359,8 +404,7 @@ export function createViewer(canvas: HTMLCanvasElement, container: HTMLElement):
 
   canvasElement.addEventListener('pointercancel', (event) => {
     if (gesture?.pointerId !== event.pointerId) return;
-    gesture = null;
-    canvasElement.style.cursor = '';
+    endGesture();
   });
 
   /**
@@ -489,6 +533,7 @@ export function createViewer(canvas: HTMLCanvasElement, container: HTMLElement):
     pick,
     dispose: () => {
       disposed = true;
+      endGesture();
       window.cancelAnimationFrame(frameId);
       clearModel();
       decals.dispose();

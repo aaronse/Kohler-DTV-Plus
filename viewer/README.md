@@ -212,6 +212,17 @@ travelling and it snaps exactly as it always did. The slop is 4 px for a mouse
 and 10 px for a finger or a stylus, which wander several pixels on their own
 while the contact patch shifts.
 
+A cube drag is **geared 2× against a model drag**, and the two should not match.
+Dragging the model, the pointer has the whole viewport to travel in and 1:1 is
+right — you are pushing the part around and want to stop on a precise angle. The
+cube is a 132 px square in the corner; at 1:1 a half-turn means dragging most of
+the way across the window, which takes you off the widget entirely and stops it
+being something you can flick. At 2× a half-turn is about a third of the canvas
+height. The click threshold is in **pixels**, so it is untouched: a click is
+still a click at the same travel, only the rotation each pixel buys changes.
+Measured, not asserted — a 30 px cube drag lands on pixels identical to a 60 px
+model drag.
+
 That also closed an inconsistency that was impossible to explain: dragging the
 *empty* corner beside the cube already orbited, because the hit test returned
 nothing there and the event fell through to OrbitControls. One widget, two

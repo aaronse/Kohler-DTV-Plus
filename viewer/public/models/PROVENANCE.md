@@ -16,8 +16,15 @@ without a network fetch.
 | Triangulated | 4544 triangles (the face records are largely quads) |
 | Materials | None. No `mtllib`, no `usemtl`, no UVs. |
 | Watertight | **No.** 224 unshared edges — an open surface, not a solid. |
-| Copied from | `E:\proj-med\build-661-diag-kohler-shower\kohler\kohler-digital-interface-99693\99693-P.obj` |
+| Downloaded from | Kohler's own product page — <https://www.kohler.com/en/products/showers/shop-shower-trims-valves/dtv-digital-interface-99693> |
+| Staged at | `E:\proj-med\build-661-diag-kohler-shower\kohler\kohler-digital-interface-99693\99693-P.obj` |
 | Copied on | 2026-07-27 |
+
+**Source.** This file came from Kohler's public product page for the K-99693,
+linked above, which publishes the part's CAD in several formats alongside the
+spec sheet and manuals. It was not extracted from a third-party mirror, a CAD
+marketplace, or a scrape. The `E:\proj-med\...` path is only where it was staged
+locally after download.
 
 **Verbatim copy.** The bytes here are identical to the source file; nothing was
 re-exported, decimated or re-oriented. The viewer applies its unit and axis

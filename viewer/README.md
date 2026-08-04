@@ -78,18 +78,57 @@ Current output:
     surface       423.24 cm2
     mesh          OPEN — 224 unshared edges, volume withheld
     read-back     133.59 x 30.84 x 84.07 mm, 0 degenerate facet(s)
+    repair        Repaired: welded 11,242 vertices, capped 11 hole(s) with 200
+                  triangles, collapsed 2 hairline seam(s). Watertight and manifold.
+                  4544 -> 4736 triangles, boundary 222 -> 0, non-manifold 0
+    enclosed vol  190.30 cm3
 ```
 
-The 65 unit tests cover the maths on synthetic geometry; this gate covers the
+The 88 unit tests cover the maths on synthetic geometry; this gate covers the
 real manufacturer CAD, which is where the interesting failures actually live.
+
+## Mesh repair
+
+Manufacturer CAD is routinely published as an open surface rather than a solid.
+The K-99693 model has 222 boundary edges across 11 open loops and 2 non-manifold
+seams. [`src/core/repair.ts`](src/core/repair.ts) closes it, and both meshes are
+downloadable — pick "As published" or "Repaired" next to the units selector.
+
+Three distinct fixes, which get conflated and are not the same thing:
+
+| Fix | What it addresses | Adds geometry? |
+| --- | --- | --- |
+| **Welding** (merge by distance) | *Cracks* — triangles that touch but reference duplicate vertices, so their shared edge is double-counted | no |
+| **Capping** (hole filling) | *Holes* — a boundary loop with nothing on the other side | yes |
+| **Seam collapse** | *T-junctions* — a hairline edge claimed by four triangles instead of two | no |
+
+Welding runs first and is not optional: a hole finder run on unwelded geometry
+sees every crack as a hole and would "fill" seams that were never open.
+
+On the K-99693 model: 11,242 vertices welded, 11 loops capped with 200 added
+triangles, 2 seams collapsed. 4,544 → 4,736 triangles, watertight and manifold.
+
+**The envelope does not move.** Capping adds interior geometry only; the outer
+surface is what a toolpath is cut against, so `npm run verify` fails if any axis
+drifts by more than 0.0001 mm. On this part the drift is 0.000000 mm on all three.
+
+### What it refuses to do
+
+A repair that silently invents geometry is worse than no repair, because the
+output looks authoritative. So it will not bridge two different loops, guess at
+missing internal structure, or re-mesh. A loop that is not planar within
+tolerance (default 0.25 mm) is **skipped and reported**, and the result is
+declared not watertight rather than flattened into a plausible-looking lie.
 
 ## Known limitations
 
-1. **The K-99693 mesh is not watertight** (224 unshared edges). It is the
-   manufacturer's file as published, not something this tool did. Repair it
-   before printing or machining. Volume is withheld rather than reported
-   wrongly.
-2. **Parts are single meshes.** The Kohler CAD is one unnamed group, so buttons
+1. **The repaired K-99693 is a closed shell, not a solid model of the part.**
+   Its enclosed volume (190.30 cm³) counts the hollow interior, so the "solid
+   PLA" mass figure is an upper bound on a part that isn't solid.
+2. **The CAD contains no internal structure at all** — no PCB, no connector, no
+   ribs or bosses. It is authority for the outside of the part and for nothing
+   behind it. Establish internal clearances from the physical part.
+3. **Parts are single meshes.** The Kohler CAD is one unnamed group, so buttons
    and bezel cannot be picked or isolated separately without splitting the mesh
    by hand in Blender first.
 3. **Dropped files assume mm and Z-up**, because nothing in the file says

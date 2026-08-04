@@ -49,22 +49,44 @@ included in the CAD but excluded from the published depth. **It has not been
 checked against the physical part** — treat the depth as the least certain of
 the three.
 
-### The mesh is not watertight
+### The mesh is not watertight as published
 
-`npm run verify` reports **224 unshared edges**. The published CAD is an open
-surface, not a closed solid.
+`npm run verify` reports **222 boundary edges across 11 open loops**, plus **2
+non-manifold T-junction seams** where four triangles share a 0.03 mm edge. The
+published CAD is an open surface, not a closed solid.
 
-This does not affect viewing or measurement, and the dimensions above are
-unaffected. It does affect anything downstream:
+All 11 loops are closed and 8 of them are exactly planar, which is what makes
+them safely cappable. The app's repair pass (`src/core/repair.ts`) closes the
+mesh completely:
 
-- A slicer will need to repair the mesh before it will print.
-- CAM packages that require a closed solid will reject it or produce a bad
-  toolpath.
-- The app deliberately **withholds a volume figure** for this part rather than
-  reporting the meaningless number a signed-volume sum gives on an open mesh.
+| | As published | Repaired |
+| --- | --- | --- |
+| Triangles | 4,544 | 4,736 |
+| Boundary edges | 222 | 0 |
+| Non-manifold edges | 2 | 0 |
+| Watertight | no | yes |
+| Envelope | 133.59 × 30.84 × 84.07 mm | **identical to 0.0001 mm** |
 
-Repair in Blender, Meshmixer, Netfabb or PrusaSlicer's own repair before use.
-This is the manufacturer's file as published — it has not been degraded here.
+The envelope invariant is enforced by the verify gate, not just asserted: a
+repair that moved the outer surface would be a dimensional error on the exact
+faces a toolpath is cut against, so the gate fails if any axis drifts by more
+than 0.0001 mm.
+
+Both meshes are downloadable. The repaired one is the right choice for Fusion
+360, CAM and slicing; the as-published one exists so Kohler's geometry can be
+inspected unaltered.
+
+### It is a hollow shell with no internal structure
+
+Enclosed volume after capping is **190.30 cm³** against a 346 cm³ bounding box,
+and the depth analysis finds no geometry at all between the front bezel
+(Y ≈ −6 mm) and the rear plate (Y ≈ +13 to +15 mm) beyond the side walls.
+
+This is a **visualization model**. It does not contain the PCB, the
+wire-to-board connector, internal ribs, bosses or fasteners. It is a reliable
+guide to the part's *outside* and no guide whatsoever to what sits behind a
+given point on the rear face. Anyone planning to cut into the real assembly
+needs to establish clearances from the physical part, not from this file.
 
 ### Licensing — read before publishing
 

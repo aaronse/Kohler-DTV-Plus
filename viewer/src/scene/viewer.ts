@@ -22,6 +22,7 @@ import {
 import { createCameraTween } from './cameraTween';
 import { createDecalLayer, type DecalHandle } from './decalLayer';
 import { createViewGizmo, stepDirection, type GizmoPick } from './viewGizmo';
+import { createDragProbe, dragThresholdPx, type DragProbe } from './gizmoDrag';
 import type { RawGeometry } from '../core/stl';
 import type { DecalRecord } from '../core/decals';
 
@@ -288,20 +289,119 @@ export function createViewer(canvas: HTMLCanvasElement, container: HTMLElement):
   // Gizmo input. Bound here rather than in `main.ts` because the hit test needs
   // the renderer's own pixel geometry, which is this module's business.
   //
-  // `pointerdown` claims the event before OrbitControls sees it, so clicking a
-  // handle snaps rather than starting an orbit drag.
+  // CUBE REGIONS ARE CLICK-OR-DRAG. THE CHROME IS CLICK-ONLY.
+  //
+  // The cube regions defer: `pointerdown` on one does nothing at all, and the
+  // event is left to reach OrbitControls, which starts its orbit as if the
+  // pointer had gone down on the model. If the pointer then releases without
+  // travelling (see `gizmoDrag.ts`), the orbit is undone and the snap runs
+  // instead. Drag to orbit, click to snap, with OrbitControls' own feel for the
+  // drag rather than a second implementation of it.
+  //
+  // The chrome — step triangles, roll arrows, home — keeps the old behaviour
+  // exactly: the event is claimed on `pointerdown` and acted on immediately.
+  // A drag that begins on a button is ambiguous in a way a drag on the cube is
+  // not. The cube face under your finger IS the thing you are turning, so
+  // turning it further is the obvious reading; "roll 90 degrees" is a discrete
+  // command with no continuous form to slide into, and the four step triangles
+  // sit far enough out that a drag through them would have to start ON one to
+  // be affected. Deferring them would buy nothing and cost the immediacy.
   const canvasElement = renderer.domElement;
+
+  /** A gesture that began on a cube region and has not yet been resolved. */
+  let gesture: { pointerId: number; pick: GizmoPick; probe: DragProbe } | null = null;
+
   canvasElement.addEventListener(
     'pointerdown',
     (event) => {
       const pick = gizmo.hit(event.clientX, event.clientY, renderer);
       if (!pick || !modelRoot) return;
-      event.stopPropagation();
-      event.preventDefault();
-      applyGizmoPick(pick);
+
+      if (pick.kind !== 'view') {
+        event.stopPropagation();
+        event.preventDefault();
+        applyGizmoPick(pick);
+        return;
+      }
+
+      // Deliberately NOT stopped or prevented: OrbitControls has to see this
+      // pointerdown to start its drag from the right place, and its `start`
+      // event is what cancels an in-flight tween.
+      gesture = {
+        pointerId: event.pointerId,
+        pick,
+        probe: createDragProbe(
+          event.clientX,
+          event.clientY,
+          dragThresholdPx(event.pointerType),
+        ),
+      };
+      // OrbitControls captures the pointer itself, but only for the first one
+      // down. Capturing here too means the `pointerup` that ends the gesture
+      // arrives even if the pointer has left the canvas, whatever the controls
+      // decide to do with it.
+      canvasElement.setPointerCapture(event.pointerId);
     },
     { capture: true },
   );
+
+  canvasElement.addEventListener('pointerup', (event) => {
+    const active = gesture;
+    if (!active || active.pointerId !== event.pointerId) return;
+    gesture = null;
+    canvasElement.style.cursor = '';
+    // It travelled: OrbitControls has already delivered the orbit the user
+    // asked for, and there is nothing left to do.
+    if (!active.probe.isClick) return;
+    stopControlsMomentum();
+    applyGizmoPick(active.pick);
+  });
+
+  canvasElement.addEventListener('pointercancel', (event) => {
+    if (gesture?.pointerId !== event.pointerId) return;
+    gesture = null;
+    canvasElement.style.cursor = '';
+  });
+
+  /**
+   * Throw away the rotation OrbitControls has queued but not yet applied.
+   *
+   * THIS IS THE PRICE OF LETTING THE EVENT THROUGH, and without it a click on
+   * the cube lands on the wrong view. A click is a click because it travelled
+   * under a few pixels — but a few pixels is still a couple of degrees of
+   * orbit, and with damping on, OrbitControls applies only `dampingFactor` of
+   * that per frame and keeps the remainder queued. `renderFrame` applies the
+   * tween's pose and THEN calls `controls.update()`, so every frame of the
+   * animation would have the leftover rotation added on top of it. The snap and
+   * the damping would spend the whole 340 ms fighting over the camera, and the
+   * view would settle a degree or two off the axis the user clicked — which is
+   * the one thing an axis-aligned view must not be.
+   *
+   * Zeroing the queue discards it outright, so nothing jumps: the tween starts
+   * from where the camera visibly is and lands exactly on the destination.
+   *
+   * `_sphericalDelta` and `_panOffset` are underscore-prefixed, so this reaches
+   * past three's public API on purpose — the same bargain, and the same guard,
+   * as `syncControlsUp` in `cameraFit.ts`. The fallback is not a no-op: with
+   * damping off, `update()` applies the pending delta in full and then zeroes
+   * it, which costs a sub-threshold flick of rotation before the tween starts
+   * instead of leaving it to bleed out across the animation.
+   */
+  function stopControlsMomentum(): void {
+    const internals = controls as unknown as {
+      _sphericalDelta?: THREE.Spherical;
+      _panOffset?: THREE.Vector3;
+    };
+    if (internals._sphericalDelta && internals._panOffset) {
+      internals._sphericalDelta.set(0, 0, 0);
+      internals._panOffset.set(0, 0, 0);
+      return;
+    }
+    const damping = controls.enableDamping;
+    controls.enableDamping = false;
+    controls.update();
+    controls.enableDamping = damping;
+  }
 
   function applyGizmoPick(pick: GizmoPick): void {
     if (!modelRoot) return;
@@ -340,6 +440,16 @@ export function createViewer(canvas: HTMLCanvasElement, container: HTMLElement):
   }
 
   canvasElement.addEventListener('pointermove', (event) => {
+    if (gesture && gesture.pointerId === event.pointerId) {
+      if (!gesture.probe.moved(event.clientX, event.clientY)) return;
+      // Committed to an orbit. The highlight goes out and the cursor changes,
+      // because the cube has stopped being a set of targets and become the
+      // thing being turned — leaving a face lit under a moving pointer reads as
+      // a stuck highlight.
+      gizmo.clearHover();
+      canvasElement.style.cursor = 'grabbing';
+      return;
+    }
     const handle = gizmo.hover(event.clientX, event.clientY, renderer);
     canvasElement.style.cursor = handle ? 'pointer' : '';
   });

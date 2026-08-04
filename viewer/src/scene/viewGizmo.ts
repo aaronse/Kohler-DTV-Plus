@@ -54,15 +54,48 @@ const INNER = CUBE_HALF - CHAMFER;
 /** Step triangles, on the four sides. */
 const STEP_RADIUS = 1.58;
 const STEP_SCALE = 0.44;
-/** Roll arrows, paired at the top right, as Fusion places them. */
-const ROLL_POSITIONS: Array<[number, number]> = [
-  [1.18, 1.66],
-  [1.68, 1.22],
-];
-const ROLL_SCALE = 0.82;
-/** Home, opposite the roll pair. */
-const HOME_POSITION: [number, number] = [-1.62, 1.66];
-const HOME_SCALE = 0.5;
+/**
+ * Roll arrows: one concentric band wrapping the cube's top-right corner, in the
+ * gap between the top and the right step triangle.
+ *
+ * `ROLL_INNER` sits just outside the cube's silhouette in EVERY orientation,
+ * which is a bound rather than a guess: the chamfered cube's 24 vertices are
+ * the permutations of (±CUBE_HALF, ±INNER, ±INNER), so all of them are the same
+ * distance from the centre — sqrt(CUBE_HALF² + 2·INNER²), about 1.43 — and a
+ * projection can never push one further out than that. Coming closer would lay
+ * the band over the cube, and the chrome wins every contested pixel.
+ */
+const ROLL_INNER = 1.563;
+const ROLL_OUTER = 1.857;
+/**
+ * The head's barbs, wider than the band on both sides — and deliberately NOT
+ * derived from it, so thinning the sweep leaves the heads alone.
+ */
+const ROLL_HEAD_INNER = 1.38;
+const ROLL_HEAD_OUTER = 2.04;
+/** How much of each arrow's sweep the head takes. */
+const ROLL_HEAD_SWEEP = THREE.MathUtils.degToRad(15);
+/**
+ * Angular limits. The step sprites' QUADS reach about 83 and 7 degrees at this
+ * radius — a sprite is picked over its whole quad, not its artwork — so the
+ * band stops short of both. The two arrows meet either side of the diagonal.
+ */
+const ROLL_MAX = THREE.MathUtils.degToRad(80);
+const ROLL_MIN = THREE.MathUtils.degToRad(10);
+const ROLL_MEET = THREE.MathUtils.degToRad(45);
+const ROLL_SPLIT = THREE.MathUtils.degToRad(2.5);
+/**
+ * Home, opposite the roll pair and tucked in as close as its QUAD allows.
+ *
+ * It is a sprite, so it is picked over its whole square, not over the house
+ * drawn inside it. Sitting on the diagonal, the square's nearest corner is the
+ * binding constraint: at `HOME_SCALE / 2` in from the centre on both axes, it
+ * reaches the cube once `(|x| - HOME_SCALE / 2) * sqrt(2)` drops to the 1.43
+ * vertex bound above. 1.43 here puts that corner at `ROLL_INNER`, so the house
+ * and the roll band keep the same clearance off the cube.
+ */
+const HOME_POSITION: [number, number] = [-1.43, 1.43];
+const HOME_SCALE = 0.65;
 
 const CHROME_IDLE_OPACITY = 0.38;
 const CHROME_HOVER_OPACITY = 1;
@@ -431,9 +464,9 @@ function polygon(corners: THREE.Vector3[], normal: THREE.Vector3, withUv: boolea
  *
  *   - four triangles on the sides, each a 90-degree turn onto the neighbouring
  *     region;
- *   - a pair of curved arrows at the top right, which ROLL the camera about its
- *     own line of sight — the one rotation the cube itself cannot express,
- *     since every cube region implies a canonical up vector;
+ *   - a pair of curved arrows sweeping round the top-right corner, which ROLL
+ *     the camera about its own line of sight — the one rotation the cube itself
+ *     cannot express, since every cube region implies a canonical up vector;
  *   - a house at the top left, back to the default framing.
  *
  * All of it is parented to the camera, so it holds its screen position while
@@ -477,6 +510,34 @@ function buildChrome(camera: THREE.Camera, regions: Region[]): void {
     });
   };
 
+  // Same wiring as `place`, but for a shape instead of a texture on a quad.
+  const sweep = (geometry: THREE.BufferGeometry, pick: GizmoPick): void => {
+    const material = new THREE.MeshBasicMaterial({
+      color: ARROW_COLOR,
+      transparent: true,
+      opacity: CHROME_IDLE_OPACITY,
+      depthTest: false,
+      side: THREE.DoubleSide,
+    });
+    const mesh = new THREE.Mesh(geometry, material);
+    // Already in the camera's XY plane; only the depth has to be set.
+    mesh.position.z = -1;
+    mesh.renderOrder = 2;
+    camera.add(mesh);
+    regions.push({
+      object: mesh,
+      pick,
+      highlight: () => {
+        material.opacity = CHROME_HOVER_OPACITY;
+        material.color.setHex(HOVER_COLOR);
+      },
+      restore: () => {
+        material.opacity = CHROME_IDLE_OPACITY;
+        material.color.setHex(ARROW_COLOR);
+      },
+    });
+  };
+
   // Side triangles, each pointing INWARD at the cube, as Fusion draws them.
   // Outward-pointing reads as "move the camera that way"; inward reads as
   // "bring that side round to the front", which is what actually happens.
@@ -496,14 +557,16 @@ function buildChrome(camera: THREE.Camera, regions: Region[]): void {
   }
 
   // Roll pair. `radians` is the way the MODEL turns on screen, which is what
-  // the arrow depicts — the up vector goes the other way to deliver it.
+  // the arrow depicts — the up vector goes the other way to deliver it. The
+  // anticlockwise one takes the upper half of the band and points at the top;
+  // the clockwise one takes the lower half and points at the right.
   const quarter = Math.PI / 2;
-  place(rollTexture(false), ROLL_POSITIONS[0][0], ROLL_POSITIONS[0][1], ROLL_SCALE, 0, {
+  sweep(rollGeometry(ROLL_MEET + ROLL_SPLIT, ROLL_MAX), {
     kind: 'roll',
     radians: quarter,
     label: 'roll anticlockwise',
   });
-  place(rollTexture(true), ROLL_POSITIONS[1][0], ROLL_POSITIONS[1][1], ROLL_SCALE, 0, {
+  sweep(rollGeometry(ROLL_MEET - ROLL_SPLIT, ROLL_MIN), {
     kind: 'roll',
     radians: -quarter,
     label: 'roll clockwise',
@@ -543,60 +606,36 @@ function triangleTexture(): THREE.CanvasTexture {
 }
 
 /**
- * A thick quarter-turn swept arc with a head on the leading end.
+ * One roll arrow: an annulus sector from `tail` to a head that tips at `tip`,
+ * drawn in the camera's own XY plane and centred on the cube.
  *
- * Exactly 90 degrees, because that is exactly what one click does — an arc that
- * sweeps most of a circle reads as "reload", which is what the first attempt
- * looked like. The two arrows are mirror images bowing over the top of the
- * cube, and the head points the way the model will turn.
+ * A MESH, not a sprite, and that is the whole point. A sprite is picked over
+ * its entire quad rather than its artwork, so an arrow drawn large enough to
+ * read swallows the clicks meant for the cube faces beneath it — which is what
+ * sank the previous version. Raycasting a mesh matches the drawn shape exactly,
+ * so these can be as big as they need to be.
+ *
+ * The outline runs: along the inner radius from tail to the head's base, out
+ * through the inner barb, the tip, the outer barb, then back along the outer
+ * radius. `ROLL_HEAD_INNER < ROLL_INNER < ROLL_OUTER < ROLL_HEAD_OUTER`, so the
+ * two radial hops at the base sit on the same line without crossing and the
+ * polygon stays simple enough for `ShapeGeometry` to triangulate.
  */
-function rollTexture(clockwise: boolean): THREE.CanvasTexture {
-  const size = 128;
-  const canvas = document.createElement('canvas');
-  canvas.width = size;
-  canvas.height = size;
-  const context = canvas.getContext('2d');
-  if (context) {
-    const c = size / 2;
-    // A tight radius on purpose: 90 degrees swept at a large radius is almost
-    // a straight line, and the curve is the whole point of the glyph.
-    const radius = size * 0.31;
-    // Kept well under the arc's own length. An oversized head swallows the
-    // sweep and the glyph stops reading as a rotation at all.
-    const head = size * 0.12;
-    // The top quadrant: a true 90 degrees from upper-left to upper-right.
-    const start = Math.PI * 1.25;
-    const end = Math.PI * 1.75;
-    // Stop the stroke just short of the tip so the head caps the sweep rather
-    // than sprouting out of the side of a line cap.
-    const tail = clockwise ? start : end;
-    const tip = clockwise ? end : start;
-    const stroked = clockwise ? end - 0.16 : start + 0.16;
+function rollGeometry(tail: number, tip: number): THREE.BufferGeometry {
+  const direction = Math.sign(tip - tail);
+  const base = tip - direction * ROLL_HEAD_SWEEP;
+  const middle = (ROLL_INNER + ROLL_OUTER) / 2;
+  const polar = (radius: number, angle: number): THREE.Vector2 =>
+    new THREE.Vector2(Math.cos(angle) * radius, Math.sin(angle) * radius);
 
-    context.strokeStyle = '#ffffff';
-    context.lineWidth = size * 0.13;
-    context.lineCap = 'butt';
-    context.beginPath();
-    context.arc(c, c, radius, Math.min(tail, stroked), Math.max(tail, stroked));
-    context.stroke();
+  const segments = 24;
+  const at = (index: number): number => tail + ((base - tail) * index) / segments;
+  const outline: THREE.Vector2[] = [];
+  for (let i = 0; i <= segments; i++) outline.push(polar(ROLL_INNER, at(i)));
+  outline.push(polar(ROLL_HEAD_INNER, base), polar(middle, tip), polar(ROLL_HEAD_OUTER, base));
+  for (let i = segments; i >= 0; i--) outline.push(polar(ROLL_OUTER, at(i)));
 
-    // Head laid along the tangent, pointing the way the sweep runs.
-    const tipX = c + Math.cos(tip) * radius;
-    const tipY = c + Math.sin(tip) * radius;
-    const tangent = tip + (clockwise ? Math.PI / 2 : -Math.PI / 2);
-    const point = (angle: number, distance: number): [number, number] => [
-      tipX + Math.cos(angle) * distance,
-      tipY + Math.sin(angle) * distance,
-    ];
-    context.fillStyle = '#ffffff';
-    context.beginPath();
-    context.moveTo(...point(tangent, head));
-    context.lineTo(...point(tangent + 2.3, head * 1.05));
-    context.lineTo(...point(tangent - 2.3, head * 1.05));
-    context.closePath();
-    context.fill();
-  }
-  return finish(canvas);
+  return new THREE.ShapeGeometry(new THREE.Shape(outline));
 }
 
 /** A house: the default framing, same idea as Fusion's home. */

@@ -10,6 +10,8 @@ import {
 } from '../core/units';
 import { disposeObject, extractSourceGeometry } from './loaders';
 import {
+  applyPose,
+  capturePose,
   frameObject,
   goHome,
   rollCamera,
@@ -17,6 +19,7 @@ import {
   snapToView,
   type ViewName,
 } from './cameraFit';
+import { createCameraTween } from './cameraTween';
 import { createDecalLayer, type DecalHandle } from './decalLayer';
 import { createViewGizmo, stepDirection, type GizmoPick } from './viewGizmo';
 import type { RawGeometry } from '../core/stl';
@@ -121,6 +124,14 @@ export function createViewer(canvas: HTMLCanvasElement, container: HTMLElement):
   // EXPORT axes, so it agrees with the pointer readout rather than with the
   // viewport's own Y-up convention.
   const gizmo = createViewGizmo();
+
+  // Gizmo moves are animated. Reduced motion collapses the duration to zero,
+  // which the tween treats as "land on the next frame" rather than as a special
+  // case — the same signal already governs OrbitControls' damping above.
+  const tween = createCameraTween(prefersReducedMotion() ? { durationMs: 0 } : {});
+  // A drag beats an animation: if the user grabs the model mid-turn, the turn
+  // is abandoned rather than fighting them for the camera.
+  controls.addEventListener('start', () => tween.cancel());
 
   const raycaster = new THREE.Raycaster();
   const pointer = new THREE.Vector2();
@@ -265,6 +276,10 @@ export function createViewer(canvas: HTMLCanvasElement, container: HTMLElement):
     if (disposed) return;
     frameId = window.requestAnimationFrame(renderFrame);
     resize();
+    // Before controls.update(), so damping smooths the tween's own output
+    // rather than chasing a camera that has already been moved past it.
+    const pose = tween.sample(performance.now());
+    if (pose) applyPose(pose, camera, controls);
     controls.update();
     renderer.render(scene, camera);
     gizmo.render(renderer, camera);
@@ -289,6 +304,21 @@ export function createViewer(canvas: HTMLCanvasElement, container: HTMLElement):
   );
 
   function applyGizmoPick(pick: GizmoPick): void {
+    if (!modelRoot) return;
+    // Compute the destination by running the move for real, then rewind and
+    // animate into it. The alternative — a second, "predictive" copy of each
+    // move — is the kind of duplication that drifts: the tween would land
+    // somewhere subtly different from where a click used to, and only under
+    // some rotations. This way there is one implementation of each move and
+    // the animation is a pure presentation layer over it.
+    const from = capturePose(camera, controls);
+    runGizmoMove(pick);
+    const to = capturePose(camera, controls);
+    applyPose(from, camera, controls);
+    tween.start(from, to, performance.now());
+  }
+
+  function runGizmoMove(pick: GizmoPick): void {
     if (!modelRoot) return;
     switch (pick.kind) {
       case 'view':

@@ -9,8 +9,18 @@ import {
   type UpAxis,
 } from '../core/units';
 import { disposeObject, extractSourceGeometry } from './loaders';
-import { frameObject, snapToView, type ViewName } from './cameraFit';
+import {
+  frameObject,
+  goHome,
+  rollCamera,
+  snapToDirection,
+  snapToView,
+  type ViewName,
+} from './cameraFit';
+import { createDecalLayer, type DecalHandle } from './decalLayer';
+import { createViewGizmo, stepDirection, type GizmoPick } from './viewGizmo';
 import type { RawGeometry } from '../core/stl';
+import type { DecalRecord } from '../core/decals';
 
 // The WebGL engine. Owns GPU resources; knows nothing about the catalog or the
 // DOM chrome around it.
@@ -57,6 +67,20 @@ export interface ViewerHandles {
   setFlatShading(on: boolean): void;
   setGridVisible(on: boolean): void;
   setBoundsVisible(on: boolean): void;
+  /**
+   * Put decals on the scene. They are added to their own root, never to the
+   * model, so they cannot reach the export path — see `decalLayer.ts`.
+   */
+  setDecals(records: DecalRecord[]): Promise<DecalHandle[]>;
+  selectDecal(decalId: string | null): void;
+  /**
+   * Look at a decal square-on and the right way up.
+   *
+   * Both vectors are EXPORT space. The up vector is the anchor's own `v`, so
+   * "upright" means upright as the artwork was authored — which, for a part
+   * modelled on its side, is the only frame that knows which way is up.
+   */
+  lookAtDecal(normal: readonly number[], up: readonly number[]): void;
   /** Screen-space pick, returning export-space millimetres. */
   pick(clientX: number, clientY: number): PickResult | null;
   dispose(): void;
@@ -89,6 +113,14 @@ export function createViewer(canvas: HTMLCanvasElement, container: HTMLElement):
     metalness: 0.15,
     roughness: 0.7,
   });
+
+  const decals = createDecalLayer();
+  scene.add(decals.root);
+
+  // Orientation gizmo, drawn into the corner of the same canvas. Labelled with
+  // EXPORT axes, so it agrees with the pointer readout rather than with the
+  // viewport's own Y-up convention.
+  const gizmo = createViewGizmo();
 
   const raycaster = new THREE.Raycaster();
   const pointer = new THREE.Vector2();
@@ -124,6 +156,10 @@ export function createViewer(canvas: HTMLCanvasElement, container: HTMLElement):
 
   function setModel(object: THREE.Object3D, unit: LengthUnit, upAxis: UpAxis): LoadedModel {
     clearModel();
+    // Decals are pinned to one specific model file's geometry. Carrying them
+    // across a model change would put a K-99693 faceplate onto whatever the
+    // user just dropped on the window.
+    decals.clear();
 
     // Snapshot the geometry BEFORE any display transform touches it. Everything
     // measured or exported comes from here, never from the scene graph.
@@ -204,6 +240,10 @@ export function createViewer(canvas: HTMLCanvasElement, container: HTMLElement):
 
   function pick(clientX: number, clientY: number): PickResult | null {
     if (!modelRoot) return null;
+    // The gizmo sits on top of the model. Reporting a coordinate from the
+    // geometry hidden behind it would be a readout for a point the user cannot
+    // see, so the corner is excluded.
+    if (gizmo.hit(clientX, clientY, renderer)) return null;
     const rect = renderer.domElement.getBoundingClientRect();
     pointer.x = ((clientX - rect.left) / rect.width) * 2 - 1;
     pointer.y = -((clientY - rect.top) / rect.height) * 2 + 1;
@@ -227,7 +267,52 @@ export function createViewer(canvas: HTMLCanvasElement, container: HTMLElement):
     resize();
     controls.update();
     renderer.render(scene, camera);
+    gizmo.render(renderer, camera);
   }
+
+  // Gizmo input. Bound here rather than in `main.ts` because the hit test needs
+  // the renderer's own pixel geometry, which is this module's business.
+  //
+  // `pointerdown` claims the event before OrbitControls sees it, so clicking a
+  // handle snaps rather than starting an orbit drag.
+  const canvasElement = renderer.domElement;
+  canvasElement.addEventListener(
+    'pointerdown',
+    (event) => {
+      const pick = gizmo.hit(event.clientX, event.clientY, renderer);
+      if (!pick || !modelRoot) return;
+      event.stopPropagation();
+      event.preventDefault();
+      applyGizmoPick(pick);
+    },
+    { capture: true },
+  );
+
+  function applyGizmoPick(pick: GizmoPick): void {
+    if (!modelRoot) return;
+    switch (pick.kind) {
+      case 'view':
+        snapToDirection(modelRoot, camera, controls, pick.towards);
+        return;
+      case 'step':
+        snapToDirection(modelRoot, camera, controls, stepDirection(pick.step, camera, controls.target));
+        return;
+      case 'roll':
+        // Roll keeps the camera where it is and turns the picture, so it must
+        // NOT go through snapToDirection — that would reset the up vector and
+        // undo the roll on the spot.
+        rollCamera(camera, controls, pick.radians);
+        return;
+      case 'home':
+        goHome(modelRoot, camera, controls);
+        return;
+    }
+  }
+
+  canvasElement.addEventListener('pointermove', (event) => {
+    const handle = gizmo.hover(event.clientX, event.clientY, renderer);
+    canvasElement.style.cursor = handle ? 'pointer' : '';
+  });
 
   resize();
   renderFrame();
@@ -255,16 +340,29 @@ export function createViewer(canvas: HTMLCanvasElement, container: HTMLElement):
     setBoundsVisible: (on) => {
       if (bounds) bounds.visible = on;
     },
+    setDecals: (records) => decals.setDecals(records, renderer.capabilities.getMaxAnisotropy()),
+    selectDecal: (decalId) => decals.select(decalId),
+    lookAtDecal: (normal, up) => {
+      if (!modelRoot) return;
+      snapToDirection(modelRoot, camera, controls, exportToDisplay(normal), exportToDisplay(up));
+    },
     pick,
     dispose: () => {
       disposed = true;
       window.cancelAnimationFrame(frameId);
       clearModel();
+      decals.dispose();
+      gizmo.dispose();
       material.dispose();
       controls.dispose();
       renderer.dispose();
     },
   };
+}
+
+/** A direction in export space (mm, Z-up) as a display-space vector. */
+function exportToDisplay(v: readonly number[]): THREE.Vector3 {
+  return new THREE.Vector3(v[0], v[2], -v[1]).normalize();
 }
 
 export function isWebglSupported(): boolean {

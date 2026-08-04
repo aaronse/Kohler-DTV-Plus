@@ -12,6 +12,34 @@ See the Story log section of [AGENT.md](AGENT.md) for what to append and how.
 
 ## 2026-08-03
 
+### 19:05 — Corrected: the interface is portrait, and the CAD is lying on its side
+
+The decal drawn an hour ago was landscape. It was wrong, and the correction is more interesting than the mistake.
+
+The reasoning that produced it went: the mesh's flat face measures 131.07 × 81.47 mm, and the K-99693 spec sheet says 5-1/4 in wide by 3-5/16 in high, so 131 is the width and 81 the height. Landscape. That reading is wrong, and Kohler's own product photography shows it immediately — the unit is clearly taller than it is wide.
+
+The **K-99694 interface mounting bracket** drawing, already sitting in `research/`, settles it: 3-5/16" (84 mm) wide by 5-5/8" (143 mm) tall, portrait, with the wiring boss at the bottom and the mounting tabs at the top. So the interface is portrait, and the CAD is authored **on its side**: the product's vertical runs along the model's X axis, and product-down is +X — the end carrying the raised connector block on the wall side.
+
+The confirmation came from an unexpected direction. Our own app's UI is 1120 × 1800, aspect 0.6222. The faceplate, read portrait, is 81.4677 / 131.0691 = 0.6216. **0.11% apart.** The UI had been laid out to the real device's proportions months ago, so the app itself was carrying the answer.
+
+**Why it matters:** the same off-by-90° would rotate any part someone cut from this file. It also means none of the viewer's standard views shows the interface upright — they are CAD views, and this CAD is sideways. The fix is a decal-driven "look at it, upright", since the decal anchor's own up-vector is the only place the product's orientation is recorded.
+
+**For Kohler:** the K-99693 visualisation CAD is oriented with the product's height along X and the faceplate on +Y. Read with the usual CAD convention — X wide, Z high, front at −Y — the part comes out landscape and back-to-front. The spec sheet's "5-1/4 in wide" compounds it.
+
+### 18:20 — Kohler's K-99693 CAD has no screen, and its front is on the back
+
+Trying to put a picture of our replacement interface onto the model's display, we went looking for the display. There isn't one.
+
+The published K-99693 CAD models the face as a **single flat two-triangle rectangle**, 131.0691 × 81.4677 mm, with no display window, no bezel step and no button outlines. Everything the user actually touches is absent. The model is a marketing visualisation: Kohler's own renders presumably composite a screen image onto that blank plate, exactly as we now do.
+
+The second surprise is orientation. In the CAD's own frame the blank faceplate is on **+Y**, and the side with a large circular boss, two mounting tabs and a connector block is on −Y. Standard CAD view conventions put "front" at −Y, so the viewer's Front button shows the **wall side** of the part. The product's front is the CAD's back. Nothing is wrong with the file; it is just not oriented the way its view names imply, and anyone taking a "front elevation" screenshot from it will publish the back of the unit.
+
+Both facts were established by measurement, not by looking: a coplanar-face pass over the mesh found one perfectly flat quad and no other candidate, and an orthographic depth map of each side confirmed which was which.
+
+**Why it matters:** the model is authority for the outside envelope and for nothing about the interface itself. Any dimension taken off it for screen size, button placement or bezel thickness would be invented. It also means our decal anchor is a measured face carrying artwork that is ours — that separation is now recorded in the file itself rather than left for a viewer to infer.
+
+**For Kohler:** the published K-99693 visualisation CAD contains no display aperture or control features, and its faceplate sits on the CAD's rear axis. Both are easy to miss, and both mislead anyone using the file for fit work.
+
 ### 16:18 — The rear cover becomes a gasket problem, not a glue problem
 
 The access opening is cut, the connector is reachable again, and the replacement rear cover is now printed in TPU.

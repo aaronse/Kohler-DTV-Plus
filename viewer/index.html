@@ -70,8 +70,28 @@
             <option value="mm" selected>Millimetres (slicers, most CAM)</option>
             <option value="in">Inches (imperial CAM posts)</option>
           </select>
+
+          <label for="export-mesh">Mesh</label>
+          <select id="export-mesh">
+            <option value="repaired" selected>Repaired — welded and capped</option>
+            <option value="raw">As published — unmodified</option>
+          </select>
+
           <button id="download" disabled>Download binary STL</button>
           <p id="export-note" class="hint"></p>
+          <div id="repair-report" hidden>
+            <h3>Repair report</h3>
+            <dl id="repair-stats"></dl>
+            <p id="repair-verdict" class="hint"></p>
+          </div>
+        </section>
+
+        <section id="decals" hidden>
+          <h3>Appearance</h3>
+          <label for="decal">Decal</label>
+          <select id="decal"></select>
+          <button id="decal-view" type="button">Look at it, upright</button>
+          <p id="decal-note" class="hint"></p>
         </section>
 
         <section id="mod-notes" hidden>

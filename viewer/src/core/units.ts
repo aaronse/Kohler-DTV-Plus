@@ -143,6 +143,29 @@ export function displayMatrixElements(from: UpAxis, sourceUnit: LengthUnit): num
   ];
 }
 
+/**
+ * Row-major 16 elements mapping EXPORT space (mm, Z-up) to DISPLAY space
+ * (mm, Y-up): `(x, y, z) -> (x, z, -y)`.
+ *
+ * This is the `C` step of `displayMatrixElements` on its own, and it is what
+ * anything authored in export coordinates — a decal anchor, a measurement
+ * annotation, a saved section plane — needs in order to be drawn in the
+ * viewport. Such things must never be authored in display space: display space
+ * is a rendering convenience that can be changed, export space is the frame the
+ * part is actually measured and cut in.
+ *
+ * `exportToDisplay . (source -> export) === displayMatrixElements` is asserted
+ * in the tests, so the two can never drift apart.
+ */
+export function exportToDisplayMatrixElements(): number[] {
+  return [
+    1, 0, 0, 0,
+    0, 0, 1, 0,
+    0, -1, 0, 0,
+    0, 0, 0, 1,
+  ];
+}
+
 /** Apply a row-major 4x4 (translation-free) to a point. Test/inspection helper. */
 export function applyMatrixElements(
   m: number[],

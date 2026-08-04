@@ -120,6 +120,160 @@ missing internal structure, or re-mesh. A loop that is not planar within
 tolerance (default 0.25 mm) is **skipped and reported**, and the result is
 declared not watertight rather than flattened into a plausible-looking lie.
 
+## The view cube
+
+A chamfered view cube sits in the corner of the viewport, modelled on Fusion
+360's, because that is the one people already know — a gizmo that has to be
+learned is worse than no gizmo.
+
+The chamfer is not decoration. A plain cube gives six views; chamfering it
+exposes the twelve edges and eight corners as their own faces, so the same
+widget also reaches the twelve 45° edge-on views and the eight isometrics:
+**26 pick regions in total.**
+
+Around it, in Fusion's arrangement — all of it idling at low opacity and
+brightening under the pointer:
+
+| Control | Where | What it does |
+| --- | --- | --- |
+| Four triangles | the four sides | 90° onto the neighbouring region |
+| A pair of curved arrows | top right | **Roll** ±90° about the line of sight |
+| A house | top left | Back to the default framing, refitted |
+
+Roll is the one rotation the cube itself cannot express, because every cube
+region implies a canonical up vector. It is also the one that needed care:
+OrbitControls derives its orbit frame from `camera.up` **once, in its
+constructor**, and caches it in `_quat` / `_quatInverse`. Roll the camera
+without refreshing those and the picture turns while dragging still orbits
+about the old axis — the view and the mouse quietly stop agreeing, which reads
+as broken controls rather than as a stale cache. `rollCamera` refreshes them,
+which means reaching past three's public API on purpose; it is guarded, so a
+future rename degrades to "rolls but orbits Y-up" instead of throwing.
+
+The faces are labelled `+X` / `−X` / `+Y` / `−Y` / `+Z` / `−Z` in **export
+space**, not `FRONT` / `TOP` / `RIGHT`. Two reasons:
+
+1. Every number this app reports is millimetres Z-up. Labelling the gizmo with
+   the viewport's Y-up axes would be a fourth convention to hold in your head,
+   and would contradict the readout in the opposite corner of the same canvas.
+2. On this part, "front" is a lie either way — the product's faceplate is on the
+   CAD's +Y, the axis a CAD convention calls *back*. Naming faces after the
+   product would be wrong for other parts; naming them after the CAD would be
+   wrong for this one. Axis names are true for both.
+
+A triangle rotates the current view 90° and then lands on the nearest of the 26
+regions, so a step never leaves the camera at an arbitrary angle even if you had
+been orbiting freely.
+
+[`viewGizmo.test.ts`](src/scene/viewGizmo.test.ts) and
+[`cameraFit.test.ts`](src/scene/cameraFit.test.ts) cover both without a WebGL
+context or a DOM — a mis-signed rotation still looks like a rotation, so it
+needs a test rather than a look. They have already earned it twice: the step
+arrows shipped inverted, and roll left a stale component in `camera.up` because
+after an orbit that vector leans out of the screen plane and `lookAt` silently
+discards the lean.
+
+## Decals
+
+Manufacturer CAD is geometry and nothing else — the K-99693 model is one unnamed
+group with no materials and no UV coordinates, so there is nothing to texture in
+the usual sense. Generating UVs would mean splitting the mesh, which changes the
+thing the app exists to preserve.
+
+So artwork goes on as a **decal**: a separate quad floated a fraction of a
+millimetre off a measured face, carrying its own image. The source mesh is never
+touched, and a decal therefore cannot reach an exported STL — the decal layer is
+a sibling of the model in the scene graph, and the exporter reads a geometry
+snapshot taken at load. `npm run verify` asserts it rather than trusting it.
+
+Records live in [`src/catalog/decals.json`](src/catalog/decals.json), artwork in
+[`public/decals/`](public/decals/), and the maths in
+[`src/core/decals.ts`](src/core/decals.ts), which has no renderer dependency.
+
+### Orientation is not in the mesh
+
+The K-99693 is a **portrait** device — the K-99694 bracket drawing gives it as
+84 mm wide by 143 mm tall with the wiring boss at the bottom — but the CAD is
+authored on its side: the product's vertical runs along the model's **X** axis,
+product-down at +X. The faceplate quad measures 131.07 × 81.47 mm in CAD terms
+and 81.47 × 131.07 mm as a person sees it on the wall.
+
+Nothing in the mesh says so. The face is a blank symmetric rectangle, so which
+end is up came from the bracket drawing, and it is recorded as such in the decal
+record's provenance note rather than presented as a measurement.
+
+The practical consequence: the standard views are CAD views and none of them
+shows the interface upright. **"Look at it, upright"** in the Appearance panel
+does, and it needs no per-part configuration — the anchor's `v` vector *is* the
+artwork's up direction, so any decal on any part can be viewed the right way up.
+
+### An anchor is three vectors
+
+Anchors are written in **export space — millimetres, Z-up**, the same frame the
+pointer readout prints. Authoring a decal is a hover-and-type job: point at the
+corners of the face, read the millimetres off the corner readout, type them in.
+
+```jsonc
+"anchor": {
+  "origin": [65.5418, 15.2734, 40.7279],  // image (0,0): bottom-left to a viewer in front
+  "u":      [0, 0, -81.4677],             // image +X edge. ITS LENGTH IS THE WIDTH.
+  "v":      [-131.0691, 0, 0]             // image +Y edge. Its length is the height.
+}
+```
+
+Position, size, orientation and handedness all fall out of those three, so there
+is no separate rotate/flip/scale field to get backwards. The outward normal is
+`u × v`, which makes handedness **self-checking**: swap the two edges and the
+decal faces into the part, which the verify gate catches by name.
+
+`v` runs along −X here because that is the product's up; `u` then falls out as
+−Z, because a viewer standing in front looks along −Y and, with −X overhead,
+their right hand is on −Z. That is what makes `u × v` come out as +Y.
+
+### What the gate checks
+
+`npm run verify` refuses a decal that is wrong in a way rendering would not
+reveal:
+
+| Check | Catches |
+| --- | --- |
+| `u · v ≈ 0` | A sheared anchor — always a mistyped corner |
+| Artwork aspect vs face aspect, 1% | Silently squashed artwork, unless `"fit": "contain"` says so on purpose |
+| Every corner within 0.05 mm of the mesh | An anchor that is internally consistent and simply not on the part |
+| Decal normal vs the facet beneath it | `u` and `v` swapped, which buries the artwork inside the part |
+| Export triangle count unchanged | A decal reaching the downloaded STL |
+
+The aspect check is the one that earns its keep. A stretched screenshot is the
+same class of error as a guessed unit: it renders perfectly, and it is wrong.
+
+### Vector artwork
+
+SVG is the preferred format — it is text, so humans and agents can edit it
+together, it diffs, and it rasterises at whatever resolution the face needs. The
+K-99693 decal uses a `viewBox` of exactly **ten units per millimetre of the real
+part**, so a rectangle 200 units wide is 20 mm wide on the faceplate and editing
+it is dimensioned work.
+
+Two constraints, both learned the hard way: an SVG rasterised through an `<img>`
+is a sandboxed XML document, so it **cannot fetch webfonts or linked images**,
+and its comments **may not contain a double hyphen** — one occurrence makes the
+whole file fail to parse with nothing on screen to say why.
+
+### Toward Maker Galaxy
+
+`core/decals.ts` is deliberately renderer-agnostic: it takes a record and returns
+four corners, four UVs and a normal. The record shape follows Maker Galaxy
+Studio's markup model — `sourceModelId`, a geometry anchor, a style, a
+provenance note — so a decal set moves across as a project-linked review record
+rather than needing a translation layer, and its Studio viewer can feed the
+corners into its own scene graph without adopting anything else from here.
+
+The transferable idea is smaller than the code: **enrichment is a sidecar, not
+an edit.** Geometry arrives from a manufacturer or a generator and should stay
+byte-comparable to what it arrived as; everything added for presentation lives
+beside it, in a declared coordinate frame, with a gate that checks the two still
+agree.
+
 ## Known limitations
 
 1. **The repaired K-99693 is a closed shell, not a solid model of the part.**

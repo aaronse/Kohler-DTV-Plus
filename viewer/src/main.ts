@@ -1,5 +1,6 @@
 import './style.css';
 import catalogJson from './catalog/catalog.json';
+import decalsJson from './catalog/decals.json';
 import {
   entryKey,
   findEntry,
@@ -15,6 +16,14 @@ import {
   readBinaryStlCount,
   writeBinaryStl,
 } from './core/stl';
+import { repairMesh, summarizeRepair, type RepairResult } from './core/repair';
+import {
+  decalQuad,
+  decalsFor,
+  summarizeDecal,
+  validateDecalSet,
+  type DecalRecord,
+} from './core/decals';
 import { formatDimensions, scaleFactor, type LengthUnit, type UpAxis } from './core/units';
 import { detectFormat, isTextFormat, loadModel, parseModel } from './scene/loaders';
 import { createViewer, isWebglSupported, type LoadedModel } from './scene/viewer';
@@ -36,14 +45,22 @@ const catalogEl = $('catalog');
 const searchEl = $<HTMLInputElement>('search');
 const downloadEl = $<HTMLButtonElement>('download');
 const exportUnitEl = $<HTMLSelectElement>('export-unit');
+const exportMeshEl = $<HTMLSelectElement>('export-mesh');
 const exportNoteEl = $('export-note');
 const statsEl = $('stats');
+const decalsEl = $('decals');
+const decalSelectEl = $<HTMLSelectElement>('decal');
+const decalViewEl = $<HTMLButtonElement>('decal-view');
+const decalNoteEl = $('decal-note');
 
 /** Everything about what is currently on screen. */
 interface Current {
   label: string;
   model: LoadedModel;
   stats: MeshStats;
+  /** Repaired geometry and its report. Computed once at load. */
+  repair: RepairResult;
+  repairedStats: MeshStats;
 }
 
 let current: Current | null = null;
@@ -58,6 +75,10 @@ function setStatus(message: string, isError = false): void {
 
 const catalog = validateCatalog(catalogJson);
 const entries = flattenCatalog(catalog);
+
+// Decals are validated at boot, next to the catalog, for the same reason: a
+// sheared anchor or a squashed aspect ratio renders perfectly and is wrong.
+const decalSet = validateDecalSet(decalsJson);
 
 function renderCatalog(query = ''): void {
   const visible = searchEntries(entries, query);
@@ -184,6 +205,9 @@ async function selectEntry(entry: CatalogEntry): Promise<void> {
   try {
     const object = await loadModel(entry.file.url, entry.file.format);
     applyModel(label, object, entry.file.sourceUnit, entry.file.sourceUpAxis);
+    // After applyModel: setting a model clears the decal layer, because decals
+    // are pinned to one specific file's geometry.
+    await applyDecals(`${entry.family.familyId}/${entry.part.partId}/${entry.file.id}`);
   } catch (error) {
     onLoadError(entry.file.url, error);
   }
@@ -200,12 +224,95 @@ function applyModel(
     sourceUnit: unit,
     sourceUpAxis: upAxis,
   });
-  current = { label, model, stats };
+
+  // Repair eagerly rather than on click. It is fast at these triangle counts,
+  // and the report is a measurement of the part someone should see BEFORE
+  // deciding which file to download — not a surprise after the fact.
+  const repair = repairMesh(model.sourceGeometry, unit);
+  const repairedStats = computeMeshStats(repair.geometry, {
+    sourceUnit: unit,
+    sourceUpAxis: upAxis,
+  });
+
+  current = { label, model, stats, repair, repairedStats };
   renderStats(stats);
+  renderRepairReport(repair, stats, repairedStats);
   downloadEl.disabled = false;
   updateExportNote();
   setStatus('');
 }
+
+// ---------------------------------------------------------------- decals
+
+/**
+ * Decals are artwork pinned to a face of the part — a screen, a legend, a
+ * label. They are added content sitting on top of manufacturer geometry, so
+ * the picker states what is on screen and the note underneath says where it
+ * came from. Nothing here can reach the export: the decal layer is a sibling of
+ * the model in the scene graph, and the exporter reads the source geometry
+ * snapshot taken before either existed.
+ */
+async function applyDecals(sourceModelId: string): Promise<void> {
+  const records = decalsFor(decalSet, sourceModelId);
+  decalsEl.hidden = records.length === 0;
+  decalSelectEl.replaceChildren();
+  if (records.length === 0) {
+    viewer.selectDecal(null);
+    return;
+  }
+
+  const none = document.createElement('option');
+  none.value = '';
+  none.textContent = 'None — bare geometry';
+  decalSelectEl.append(none);
+
+  for (const record of records) {
+    const option = document.createElement('option');
+    option.value = record.decalId;
+    option.textContent = record.title;
+    decalSelectEl.append(option);
+  }
+
+  const loaded = await viewer.setDecals(records);
+  // Default to the first decal that actually loaded. A decal whose image is
+  // missing is dropped by the layer rather than selected as an invisible quad.
+  const first = loaded[0]?.record.decalId ?? '';
+  decalSelectEl.value = first;
+  viewer.selectDecal(first || null);
+  renderDecalNote(records.find((r) => r.decalId === first));
+}
+
+function renderDecalNote(record: DecalRecord | undefined): void {
+  decalViewEl.disabled = !record;
+  if (!record) {
+    decalNoteEl.textContent =
+      'Decals are added artwork floated off a measured face. The downloaded STL never ' +
+      'contains them.';
+    return;
+  }
+  decalNoteEl.textContent = `${summarizeDecal(record, decalQuad(record))}. ${record.provenanceNote}`;
+}
+
+decalSelectEl.addEventListener('change', () => {
+  const id = decalSelectEl.value;
+  viewer.selectDecal(id || null);
+  renderDecalNote(decalSet.decals.find((r) => r.decalId === id));
+});
+
+/**
+ * Look at the selected decal square-on and the right way up.
+ *
+ * The standard views are CAD views, and a CAD view has no idea which way the
+ * product stands: the K-99693 is modelled on its side, so "Front" shows the
+ * wall bracket and every other view has the interface lying down. The decal's
+ * own anchor knows better — `v` is the artwork's up vector — so this needs no
+ * per-part configuration and works for any decal on any part.
+ */
+decalViewEl.addEventListener('click', () => {
+  const record = decalSet.decals.find((r) => r.decalId === decalSelectEl.value);
+  if (!record) return;
+  viewer.lookAtDecal(decalQuad(record).normal, record.anchor.v);
+});
 
 function onLoadError(what: string, error: unknown): void {
   const message = error instanceof Error ? error.message : String(error);
@@ -213,6 +320,8 @@ function onLoadError(what: string, error: unknown): void {
   current = null;
   downloadEl.disabled = true;
   statsEl.replaceChildren();
+  decalsEl.hidden = true;
+  viewer.selectDecal(null);
 }
 
 // ---------------------------------------------------------------- stats
@@ -246,6 +355,69 @@ function renderStats(stats: MeshStats): void {
   }
 }
 
+/**
+ * Repair report, shown alongside the measurements so the difference between the
+ * two downloads is visible before either is chosen.
+ */
+function renderRepairReport(
+  repair: RepairResult,
+  before: MeshStats,
+  after: MeshStats,
+): void {
+  const { report } = repair;
+  const panel = $('repair-report');
+  const stats = $('repair-stats');
+  const verdict = $('repair-verdict');
+
+  // Nothing was wrong and nothing was done — the panel would be noise.
+  if (before.closed && report.trianglesAdded === 0 && report.collapsedEdges === 0) {
+    panel.hidden = true;
+    return;
+  }
+  panel.hidden = false;
+
+  const drift = Math.max(...after.size.map((s, i) => Math.abs(s - before.size[i])));
+  const rows: Array<[string, string, boolean?]> = [
+    ['Holes capped', `${report.loopsCapped} of ${report.loopsFound}`],
+    ['Vertices welded', report.weldedVertices.toLocaleString()],
+    ['Triangles added', `+${report.trianglesAdded}`],
+    ['Boundary edges', `${report.boundaryEdgesBefore} → ${report.boundaryEdgesAfter}`],
+  ];
+  if (report.collapsedEdges) {
+    rows.push(['Seams collapsed', String(report.collapsedEdges)]);
+  }
+  rows.push([
+    'Non-manifold',
+    String(report.nonManifoldEdges),
+    report.nonManifoldEdges > 0,
+  ]);
+  // The number that decides whether the repair is safe to machine against.
+  rows.push(['Envelope drift', `${drift.toFixed(4)} mm`, drift > 0.001]);
+  if (after.closed) {
+    rows.push(['Enclosed volume', `${volumeCm3(after).toFixed(2)} cm³`]);
+  }
+
+  stats.replaceChildren();
+  for (const [term, value, warn] of rows) {
+    const dt = document.createElement('dt');
+    dt.textContent = term;
+    const dd = document.createElement('dd');
+    dd.textContent = value;
+    if (warn) dd.className = 'warn';
+    stats.append(dt, dd);
+  }
+
+  verdict.textContent = summarizeRepair(report);
+  verdict.classList.toggle('warn', !report.watertight);
+
+  if (report.skipped.length) {
+    const detail = report.skipped
+      .map((s) => `${s.points} pts, ${s.planarityMm.toFixed(2)} mm out of plane`)
+      .join('; ');
+    verdict.textContent += ` Skipped: ${detail}.`;
+  }
+}
+
 function updateExportNote(): void {
   if (!current) {
     exportNoteEl.textContent = '';
@@ -255,26 +427,41 @@ function updateExportNote(): void {
   const from = current.model.sourceUnit;
   const factor = scaleFactor(from, unit);
   const scaling = factor === 1 ? 'no scaling' : `scaled x${Number(factor.toFixed(6))}`;
+  const repaired = exportMeshEl.value === 'repaired';
+  const mesh = repaired
+    ? current.repair.report.watertight
+      ? 'Repaired mesh: watertight and manifold.'
+      : 'Repaired mesh: still NOT watertight — see the report below.'
+    : 'As published: unmodified manufacturer geometry.';
+
   exportNoteEl.textContent =
     `Source is ${from}, ${current.model.sourceUpAxis.toUpperCase()}-up. ` +
-    `Export is ${unit}, Z-up, ${scaling}. ` +
+    `Export is ${unit}, Z-up, ${scaling}. ${mesh} ` +
     `STL records no units, so the filename states them.`;
 }
 
 exportUnitEl.addEventListener('change', updateExportNote);
+exportMeshEl.addEventListener('change', updateExportNote);
 
 // ---------------------------------------------------------------- export
 
 downloadEl.addEventListener('click', () => {
   if (!current) return;
   const unit = exportUnitEl.value as LengthUnit;
+  const repaired = exportMeshEl.value === 'repaired';
+
+  // The filename records which mesh this is. Two files that differ in
+  // watertightness but share a name is exactly how the wrong one ends up on the
+  // machine.
+  const label = repaired ? `${current.label} repaired` : current.label;
+  const geometry = repaired ? current.repair.geometry : current.model.sourceGeometry;
 
   try {
-    const result = writeBinaryStl(current.model.sourceGeometry, {
+    const result = writeBinaryStl(geometry, {
       sourceUnit: current.model.sourceUnit,
       sourceUpAxis: current.model.sourceUpAxis,
       targetUnit: unit,
-      header: exportHeader(current.label, unit),
+      header: exportHeader(label, unit),
     });
 
     // Verify the bytes we are about to hand over actually parse as a binary
@@ -282,10 +469,11 @@ downloadEl.addEventListener('click', () => {
     // rather than a failed print an hour later.
     readBinaryStlCount(result.buffer);
 
-    downloadBuffer(result.buffer, exportFilename(current.label, unit));
+    downloadBuffer(result.buffer, exportFilename(label, unit));
     setStatus(
       `Exported ${result.triangleCount.toLocaleString()} triangles at ` +
-        `${result.scale === 1 ? '1:1' : `x${result.scale}`} into ${unit}, Z-up.`,
+        `${result.scale === 1 ? '1:1' : `x${result.scale}`} into ${unit}, Z-up` +
+        `${repaired ? ', repaired' : ', as published'}.`,
     );
   } catch (error) {
     setStatus(`Export failed: ${error instanceof Error ? error.message : String(error)}`, true);
@@ -352,6 +540,8 @@ async function loadDroppedFile(file: File): Promise<void> {
       'Z-up are assumed. Confirm against a dimensioned drawing before cutting anything.';
 
     applyModel(file.name.replace(/\.[^.]+$/, ''), object, 'mm', 'z');
+    // A dropped file has no catalog identity, so no decal can be pinned to it.
+    await applyDecals('');
     setStatus('Loaded as millimetres, Z-up — assumed, not read from the file.');
   } catch (error) {
     onLoadError(file.name, error);

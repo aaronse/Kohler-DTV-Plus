@@ -1,0 +1,48 @@
+{
+  "decalsVersion": "2026-08-03.p2",
+  "authoringNote": "Anchors are in EXPORT space: millimetres, Z-up — the frame the pointer readout prints, so a corner can be hovered and typed straight in. origin is the image's bottom-left corner as a viewer standing in front of the face sees it; u is the image's +X edge and its LENGTH IS THE WIDTH; v is the +Y edge and its length is the height. The outward normal is u x v, so getting the two edges the wrong way round faces the decal into the part instead of silently mirroring the artwork. npm run verify checks that every corner lies on the mesh and that the decal faces the same way as the facet beneath it.",
+  "orientationNote": "The K-99693 is a PORTRAIT device: the K-99694 mounting bracket drawing gives it as 84 mm wide by 143 mm tall with the wiring boss at the bottom. On this mesh that puts the product's vertical along the CAD's X axis, product-down at +X — the end carrying the raised connector block — so u runs along -Z (the viewer's right) and v along -X (up). The faceplate quad is therefore 81.4677 wide by 131.0691 tall, aspect 0.6216, which the app's own UI matches to 0.11%.",
+  "decals": [
+    {
+      "decalId": "k-99693-shower-dark",
+      "title": "Replacement UI — shower screen (dark)",
+      "sourceModelId": "kohler-dtv-plus/k-99693/obj",
+      "space": "export-mm-zup",
+      "anchor": {
+        "origin": [65.5418, 15.2734, 40.7279],
+        "u": [0, 0, -81.4677],
+        "v": [-131.0691, 0, 0]
+      },
+      "image": {
+        "url": "decals/kohler-dtv-plus/k-99693-shower-dark.svg",
+        "intrinsicWidth": 814.677,
+        "intrinsicHeight": 1310.691
+      },
+      "fit": "stretch",
+      "liftMm": 0.12,
+      "unlit": true,
+      "renderPxPerMm": 14,
+      "provenanceNote": "MEASURED ANCHOR, DRAWN ARTWORK. The anchor is the K-99693 mesh's faceplate exactly: a single flat two-triangle quad at Y = 15.2734 mm spanning X -65.5273..65.5418 and Z -40.7398..40.7279, read off the geometry rather than eyeballed. Portrait orientation and which end is up come from the K-99694 bracket drawing, not from the mesh, which is symmetric and gives no cue. The artwork is NOT Kohler's — the manufacturer CAD models the face as a blank plate with no display aperture at all, so there is no screen to measure. It is the replacement interface built in this repository (app/), drawn in the real product's physical arrangement: portrait glass, inset LCD in the upper three quarters, three capacitive buttons printed on the glass below with the temperature chevrons in blue and red. Do not present it as a depiction of Kohler's software."
+    },
+    {
+      "decalId": "k-99693-shower-dark-screenshot",
+      "title": "Replacement UI — captured screenshot",
+      "sourceModelId": "kohler-dtv-plus/k-99693/obj",
+      "space": "export-mm-zup",
+      "anchor": {
+        "origin": [65.5418, 15.2734, 40.7279],
+        "u": [0, 0, -81.4677],
+        "v": [-131.0691, 0, 0]
+      },
+      "image": {
+        "url": "decals/kohler-dtv-plus/k-99693-shower-dark.png",
+        "intrinsicWidth": 1120,
+        "intrinsicHeight": 1800
+      },
+      "fit": "stretch",
+      "liftMm": 0.12,
+      "unlit": true,
+      "provenanceNote": "An unretouched capture of the replacement interface, from research/screenshots/dark-02-shower.png (2026-07-26). Its 1120 x 1800 aspect is 0.6222 against the faceplate's 0.6216 — 0.11% apart, so it stretches onto the real glass with no visible distortion. That is not a coincidence: the app's UI was laid out to the proportions of the physical device. Kept alongside the drawn SVG as the unedited article, and as the check that the app and the part still agree on their shape."
+    }
+  ]
+}

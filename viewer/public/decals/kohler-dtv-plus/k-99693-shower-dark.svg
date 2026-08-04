@@ -1,0 +1,166 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  K-99693 faceplate decal ~ replacement interface, "shower" screen, dark theme.
+
+  THIS IS OUR UI, NOT KOHLER'S. It depicts the replacement interface built in
+  this repository (app/). It is not a photograph or a reproduction of the
+  original K-99693 display and must not be presented as one. What it does copy
+  from the real product is the physical arrangement: portrait glass, an inset
+  LCD in the upper three quarters, and three capacitive buttons printed on the
+  glass below it, with the temperature chevrons in blue and red.
+
+  ORIENTATION. The K-99694 mounting bracket drawing gives the interface as
+  84 mm wide by 143 mm tall, portrait, with the wiring boss at the BOTTOM. On
+  the K-99693 mesh that puts the product's vertical along the CAD's X axis, with
+  product-down at +X, which is the end the raised connector block sits on.
+
+  ============================================================================
+  AUTHORING RULE: ONE UNIT IS 0.1 MM ON THE REAL PART.
+  ============================================================================
+  The viewBox is 814.677 x 1310.691, exactly ten times the measured faceplate
+  quad of the K-99693 mesh (81.4677 x 131.0691 mm at Y = 15.2734). So a
+  rectangle 200 units wide is 20 mm wide on the physical faceplate, and editing
+  this file is dimensioned work rather than guesswork.
+
+  Changing the viewBox changes the aspect ratio the decal record declares, and
+  `npm run verify` refuses the mismatch rather than stretching the artwork
+  silently ~ see src/core/decals.ts.
+
+  TWO CONSTRAINTS THAT ARE EASY TO BREAK. This file is rasterised inside an
+  <img>, which is a sandboxed XML document:
+    1. No external references. A webfont, a linked raster or a script silently
+       does not load, so fonts are a system stack.
+    2. No double hyphen inside a comment. XML forbids it, and one occurrence
+       makes the whole file fail to parse with nothing on screen to say why.
+       Use tildes for rules, not dashes. This bit us once already.
+-->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 814.677 1310.691"
+     width="814.677" height="1310.691" font-family="ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif">
+
+  <defs>
+    <linearGradient id="glass" x1="0.1" y1="0" x2="0.5" y2="1">
+      <stop offset="0" stop-color="#1a1c20"/>
+      <stop offset="0.28" stop-color="#0c0d0f"/>
+      <stop offset="1" stop-color="#070708"/>
+    </linearGradient>
+    <radialGradient id="bloom" cx="0.5" cy="0.04" r="0.75">
+      <stop offset="0" stop-color="#ffffff" stop-opacity="0.06"/>
+      <stop offset="1" stop-color="#ffffff" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+
+  <!-- glass: covers the whole faceplate. The chrome trim around it is the
+       housing, which is real geometry, so it is not drawn here. -->
+  <rect width="814.677" height="1310.691" fill="url(#glass)"/>
+  <rect width="814.677" height="1310.691" fill="url(#bloom)"/>
+
+  <!-- LCD panel, inset in the upper three quarters as on the real unit -->
+  <rect x="42" y="52" width="730.677" height="1070" fill="#050506"
+        stroke="#212429" stroke-width="2"/>
+
+  <!-- header -->
+  <g fill="#e8eaed" font-size="42">
+    <text x="76" y="118">shower</text>
+    <text x="738" y="118" text-anchor="end">10:32pm</text>
+  </g>
+
+  <!-- temperature -->
+  <g id="temperature">
+    <text x="407" y="352" text-anchor="middle" font-size="205" font-weight="200"
+          fill="#ffffff" letter-spacing="-5">96<tspan font-size="78" dy="-78">°</tspan></text>
+    <line x1="76" y1="398" x2="738" y2="398" stroke="#2c2f33" stroke-width="2"/>
+    <text x="738" y="448" text-anchor="end" font-size="36" fill="#9aa0a6">target: 96°</text>
+  </g>
+
+  <!-- outlets. Four valve outlets in a 2 x 2 grid; `Handshower` is the active
+       one, which is why its label is bright and the other three are dimmed. -->
+  <g id="outlets" stroke-linecap="round" stroke-linejoin="round" fill="none">
+
+    <!-- showerhead -->
+    <g transform="translate(245,560)" opacity="0.42">
+      <rect x="-74" y="-74" width="148" height="148" rx="40" fill="#131519" stroke="#23262a" stroke-width="2"/>
+      <path d="M-32 -45 L-32 -16 Q-32 5 -8 13" stroke="#cfd3d8" stroke-width="9"/>
+      <path d="M-13 11 L40 -19 L53 29 Z" fill="#cfd3d8" stroke="none"/>
+      <g stroke="#cfd3d8" stroke-width="7">
+        <path d="M8 32 L3 50"/><path d="M27 37 L22 55"/><path d="M45 40 L40 58"/>
+      </g>
+    </g>
+    <text x="245" y="672" text-anchor="middle" font-size="34" fill="#9aa0a6">Showerhead</text>
+
+    <!-- real rain -->
+    <g transform="translate(570,560)" opacity="0.42">
+      <rect x="-74" y="-74" width="148" height="148" rx="40" fill="#131519" stroke="#23262a" stroke-width="2"/>
+      <rect x="-50" y="-50" width="100" height="34" rx="10" fill="#cfd3d8" stroke="none"/>
+      <g fill="#cfd3d8" stroke="none">
+        <path d="M-34 0 q9 13 9 20 a9 9 0 0 1-18 0 q0-7 9-20"/>
+        <path d="M0 -5 q10 15 10 23 a10 10 0 0 1-20 0 q0-8 10-23"/>
+        <path d="M34 0 q9 13 9 20 a9 9 0 0 1-18 0 q0-7 9-20"/>
+        <path d="M-17 34 q8 12 8 17 a8 8 0 0 1-16 0 q0-5 8-17"/>
+        <path d="M17 34 q8 12 8 17 a8 8 0 0 1-16 0 q0-5 8-17"/>
+      </g>
+    </g>
+    <text x="570" y="672" text-anchor="middle" font-size="34" fill="#9aa0a6">Real Rain</text>
+
+    <!-- handshower, the active outlet -->
+    <g transform="translate(245,760)">
+      <rect x="-74" y="-74" width="148" height="148" rx="40" fill="#1b1e23" stroke="#3d4249" stroke-width="2"/>
+      <circle cx="18" cy="-11" r="40" fill="#e8eaed" stroke="none"/>
+      <g fill="#1b1e23" stroke="none">
+        <circle cx="5" cy="-24" r="5"/><circle cx="21" cy="-24" r="5"/><circle cx="37" cy="-24" r="5"/>
+        <circle cx="-3" cy="-11" r="5"/><circle cx="13" cy="-11" r="5"/><circle cx="29" cy="-11" r="5"/>
+        <circle cx="5" cy="2" r="5"/><circle cx="21" cy="2" r="5"/><circle cx="37" cy="2" r="5"/>
+      </g>
+      <path d="M-10 19 L-45 54" stroke="#e8eaed" stroke-width="16"/>
+    </g>
+    <text x="245" y="872" text-anchor="middle" font-size="34" font-weight="600" fill="#ffffff">Handshower</text>
+
+    <!-- bodyspray -->
+    <g transform="translate(570,760)" opacity="0.42">
+      <rect x="-74" y="-74" width="148" height="148" rx="40" fill="#131519" stroke="#23262a" stroke-width="2"/>
+      <circle cx="0" cy="0" r="45" fill="#cfd3d8" stroke="none"/>
+      <g fill="#131519" stroke="none">
+        <circle cx="-19" cy="-19" r="6"/><circle cx="0" cy="-21" r="6"/><circle cx="19" cy="-19" r="6"/>
+        <circle cx="-21" cy="0" r="6"/><circle cx="0" cy="0" r="6"/><circle cx="21" cy="0" r="6"/>
+        <circle cx="-19" cy="19" r="6"/><circle cx="0" cy="21" r="6"/><circle cx="19" cy="19" r="6"/>
+      </g>
+    </g>
+    <text x="570" y="872" text-anchor="middle" font-size="34" fill="#9aa0a6">Bodyspray</text>
+  </g>
+
+  <!-- action bar -->
+  <line x1="76" y1="900" x2="738" y2="900" stroke="#2c2f33" stroke-width="2"/>
+
+  <g id="actions" fill="none" stroke-linecap="round" stroke-linejoin="round">
+    <g transform="translate(165,960)">
+      <path d="M-26 2 L0 -22 L26 2 M-18 -4 L-18 22 L18 22 L18 -4" stroke="#e8eaed" stroke-width="6"/>
+    </g>
+    <text x="165" y="1030" text-anchor="middle" font-size="34" fill="#e8eaed">home</text>
+
+    <circle cx="407" cy="966" r="48" stroke="#2ea44f" stroke-width="4"/>
+    <text x="407" y="980" text-anchor="middle" font-size="36" fill="#2ea44f">start</text>
+
+    <g transform="translate(650,960)">
+      <path d="M-28 -20 L-14 18 L0 -14 L14 18 L28 -20" stroke="#e8eaed" stroke-width="6"/>
+      <circle cx="30" cy="-24" r="4" fill="#e8eaed" stroke="none"/>
+    </g>
+    <text x="650" y="1030" text-anchor="middle" font-size="34" fill="#e8eaed">massage</text>
+  </g>
+
+  <!-- status strip, the last row inside the LCD -->
+  <g font-size="30" fill="#6b7075">
+    <circle cx="84" cy="1080" r="7" fill="#f5a623"/>
+    <text x="102" y="1090">connected · idle</text>
+    <text x="738" y="1090" text-anchor="end">192.168.0.115</text>
+  </g>
+
+  <!-- capacitive buttons, printed on the glass BELOW the LCD, as on the real
+       product: power, then temperature down in blue and up in red. -->
+  <g id="hard-buttons" fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="8">
+    <g transform="translate(165,1210)" stroke="#cfd3d8">
+      <path d="M0 -26 L0 -2"/>
+      <path d="M-19 -18 a26 26 0 1 0 38 0"/>
+    </g>
+    <path d="M382 1198 L407 1223 L432 1198" transform="translate(0,-10)" stroke="#4d9dff"/>
+    <path d="M625 1218 L650 1193 L675 1218" transform="translate(0,-4)" stroke="#ff5c4d"/>
+  </g>
+</svg>

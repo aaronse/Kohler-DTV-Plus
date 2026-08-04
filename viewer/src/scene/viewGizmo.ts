@@ -335,6 +335,12 @@ export interface ViewGizmoHandles {
   render(renderer: THREE.WebGLRenderer, mainCamera: THREE.PerspectiveCamera): void;
   /** Update the hover highlight and report what is under the pointer. */
   hover(clientX: number, clientY: number, renderer: THREE.WebGLRenderer): GizmoPick | null;
+  /**
+   * Put out the highlight without a pointer position. Used while the cube is
+   * being dragged to orbit, where the pointer is over a region but nothing is
+   * being offered as a target.
+   */
+  clearHover(): void;
   /** What is under the pointer, without changing the highlight. */
   hit(clientX: number, clientY: number, renderer: THREE.WebGLRenderer): GizmoPick | null;
   dispose(): void;
@@ -431,6 +437,7 @@ export function createViewGizmo(): ViewGizmoHandles {
       setHovered(region);
       return region?.pick ?? null;
     },
+    clearHover: () => setHovered(null),
     hit: (clientX, clientY, renderer) => pick(clientX, clientY, renderer)?.pick ?? null,
     dispose: () => {
       scene.traverse((object) => {

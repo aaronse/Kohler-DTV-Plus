@@ -9,6 +9,22 @@ import { SettingsScreen } from './ui/SettingsScreen';
 import { SystemScreen } from './ui/SystemScreen';
 import { ChevronDownIcon, ChevronUpIcon, PowerIcon } from './ui/Icons';
 import { SCREEN_TITLE, type Screen } from './ui/screens';
+import { connectionState, type ConnectionState } from './api/model';
+
+const CONN_LABEL: Record<ConnectionState, string> = {
+  connecting: 'connecting…',
+  running: 'water running',
+  idle: 'connected · idle',
+  unreachable: 'controller unreachable',
+};
+
+/** Neutral dot while connecting: nothing is wrong yet. */
+const CONN_DOT: Record<ConnectionState, string> = {
+  connecting: '',
+  running: 'ok',
+  idle: 'warn',
+  unreachable: 'bad',
+};
 
 export default function App() {
   const { model, selection, targetTemp, massage, busy, lastError, actions } = useShower();
@@ -24,6 +40,7 @@ export default function App() {
   // The hardware up/down keys adjust temperature from any screen whenever the
   // shower can act on it — same as the real interface.
   const tempKeysLive = model.online && model.valves[0].installed;
+  const conn = connectionState(model, lastError);
 
   const stopEverything = () => {
     if (model.currentUser > 0) actions.stopPreset();
@@ -99,14 +116,8 @@ export default function App() {
           {lastError && <div className="toast">{lastError}</div>}
 
           <div className="status-strip">
-            <span
-              className={`dot ${model.online ? (model.showerOn ? 'ok' : 'warn') : 'bad'}`}
-            />
-            {model.online
-              ? model.showerOn
-                ? 'water running'
-                : 'connected · idle'
-              : 'controller unreachable'}
+            <span className={`dot ${CONN_DOT[conn]}`} />
+            {CONN_LABEL[conn]}
             <span className="spacer" />
             {model.controllerIp}
           </div>

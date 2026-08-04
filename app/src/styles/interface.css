@@ -752,6 +752,13 @@ button {
   line-height: 1.5;
 }
 
+/* Transient, not a fault — drop the warning accent. */
+.sys-note.quiet {
+  border-left-color: var(--ink-faint);
+  background: transparent;
+  color: var(--ink-soft);
+}
+
 /* ----------------------------------------------------------------- toast */
 
 .toast {

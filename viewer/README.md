@@ -202,6 +202,40 @@ separate the facets that happen to catch the light equally. Both are tunable
 are `LineSegments2` fat lines because WebGL ignores `linewidth` on ordinary
 lines, and a width knob that silently does nothing is worse than none.
 
+### Drag it, don't only click it
+
+The cube can be **dragged to orbit** as well as clicked to snap, which is what
+Fusion, Onshape and SolidWorks all do and what anyone who knows one of them will
+try in the first minute. Press on any of the 26 regions and nothing happens yet;
+travel past a few pixels and it becomes an ordinary orbit, release without
+travelling and it snaps exactly as it always did. The slop is 4 px for a mouse
+and 10 px for a finger or a stylus, which wander several pixels on their own
+while the contact patch shifts.
+
+That also closed an inconsistency that was impossible to explain: dragging the
+*empty* corner beside the cube already orbited, because the hit test returned
+nothing there and the event fell through to OrbitControls. One widget, two
+behaviours, and no way to tell in advance which you would get.
+
+The chrome stays **click-only**. A cube face is the thing you are turning, so
+turning it further is the obvious reading of a drag on it; "roll 90°" is a
+discrete command with no continuous form to slide into, and a drag that begins
+on a button is ambiguous in a way a drag on the cube is not.
+
+One thing has to be undone for this to work. The `pointerdown` is deliberately
+left to reach OrbitControls, so the drag gets the controls' own feel rather than
+a second implementation of it — but that means a click that wobbles two pixels
+has *already* queued a rotation, and damping spends only `dampingFactor` of it
+per frame. `renderFrame` applies the tween's pose and **then** calls
+`controls.update()`, so the leftover would be added on top of every frame of the
+animation and the view would settle a degree or two off the axis you clicked,
+which is the one thing an axis-aligned view must not be. Deciding "this was a
+click" therefore discards the queue first — `stopControlsMomentum` in
+[`viewer.ts`](src/scene/viewer.ts), reaching past three's public API under the
+same guard as `syncControlsUp`. It is not theoretical: with it disabled, a 2 px
+wobble on the `TOP` face lands on a view measurably different from the one the
+toolbar's Top button produces.
+
 Picking a view **turns** to it rather than cutting. A hard cut is disorienting —
 you have to re-find the part every time — so the camera orbits over ~340 ms with
 a mild ease-in and a stronger ease-out, which leaves quickly and lands softly.
@@ -212,8 +246,9 @@ and both easing ends are constants in
 duration to zero and restores the old instant behaviour.
 
 [`viewGizmo.test.ts`](src/scene/viewGizmo.test.ts),
-[`cameraFit.test.ts`](src/scene/cameraFit.test.ts) and
-[`cameraTween.test.ts`](src/scene/cameraTween.test.ts) cover all of it without a
+[`cameraFit.test.ts`](src/scene/cameraFit.test.ts),
+[`cameraTween.test.ts`](src/scene/cameraTween.test.ts) and
+[`gizmoDrag.test.ts`](src/scene/gizmoDrag.test.ts) cover all of it without a
 WebGL context or a DOM — a mis-signed rotation still looks like a rotation, so it
 needs a test rather than a look. The tween tests assert the **path**, not just
 the endpoints: a plain position lerp arrives in the right place while flying

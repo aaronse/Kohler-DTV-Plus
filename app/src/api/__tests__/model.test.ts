@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import valuesFixture from '../../../test/fixtures/values.json';
 import systemFixture from '../../../test/fixtures/system_info.json';
-import { buildModel, encodeOutlets, usableOutlets, isFlowing } from '../model';
+import { buildModel, connectionState, encodeOutlets, usableOutlets, isFlowing } from '../model';
 import { parseOutletType, OUTLET_TYPES, outletIcon } from '../outlets';
 import type { KohlerSystemInfo, KohlerValues, StatusResponse } from '../types';
 
@@ -117,6 +117,22 @@ describe('buildModel degradation', () => {
     expect(usableOutlets(model.valves[0])).toEqual([]);
   });
 
+  it('marks a model built from nothing as not loaded', () => {
+    // The empty model's six type-0 slots look exactly like an unconfigured
+    // valve, so the UI needs this flag to avoid announcing that the shower has
+    // no outlets before the first poll has even answered.
+    expect(buildModel(null).loaded).toBe(false);
+    expect(buildModel(status()).loaded).toBe(true);
+  });
+
+  it('stays loaded when a later poll fails after a good read', () => {
+    // useShower keeps the last payload and flips ok=false, so the model is
+    // loaded but offline — a real fault, not a cold start.
+    const model = buildModel(status({ ok: false }));
+    expect(model.loaded).toBe(true);
+    expect(model.online).toBe(false);
+  });
+
   it('still builds when only system_info came back', () => {
     const model = buildModel(status({ values: null }));
     expect(model.online).toBe(true);
@@ -132,6 +148,41 @@ describe('buildModel degradation', () => {
     expect(model.showerOn).toBe(true);
     expect(isFlowing(model, model.valves[0].outlets[2])).toBe(true);
     expect(isFlowing(model, model.valves[0].outlets[0])).toBe(false);
+  });
+});
+
+describe('connectionState', () => {
+  const live = buildModel(status());
+  const cold = buildModel(null);
+
+  it('reports connecting before the first reply, with no error yet', () => {
+    expect(connectionState(cold, null)).toBe('connecting');
+  });
+
+  it('reports unreachable when the first poll itself failed', () => {
+    // Nothing was stored, so the model is still unloaded; only the error
+    // separates this from a cold start.
+    expect(connectionState(cold, 'timeout after 8000ms')).toBe('unreachable');
+  });
+
+  it('reports unreachable once a loaded model goes offline', () => {
+    expect(connectionState(buildModel(status({ ok: false })), 'connect ECONNREFUSED')).toBe(
+      'unreachable',
+    );
+  });
+
+  it('separates idle from running while connected', () => {
+    expect(connectionState(live, null)).toBe('idle');
+    const running = buildModel(
+      status({ system: { ...(systemFixture as unknown as KohlerSystemInfo), ui_shower_on: true } }),
+    );
+    expect(connectionState(running, null)).toBe('running');
+  });
+
+  it('lets a live reading win over a stale error', () => {
+    // A recovered poll clears lastError, but even if it lingered the model
+    // being online is the stronger signal.
+    expect(connectionState(live, 'timeout after 8000ms')).toBe('idle');
   });
 });
 

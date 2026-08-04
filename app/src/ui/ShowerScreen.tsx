@@ -107,11 +107,19 @@ export function ShowerScreen({
               onToggle={() => onToggleOutlet(o.position)}
             />
           ))}
-          {outlets.length === 0 && (
-            <p className="sys-note" style={{ gridColumn: '1 / -1' }}>
-              No outlets are configured on valve 1.
-            </p>
-          )}
+          {outlets.length === 0 &&
+            (model.loaded ? (
+              <p className="sys-note" style={{ gridColumn: '1 / -1' }}>
+                No outlets are configured on valve 1.
+              </p>
+            ) : (
+              // Before the first reply the model has six unconfigured slots,
+              // which reads identically to a valve with nothing on it. Say what
+              // is actually happening instead.
+              <p className="sys-note quiet" style={{ gridColumn: '1 / -1' }} role="status">
+                Connecting to the controller…
+              </p>
+            ))}
         </div>
 
         <div className="action-bar">

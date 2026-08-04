@@ -54,6 +54,14 @@ export interface Preset {
 
 export interface ShowerModel {
   online: boolean;
+  /**
+   * At least one reply has come back from the proxy. `online` on its own cannot
+   * tell "first poll still in flight" from "controller unreachable", and the
+   * difference matters: an unloaded model has six outlet slots of type 0, which
+   * is indistinguishable from a valve with nothing configured. Without this the
+   * first paint tells the user their shower has no outlets.
+   */
+  loaded: boolean;
   error?: string;
   ts: number;
   showerOn: boolean;
@@ -179,6 +187,7 @@ export function buildModel(res: StatusResponse | null): ShowerModel {
 
   return {
     online,
+    loaded: res !== null,
     error: res?.error,
     ts: res?.ts ?? 0,
     showerOn,
@@ -213,6 +222,22 @@ export function buildModel(res: StatusResponse | null): ShowerModel {
 /** The outlets a UI should offer for a valve: configured ones only. */
 export function usableOutlets(valve: Valve): Outlet[] {
   return valve.outlets.filter((o) => o.configured);
+}
+
+export type ConnectionState = 'connecting' | 'running' | 'idle' | 'unreachable';
+
+/**
+ * What the status strip should report. Split out of the component so the
+ * three-way distinction is testable without a DOM.
+ *
+ * `loaded` alone is not enough to claim "connecting": when the *first* poll
+ * fails there is no response to store, so the model stays unloaded and only the
+ * error says anything went wrong.
+ */
+export function connectionState(model: ShowerModel, lastError: string | null): ConnectionState {
+  if (model.online) return model.showerOn ? 'running' : 'idle';
+  if (!model.loaded && !lastError) return 'connecting';
+  return 'unreachable';
 }
 
 /** True when water is actually coming out of this fitting. */

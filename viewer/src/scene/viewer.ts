@@ -64,7 +64,7 @@ const HIGHLIGHT_COLOR = 0xffb347;
  * in PIXELS and so is unaffected — a click is still a click at the same travel,
  * it is only the rotation each pixel buys that changes.
  */
-const GIZMO_DRAG_ROTATE_SPEED = 2;
+const GIZMO_DRAG_ROTATE_SPEED = 5;
 
 export interface LoadedModel {
   /** Untouched source-space triangle soup. Measurement and export read this. */

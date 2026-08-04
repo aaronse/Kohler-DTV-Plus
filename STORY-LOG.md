@@ -10,6 +10,84 @@ See the Story log section of [AGENT.md](AGENT.md) for what to append and how.
 
 ---
 
+## 2026-08-03
+
+### 16:18 — The rear cover becomes a gasket problem, not a glue problem
+
+The access opening is cut, the connector is reachable again, and the replacement rear cover is now printed in TPU.
+
+The cover is not just a plug. It has a broad external flange that overlaps the original ABS housing, plus an internal 5 × 5 mm stand-off positioned over an empty area of the PCB. The stand-off normally floats about **1 mm above the board**; it exists to stop someone pressing the soft TPU cover inward during installation and collapsing it onto the electronics.
+
+That geometry changed the sealant question.
+
+The first instinct was to reach for something labelled waterproof: bathroom silicone, E6800, conformal coating, perhaps even dielectric grease rubbed around the joint. But this is not really a question of which chemical sounds most waterproof. It is a question of what the joint is mechanically asking the material to do.
+
+The TPU flange gives us a broad surface and a long leak path. What it wants is a **flexible, formed-in-place gasket** between TPU and ABS, with enough body to fill print texture, machining irregularities and small dimensional errors.
+
+#### The sealant tournament
+
+|     Rank | Candidate                                        | Rating for this joint | What looked attractive                                                                                                          | What killed it—or nearly did                                                                                                                                             | Verdict                                                |
+| -------: | ------------------------------------------------ | :-------------------: | ------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------ |
+| 🥇 **1** | **Permatex “The Right Stuff” 90 Minute**         |         ⭐⭐⭐⭐⭐         | Thick, flexible gasket maker; fills irregularities; works naturally with the wide flange; can form a continuous exterior fillet | TPU adhesion still depends on scuffing, cleaning and leaving enough sealant thickness                                                                                    | **Winner: primary TPU-to-ABS seal**                    |
+| 🥈 **2** | **E6800**                                        |         ⭐⭐⭐⭐☆         | Flexible waterproof adhesive with more structural holding power than ordinary silicone                                          | Longer cure, messier removal and less gasket-like; potentially overkill if the flange is already well located                                                            | **Best backup if retention becomes a problem**         |
+| 🥉 **3** | **Clear bathroom-grade silicone**                |         ⭐⭐⭐☆☆         | Designed for wet environments; familiar; easy to tool into a fillet                                                             | Product chemistry varies, and adhesion to printed TPU is uncertain                                                                                                       | **Plausible, but less confidence than Right Stuff**    |
+|    **4** | **E6000**                                        |         ⭐⭐⭐☆☆         | Flexible adhesive/sealant already on hand                                                                                       | E6800 is the more appropriate member of the family for environmental exposure                                                                                            | **Usable fallback, no compelling reason to choose it** |
+|    **5** | **DAP Dynaflex 230**                             |         ⭐⭐☆☆☆         | Flexible, paintable and easy to apply                                                                                           | Fundamentally a building/trim caulk, not the material I want protecting electronics inside a shower wall                                                                 | **Wrong tier of product for the consequences**         |
+|    **6** | **Dielectric grease / Super Lube**               |         ⭐⭐☆☆☆         | Compatible with TPU and ABS; fills microscopic gaps; moisture resistant                                                         | Only works as an aid to a **mechanically compressed removable gasket**. Here it would contaminate the surfaces and sabotage the adhesive bond holding the cover in place | **Clever idea, wrong joint**                           |
+|    **7** | **MG Chemicals 422C silicone conformal coating** |         ⭐☆☆☆☆         | Already used to protect PCBs from condensation and moisture                                                                     | It is a thin coating, not a gap-filling housing seal. It cannot bridge the TPU/ABS joint or replace a gasket                                                             | **Useful on the PCB, useless as the perimeter seal**   |
+|    **8** | **Elmer’s Glue-All**                             |         ☆☆☆☆☆         | It exists                                                                                                                       | Water, heat, humidity, ABS, TPU and expensive shower electronics all vote no                                                                                             | **Absolutely not**                                     |
+
+The dielectric-grease idea was the most tempting wrong turn.
+
+A thin grease film can improve a rubber O-ring or a gasket that is trapped and compressed by screws. This cover is not screwed down. The sealant also has to help retain the TPU flange against the ABS shell. Putting grease between them would make the surfaces easier to separate and much harder to bond later.
+
+The conformal coating was the opposite problem. **MG Chemicals 422C belongs one layer deeper.** It can protect exposed PCB work as a secondary defence against condensation, but calling it the enclosure seal would confuse moisture resistance with actual gap sealing.
+
+#### Final stack
+
+```text
+           SHOWER / HUMID AIR
+                    ↓
+
+      ┌──────────────────────────┐
+      │       TPU COVER          │
+      │                          │
+      └─────────┬──────┬─────────┘
+                │      │
+         broad outer flange
+        ╔══════════════════╗
+        ║  RIGHT STUFF RTV ║  ← continuous gasket layer
+════════╩══════════════════╩════════  ABS rear housing
+                  │
+                  │  ~1 mm normal clearance
+                  ▼
+             TPU stand-off
+                  │
+                  ·
+              PCB surface
+
+Optional secondary defence:
+MG 422C on appropriate exposed PCB areas—not in the flange joint.
+```
+
+Installation plan:
+
+1. Lightly scuff the underside of the TPU flange and the mating ABS.
+2. Clean both surfaces and let them dry completely.
+3. Apply a continuous bead of **Permatex Right Stuff** beneath the flange.
+4. Seat the cover without crushing all of the sealant out of the joint.
+5. Tool the squeeze-out into a small continuous exterior fillet.
+6. Hold the cover in position while it cures.
+7. Keep the internal TPU stand-off clear of the PCB under normal conditions; it is a last-resort deflection stop, not a permanent support post.
+
+**Why it matters:** the best material did not win because it had the strongest waterproof claim on the tube. It won because it matched the geometry.
+
+The wide TPU flange turns the repair into a gasket joint, and gasket maker is the most natural answer. E6800 remains available if testing shows that the cover needs more adhesive retention. The conformal coating remains useful as secondary PCB protection. The grease stays off every surface we expect to bond.
+
+This should make the repair highly resistant to splashes, humid air and condensation. It does **not** recreate a factory-tested hermetic enclosure, and an FDM-printed TPU part should not be casually declared vapor-proof. But it is a much more defensible repair than painting the seam with conformal coating or trusting grease to stay where it was rubbed.
+
+---
+
 ## 2026-07-27
 
 ### 12:50 — A parts viewer ships, and Kohler's own CAD turns out not to be printable
@@ -50,6 +128,47 @@ reporting the meaningless number a signed-volume sum gives on an open mesh.
 instead of a caliper and a guess — but the file needs repairing first, and
 anyone who assumed Kohler's CAD was print-ready would have found that out on the
 printer.
+
+### 16:10 — The CAD is repairable, and it is emptier than it looks
+
+Chased the watertightness problem down properly. The 224 bad edges are 222
+boundary edges across 11 open loops, plus 2 non-manifold T-junction seams where
+four triangles share a 0.03 mm edge.
+
+**Welding is not the fix, and it was worth proving rather than assuming.** A
+tolerance sweep from 0.0001 mm to 0.5 mm leaves the boundary count flat at 222
+until the tolerance gets large enough to start fusing genuinely separate
+surfaces — at 0.1 mm it removes 6 boundary edges and creates 155 new
+non-manifold ones. These are real holes, not duplicate-vertex cracks.
+
+All 11 loops turned out to be closed, and 8 of them exactly planar, so they cap
+cleanly. The viewer now welds, caps and collapses the seams: 4,544 → 4,736
+triangles, watertight and manifold, **and the outer envelope does not move by
+0.0001 mm on any axis** — enforced by the verify gate, because a repair that
+shifts the surface a toolpath is cut against would be worse than no repair.
+
+One bug worth recording because it would have shipped silently: the first
+implementation derived cap orientation from the best-fit plane normal, but the
+triangulator normalizes its winding against a basis built from that same normal,
+so the two cancelled and every cap kept the boundary's winding — inverted. It
+still reported watertight. Only the volume was wrong, and only the cylinder test
+caught it. Orientation is now decided from the boundary half-edge direction,
+which is topology and cannot cancel.
+
+**The part is hollow.** Enclosed volume after capping is 190.30 cm³ against a
+346 cm³ bounding box, and there is no geometry between the front bezel and the
+rear plate beyond the side walls. No PCB, no wire-to-board connector, no ribs or
+bosses.
+
+**Why it matters:** the immediate job is CNC machining a rear access opening to
+reconnect a power+signal wire that came off the board. This model is a reliable
+guide to the outside of the part and no guide at all to what sits behind any
+given point on the rear face. Clearances have to come from the physical part.
+
+**For Kohler:** the published K-99693 CAD is a visualization shell — open,
+hollow, no internal structure. That is a reasonable thing to publish, but it is
+worth stating on the download page, because it is dimensionally trustworthy
+enough on the outside to be mistaken for an engineering model.
 
 **For Kohler:** the CAD published for K-99693 is an open mesh with 224 unshared
 edges and cannot be printed or machined without repair. It also carries no unit

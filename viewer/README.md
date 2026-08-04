@@ -137,7 +137,7 @@ brightening under the pointer:
 | Control | Where | What it does |
 | --- | --- | --- |
 | Four triangles | the four sides | 90° onto the neighbouring region |
-| A pair of curved arrows | top right | **Roll** ±90° about the line of sight |
+| A swept arrow band | wrapping the top-right corner | **Roll** ±90° about the line of sight |
 | A house | top left | Back to the default framing, refitted |
 
 Roll is the one rotation the cube itself cannot express, because every cube
@@ -150,28 +150,91 @@ as broken controls rather than as a stale cache. `rollCamera` refreshes them,
 which means reaching past three's public API on purpose; it is guarded, so a
 future rename degrades to "rolls but orbits Y-up" instead of throwing.
 
-The faces are labelled `+X` / `−X` / `+Y` / `−Y` / `+Z` / `−Z` in **export
-space**, not `FRONT` / `TOP` / `RIGHT`. Two reasons:
+Each face carries **two lines**: the CAD view name over the export axis it
+actually is.
 
-1. Every number this app reports is millimetres Z-up. Labelling the gizmo with
-   the viewport's Y-up axes would be a fourth convention to hold in your head,
-   and would contradict the readout in the opposite corner of the same canvas.
-2. On this part, "front" is a lie either way — the product's faceplate is on the
-   CAD's +Y, the axis a CAD convention calls *back*. Naming faces after the
-   product would be wrong for other parts; naming them after the CAD would be
-   wrong for this one. Axis names are true for both.
+| | `+` | `−` |
+| --- | --- | --- |
+| X | `RIGHT` | `LEFT` |
+| Y | `BACK` | `FRONT` |
+| Z | `TOP` | `BOTTOM` |
+
+Both, because each covers the other's failure. The name is what anyone actually
+reaches for — nobody thinks "show me −Y". But the name is a convention imposed
+on the model rather than a fact about it, and **on this part it is misleading**:
+the K-99693's faceplate sits on the CAD's +Y, which the convention calls `BACK`.
+The axis line underneath is the one that cannot be wrong, so it stays. Name to
+navigate, axis to be sure.
+
+The axes are **export space**, not the viewport's. Every number this app reports
+is millimetres Z-up; labelling with the viewport's Y-up axes would be a fourth
+convention to hold in your head, and would contradict the readout in the
+opposite corner of the same canvas.
+
+Alongside the cube is an **RGB axis triad** — red +X, green +Y, blue +Z, the
+convention every CAD and slicer package shares. It anchors at the cube's
+`(−X,−Y,−Z)` corner, the one corner all three positive axes lead away from, and
+its arms run just outside the three edges meeting there. That is what lets it be
+readable in a 132 px widget: the cube's edges are axis-aligned, so an arm along
+an export axis is automatically parallel to the edge beside it and can borrow
+the edge's length instead of needing a free corner of its own.
+
+The bars are depth-tested but the letters are not, which is deliberate. In a
+three-quarter view one axis always points away from you; drawn on top, that bar
+lies across the front faces and reads as a rendering bug, so it is occluded.
+Its letter is not — otherwise one of three axes goes unnamed, which defeats the
+point of labelling them. The letters carry a dark halo to survive landing on a
+pale face. Where a receding letter lands is a known rough edge, and no arm length
+fixes it — the measurements and the three levers are recorded on `AXIS_ARM` in
+[`viewGizmo.ts`](src/scene/viewGizmo.ts).
 
 A triangle rotates the current view 90° and then lands on the nearest of the 26
 regions, so a step never leaves the camera at an arbitrary angle even if you had
 been orbiting freely.
 
-[`viewGizmo.test.ts`](src/scene/viewGizmo.test.ts) and
-[`cameraFit.test.ts`](src/scene/cameraFit.test.ts) cover both without a WebGL
-context or a DOM — a mis-signed rotation still looks like a rotation, so it
-needs a test rather than a look. They have already earned it twice: the step
+The cube is **lit and outlined**, and both are needed. Painted flat, its twelve
+edge bands and eight corner triangles merge into a blob and you cannot see the
+targets you are being asked to click. Lighting gives each facet its own
+brightness — the lights hang off the gizmo's own camera, so shading is
+view-relative and no side of the cube is ever permanently dark. Thin edges then
+separate the facets that happen to catch the light equally. Both are tunable
+(`CUBE_LIT`, `CUBE_EDGES`, and the width/colour/opacity beside them); the edges
+are `LineSegments2` fat lines because WebGL ignores `linewidth` on ordinary
+lines, and a width knob that silently does nothing is worse than none.
+
+Picking a view **turns** to it rather than cutting. A hard cut is disorienting —
+you have to re-find the part every time — so the camera orbits over ~340 ms with
+a mild ease-in and a stronger ease-out, which leaves quickly and lands softly.
+The destination is computed by running the real move and rewinding, so the
+animation can never drift from where an instant snap would have landed. Speed
+and both easing ends are constants in
+[`cameraTween.ts`](src/scene/cameraTween.ts); `prefers-reduced-motion` sets the
+duration to zero and restores the old instant behaviour.
+
+[`viewGizmo.test.ts`](src/scene/viewGizmo.test.ts),
+[`cameraFit.test.ts`](src/scene/cameraFit.test.ts) and
+[`cameraTween.test.ts`](src/scene/cameraTween.test.ts) cover all of it without a
+WebGL context or a DOM — a mis-signed rotation still looks like a rotation, so it
+needs a test rather than a look. The tween tests assert the **path**, not just
+the endpoints: a plain position lerp arrives in the right place while flying
+through the middle of the model on the way. They have already earned it twice: the step
 arrows shipped inverted, and roll left a stale component in `camera.up` because
 after an orbit that vector leans out of the screen plane and `lookAt` silently
 discards the lean.
+
+The roll arrows are **meshes**, not sprites, and that is load-bearing: a sprite
+is picked over its whole quad rather than its artwork, so an arrow drawn large
+enough to read swallows the clicks meant for the cube faces underneath it — the
+cursor says "clickable" and the click does the wrong thing, with nothing in the
+rendered image to explain why. A mesh raycasts against its own silhouette, so the
+arrows can be any size.
+
+Every layout constant here is a consequence of that constraint plus one bound:
+the chamfered cube's 24 vertices are all the same distance from its centre
+(`sqrt(CUBE_HALF² + 2·INNER²)`), and an orthographic projection cannot push a
+point further out than that — so no orientation can widen the silhouette past it,
+and the chrome radii are derived from it rather than eyeballed. The constants
+carry that derivation in their comments.
 
 ## Decals
 

@@ -162,6 +162,83 @@ export function rollCamera(
   controls.update();
 }
 
+/**
+ * Everything about where the camera is and which way is up, as plain data.
+ *
+ * The gizmo animates between views, and animating needs two poses and a way to
+ * mix them. Capturing state rather than reimplementing each move means the
+ * destination is still computed by the same `snapToDirection` / `rollCamera` /
+ * `goHome` that used to be applied directly — the animation cannot drift away
+ * from where the instant version would have landed, because it asks it.
+ */
+export interface CameraPose {
+  position: THREE.Vector3;
+  target: THREE.Vector3;
+  up: THREE.Vector3;
+}
+
+export function capturePose(camera: THREE.PerspectiveCamera, controls: OrbitControls): CameraPose {
+  return {
+    position: camera.position.clone(),
+    target: controls.target.clone(),
+    up: camera.up.clone(),
+  };
+}
+
+export function applyPose(
+  pose: CameraPose,
+  camera: THREE.PerspectiveCamera,
+  controls: OrbitControls,
+): void {
+  camera.position.copy(pose.position);
+  camera.up.copy(pose.up);
+  controls.target.copy(pose.target);
+  // Same reason as everywhere else `camera.up` moves — see `syncControlsUp`.
+  syncControlsUp(camera, controls);
+  controls.update();
+}
+
+const ORIGIN = new THREE.Vector3();
+
+/**
+ * Mix two poses at `t`, as an ORBIT rather than a slide.
+ *
+ * The camera's offset from its target is decomposed into an orientation and a
+ * distance, the orientation is slerped and the distance lerped. Lerping the
+ * positions directly would send the camera on a chord: on a 180-degree turn it
+ * would pass through the target, and on anything wider than a right angle it
+ * dives towards the model and back out, which looks like a swoop rather than a
+ * turn.
+ *
+ * Roll comes along free. Building the orientation from the offset AND the up
+ * vector means the up is carried by the same slerp, so a rolled view blends
+ * without a separate path and without the two disagreeing part-way.
+ */
+export function blendPose(from: CameraPose, to: CameraPose, t: number): CameraPose {
+  const target = from.target.clone().lerp(to.target, t);
+  const fromOffset = from.position.clone().sub(from.target);
+  const toOffset = to.position.clone().sub(to.target);
+
+  const rotation = poseQuaternion(fromOffset, from.up).slerp(poseQuaternion(toOffset, to.up), t);
+  const distance = THREE.MathUtils.lerp(fromOffset.length() || 1e-6, toOffset.length() || 1e-6, t);
+
+  return {
+    position: target
+      .clone()
+      .addScaledVector(new THREE.Vector3(0, 0, 1).applyQuaternion(rotation), distance),
+    target,
+    up: new THREE.Vector3(0, 1, 0).applyQuaternion(rotation),
+  };
+}
+
+/** The camera orientation looking from `offset` towards the origin, with `up`. */
+function poseQuaternion(offset: THREE.Vector3, up: THREE.Vector3): THREE.Quaternion {
+  // Matrix4.lookAt puts +Z along eye-minus-target, which is exactly `offset`,
+  // and handles the degenerate offset-parallel-to-up case itself.
+  const matrix = new THREE.Matrix4().lookAt(offset, ORIGIN, up);
+  return new THREE.Quaternion().setFromRotationMatrix(matrix);
+}
+
 /** Reset to the default framing: the standard three-quarter view, refitted. */
 export function goHome(
   object: THREE.Object3D,

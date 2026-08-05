@@ -31,7 +31,7 @@ the shower stops mid-use — documented publicly for YouTube and for Kohler supp
 |---|---|---|---|---|---|
 | **W1** | [Two discriminating showers nobody has run](#w1) | blocked-decision | 9 d | `just-do-it` | Investigation parked; a free natural experiment decays as memory of "before" fades |
 | **W10** | [The degraded `values.cgi` payload repeats, defeating the guard](#w10) 🔥 | silent-failure | 0 d | `batch` | Every day is a chance to blank the UI mid-shower, or to fabricate a valve-dropout finding |
-| **W2** | [StrictMode double-fires `quick_shower.cgi`](#w2) 🔥 | silent-failure | 9 d | `batch` | Low odds, asymmetric downside — a wedged controller takes the shower out for hours |
+| ~~**W2**~~ | [StrictMode double-fires `quick_shower.cgi`](#w2) — **DONE `fa66f82`** | silent-failure | 9 d | ~~`batch`~~ | — closed 2026-08-04 |
 | **W8** | [Four documents describe a world that has moved on](#w8) | doc-rot | 9 d | `just-do-it` | The front page states a premise the hardware contradicts |
 | **W6** | [Kohler was contacted and quoted $2013; the repo doesn't know](#w6) | doc-rot | 8 d | `just-do-it` | The number that justifies the whole repair survives only in a filename |
 | **W4** | [Telemetry specified, never built](#w4) | dormant-decision | 0 d (revised) | `batch` | Every shutoff meanwhile destroys transient evidence rather than deferring it |
@@ -150,9 +150,19 @@ the better first move — which is why this routes to `batch` and not `just-do-i
 ---
 
 <a id="w2"></a>
-## W2 · 🔥 React StrictMode double-fires `quick_shower.cgi` on an outlet toggle while water is running
+## W2 · ✅ CLOSED — React StrictMode double-fired `quick_shower.cgi` on an outlet toggle
 
-**Shape** silent-failure · **Last substantive touch** 2026-07-26 (9 days) · **Route** `batch` · **On fire**
+**Shape** silent-failure · **Closed** 2026-08-04 in `fa66f82` · **Was** `batch`, on fire
+
+> **Resolved the same day it was found.** The decision moved into a pure
+> `toggleOutletSelection()` in `app/src/api/model.ts` and the command now dispatches once from
+> the caller; `<StrictMode>` stays on. Pinned two ways — `app/test/hookHarness.ts` reproduces the
+> doubling so it was **measured, not inferred** (closing the caveat below and satisfying task
+> B01.T02), and a second test fails if a command is ever written back inside a state updater.
+> `npm run check` exits 0 — B01's hard exit criterion. Story-log entry: 2026-08-04 22:10.
+>
+> Kept in full below because the reasoning is the reusable part, and because the batch plan it
+> produced is the worked example for the format.
 
 **Reframed as a batch plan:** [`B01-strictmode-double-command.md`](B01-strictmode-double-command.md),
 in the PCFIRG format defined by `E:\git\llm-fab\.fab\process\BATCH-DEV.md`. Header reproduced here:

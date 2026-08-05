@@ -1,6 +1,12 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import * as api from '../api/client';
-import { buildModel, encodeOutlets, usableOutlets, type ShowerModel } from '../api/model';
+import {
+  buildModel,
+  encodeOutlets,
+  toggleOutletSelection,
+  usableOutlets,
+  type ShowerModel,
+} from '../api/model';
 import type { StatusResponse } from '../api/types';
 
 /**
@@ -172,17 +178,19 @@ export function useShower() {
   // --- Actions ----------------------------------------------------------
   const toggleOutlet = useCallback(
     (position: number) => {
-      setSelection((prev) => {
-        const next = new Set(prev);
-        next.has(position) ? next.delete(position) : next.add(position);
-        // While water is flowing, toggling takes effect immediately — this is
-        // how the real interface behaves.
-        if (model.showerOn) void send(next, targetTemp, massage);
-        else refreshSoon();
-        return next;
-      });
+      // Decide first, dispatch second. Deciding inside the setSelection updater
+      // meant StrictMode's double-invocation sent the command twice — see
+      // toggleOutletSelection.
+      const { selection: next, command } = toggleOutletSelection(
+        selection,
+        position,
+        model.showerOn,
+      );
+      setSelection(next);
+      if (command) void send(next, targetTemp, massage);
+      else refreshSoon();
     },
-    [model.showerOn, send, targetTemp, massage, refreshSoon],
+    [selection, model.showerOn, send, targetTemp, massage, refreshSoon],
   );
 
   const start = useCallback(() => {

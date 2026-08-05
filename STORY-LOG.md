@@ -12,6 +12,52 @@ See the Story log section of [AGENT.md](AGENT.md) for what to append and how.
 
 ## 2026-08-04
 
+### 22:10 — Our own app was sending every outlet tap twice
+
+Measured, not inferred: in `npm run dev` — the documented way to run this app,
+and the operator's only remote way to run the shower — one tap on an outlet
+while water was flowing sent `quick_shower.cgi` **twice**, milliseconds apart.
+
+The cause is ours, not the controller's. `toggleOutlet` computed the new
+selection inside the function it handed to React's `setSelection`, and fired the
+valve command from in there. React's `<StrictMode>` deliberately invokes those
+functions twice in a development build to expose exactly that kind of impurity —
+a function that does more than compute a value. It found ours. Nothing on screen
+ever showed it; the second command was invisible unless you were watching the
+proxy.
+
+Pinning it needed the hook to actually run, and adding a React renderer to the
+test setup was more dependency than this deserved, so `app/test/hookHarness.ts`
+is a ~120-line stand-in that answers the five hooks `useShower` uses and
+reproduces the one behaviour under test. Before the fix:
+
+```
+toggleOutlet(1)  ->  quick_shower.cgi  valve1_outlet=13   insideUpdater=true
+                     quick_shower.cgi  valve1_outlet=13   insideUpdater=true
+```
+
+With StrictMode's double-invocation switched off in the same harness, one call.
+That is the whole defect.
+
+The fix moves the decision into a pure `toggleOutletSelection()` in
+`app/src/api/model.ts` and dispatches once from the caller. A second test reads
+`useShower.ts` and fails if a command is ever written back inside a state
+updater, in any code path — verified by temporarily reverting the fix and
+watching it name the offending updater. 71 tests pass; `npm run selftest` still
+passes read-only against the live unit.
+
+**Why it matters:** rapid successive valve commands are the exact input
+[FIELD-NOTES.md](research/FIELD-NOTES.md) §1 blames for the controller going
+unreachable for hours. We spent this project being careful about polling
+cadence while quietly doubling the commands that matter most.
+
+**For Kohler:** if any of your own tooling drives `quick_shower.cgi` from a
+React state updater under StrictMode, it has this bug too. More usefully: the
+controller gives a client no way to notice it — there is no request id, no
+idempotency key, and no rejection of a duplicate command that arrives
+milliseconds after an identical one. A client cannot tell a doubled command from
+a deliberate one.
+
 ### 13:40 — The `values.cgi` blip repeats, and the guard against it assumes it can't
 
 A read-only sweep of the controller caught the known degraded `values.cgi`

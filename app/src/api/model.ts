@@ -258,6 +258,38 @@ export function isScaldRange(temp: number, units: 'F' | 'C'): boolean {
   return temp > (units === 'F' ? SCALD_F : SCALD_C);
 }
 
+export interface OutletToggle {
+  /** The selection after the tap. */
+  selection: Set<number>;
+  /** True when the change has to be pushed to the controller now. */
+  command: boolean;
+}
+
+/**
+ * What one outlet tap means: the next selection, and whether a command follows.
+ *
+ * This is split out of `useShower` and kept pure on purpose. It used to live
+ * inside the function handed to `setSelection`, which also fired the command —
+ * and React invokes state updaters twice under `<StrictMode>` precisely to
+ * expose that kind of impurity, so every tap in `npm run dev` sent
+ * quick_shower.cgi twice about 120 ms apart. Rapid successive valve commands
+ * are the controller's documented route to going unreachable for hours
+ * (research/FIELD-NOTES.md §1). Deciding here and dispatching at the call site
+ * means the decision can be run any number of times and still move water once.
+ */
+export function toggleOutletSelection(
+  selection: ReadonlySet<number>,
+  position: number,
+  showerOn: boolean,
+): OutletToggle {
+  const next = new Set(selection);
+  if (next.has(position)) next.delete(position);
+  else next.add(position);
+  // While water is flowing, toggling takes effect immediately — this is how the
+  // real interface behaves. Idle, the tap only arms the outlet.
+  return { selection: next, command: showerOn };
+}
+
 /**
  * quick_shower.cgi wants the selected positions concatenated into one string —
  * outlets 1, 3 and 4 are sent as "134". Empty string means "none".

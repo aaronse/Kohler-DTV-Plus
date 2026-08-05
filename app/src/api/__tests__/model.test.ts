@@ -1,7 +1,14 @@
 import { describe, expect, it } from 'vitest';
 import valuesFixture from '../../../test/fixtures/values.json';
 import systemFixture from '../../../test/fixtures/system_info.json';
-import { buildModel, connectionState, encodeOutlets, usableOutlets, isFlowing } from '../model';
+import {
+  buildModel,
+  connectionState,
+  encodeOutlets,
+  isFlowing,
+  toggleOutletSelection,
+  usableOutlets,
+} from '../model';
 import { parseOutletType, OUTLET_TYPES, outletIcon } from '../outlets';
 import type { KohlerSystemInfo, KohlerValues, StatusResponse } from '../types';
 
@@ -279,5 +286,48 @@ describe('outlet icons', () => {
     for (let i = 0; i <= 23; i++) {
       expect(OUTLET_TYPES[i], `missing type ${i}`).toBeDefined();
     }
+  });
+});
+
+describe('toggleOutletSelection', () => {
+  it('adds an outlet that is not selected', () => {
+    const { selection, command } = toggleOutletSelection(new Set([3]), 1, false);
+    expect([...selection].sort()).toEqual([1, 3]);
+    expect(command).toBe(false);
+  });
+
+  it('removes an outlet that is selected', () => {
+    const { selection } = toggleOutletSelection(new Set([1, 3]), 3, false);
+    expect([...selection]).toEqual([1]);
+  });
+
+  it('asks for a command only while water is running', () => {
+    expect(toggleOutletSelection(new Set([3]), 1, true).command).toBe(true);
+    expect(toggleOutletSelection(new Set([3]), 1, false).command).toBe(false);
+  });
+
+  it('still asks for a command when the last outlet is turned off', () => {
+    // An empty selection is a stop, not a no-op — the caller turns it into
+    // stop_shower.cgi.
+    const { selection, command } = toggleOutletSelection(new Set([3]), 3, true);
+    expect([...selection]).toEqual([]);
+    expect(command).toBe(true);
+  });
+
+  it('does not mutate the selection it is given', () => {
+    const before = new Set([3]);
+    toggleOutletSelection(before, 1, true);
+    expect([...before]).toEqual([3]);
+  });
+
+  it('is pure: two identical calls give identical results and no side effects', () => {
+    // This is the property StrictMode's double-invocation depends on. If this
+    // function ever grows a dispatch, running it twice stops being free.
+    const input = new Set([2, 4]);
+    const first = toggleOutletSelection(input, 4, true);
+    const second = toggleOutletSelection(input, 4, true);
+    expect([...first.selection]).toEqual([...second.selection]);
+    expect(first.command).toBe(second.command);
+    expect([...input].sort()).toEqual([2, 4]);
   });
 });

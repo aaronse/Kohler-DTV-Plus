@@ -5,8 +5,13 @@ Copy everything below the line into a fresh chat in `e:\git\Kohler-DTV-Plus`.
 **Revision 2026-08-04.** Revision 1 (2026-07-26) was written while the K-99693
 interface was physically disconnected and before the app had ever opened a
 valve. Both are now false. What changed, and why each change matters to this
-session, is in "What changed since revision 1" below — read it, because two of
+session, is in "What changed since revision 1" below — read it, because three of
 the changes alter the constraints rather than just the context.
+
+**Amended 2026-08-04, 22:30.** Added the egress request/response tracing
+requirement and the browser log viewer — change 5 below, and items 5-7 of "What
+I want built". Short version: a trace of controller *state* cannot see what this
+app told the shower to do, and we found out the hard way that it needed to.
 
 ---
 
@@ -161,12 +166,47 @@ not a nicety.
 Revision 1 asked whether the high-flow experiment should come first. It should,
 and it still has not happened. See "Sequencing" below.
 
+### 5. The app was sending doubled valve commands, and nothing could see it
+
+On 2026-08-04 we found that every outlet tap while water was running sent
+`quick_shower.cgi` **twice**, about 120 ms apart, in `npm run dev`. Fixed in
+`fa66f82`; the story is in `STORY-LOG.md`. Two things about it bear directly on
+what you build.
+
+**A controller-state trace would not have caught it.** Both commands set exactly
+the same state, so the second one is invisible in `values.cgi` and
+`system_info.cgi`. Polling the controller harder would not have helped; the
+duplicate existed only on the wire, outbound. Confirming the fix had to be done
+by hand in browser DevTools, because `app/server/middleware.mjs` logs nothing at
+all — the app currently keeps **no record of what it told the shower to do**.
+
+**That is a confounder for this investigation, not just an app bug.** If a
+shutoff lands inside a captured session, the first thing you must be able to
+rule out is "our app commanded something." Right now you cannot: a spontaneous
+stop and an app-issued stop are indistinguishable from controller state alone.
+Egress tracing is therefore a prerequisite for the state trace being
+interpretable, not a nice-to-have alongside it.
+
+**What this does *not* mean.** The shutoffs predate this app by ~2 months, and
+predate the doubled command. It is not a suspect for the original fault. It is
+noise that must be excluded from future traces.
+
+**And a limitation to state plainly in what you build:** our egress log sees
+only *our* client. The reconnected K-99693 wall interface is a second client
+talking to the same controller, and its commands do not pass through our proxy.
+"No REQ line in our log" means "we didn't send it", never "nobody sent it". Say
+so in the log's own documentation, because that distinction will be load-bearing
+the first time a trace shows an uncommanded stop.
+
 ---
 
 ## What I want built
 
 A passive telemetry capture that runs on this dev box and gives us a trace
-spanning a real shutoff.
+spanning a real shutoff. Two halves, and both are required: **what the
+controller reported** (state) and **what our app asked it to do** (egress). A
+trace with only the first half cannot rule our own client out as the cause, and
+cannot see a duplicate command at all — see change 5.
 
 Decisions already made:
 
@@ -179,14 +219,99 @@ Decisions already made:
    separate people have locked this controller up with polling, taking it out for
    hours. **With the wall interface reconnected this matters more than it did** —
    see change 1 above.
-3. **JSONL, parseable, not enormous.** Capture what's useful for this class of
-   fault. Rotate or cap it.
+3. **Parseable, not enormous.** Capture what's useful for this class of fault.
+   Rotate or cap it. Revision 1 said JSONL; item 6 now also demands something a
+   human can grep and read in sequence. Resolve that deliberately rather than by
+   accident — see "Log format" below.
 4. **Capture completeness, not just content.** Every record carries the payload's
    key count and whether the proxy served it from cache, so a truncated read is
    distinguishable from a real state change after the fact. See change 3.
+5. **Trace egress, not just state — every request AND its response.** Each call
+   the proxy makes to the controller gets a line when it is sent and a line when
+   it answers, correlated by a short id, with the outcome, the duration and the
+   payload size. This covers reads and commands alike. Without it we cannot tell
+   an app-issued stop from a spontaneous one, and we cannot see a duplicate
+   command at all. See change 5.
+6. **A format that is trivially greppable and readable in sequence.** One event
+   per line, fixed leading columns, so `grep quick_shower`, `grep ' ERR '` and
+   `grep ' DIFF '` all work with no tooling. Reading the file top to bottom
+   should make the sequence of activity obvious, and **state changes should
+   appear as their own lines rather than having to be diffed by eye across
+   full payload dumps.** Emit a state line only when something actually changed;
+   an unchanged poll is one short line, not a payload.
+7. **The operator reads the log from a browser, including a phone.** I am not
+   walking to the dev box or SSHing into a home server to find out what happened
+   — often I will be standing in a bathroom, wet, having just watched the shower
+   stop. The log has to be reachable from the same browser I use to run the
+   shower, over the LAN, with the newest lines first or auto-scrolled to the end.
 
 Please treat these as settled unless you find a concrete reason one is wrong, in
 which case say so.
+
+### Log format — a strawman to improve on, not a spec
+
+Propose your own if you can do better, but it must keep the properties in items
+5 and 6. This shape satisfies them:
+
+```
+2026-08-04T22:14:03.118Z  REQ   a3f1  quick_shower.cgi  valve1_outlet=13 valve1_temp=96 valve1_massage=0
+2026-08-04T22:14:03.256Z  RES   a3f1  quick_shower.cgi  ok 138ms 21B
+2026-08-04T22:14:08.004Z  REQ   a3f2  system_info.cgi
+2026-08-04T22:14:08.100Z  RES   a3f2  system_info.cgi   ok 96ms keys=39
+2026-08-04T22:14:08.101Z  DIFF  a3f2  valve1_Currentstatus ""->"On"  ui_shower_on false->true
+2026-08-04T22:14:23.010Z  RES   a3f5  values.cgi        ok 210ms keys=300 cached=false SHORT
+2026-08-04T22:16:41.882Z  ERR   a41c  system_info.cgi   timeout 5000ms
+```
+
+Why each part earns its place:
+
+- **`REQ`/`RES` correlated by id** — this is the pair that makes duplicates
+  visible. Two `REQ` lines for `quick_shower.cgi` 120 ms apart is the defect from
+  change 5, unmissable on sight. It also gives you real latency, which is the
+  early-warning sign of the lockup in `FIELD-NOTES.md` §1.
+- **`DIFF` lines** — the answer to "what actually changed and when". They are what
+  you will actually read when a shutoff trace comes in.
+- **`keys=` on every read** — change 3's requirement. Flag the short payload
+  inline (`SHORT` above, or whatever you prefer) so a truncated read cannot be
+  mistaken for a valve dropout while skimming.
+- **`cached=`** — the proxy serves `values.cgi` from a short cache; a reader must
+  never mistake a cache hit for a fresh confirmation.
+
+Keep the JSONL from item 3 as the canonical machine-readable record if you want
+both — but if you produce two artifacts, they must come from one source of
+truth, and tell me which one is authoritative.
+
+### Reading it from the browser
+
+Item 7 is a requirement, not a stretch goal. The realistic scenario is: the
+shower has just stopped, I am in the bathroom with a phone, and I want to know
+what the last thirty seconds looked like before the detail is gone.
+
+What it needs:
+
+- **Served by the proxy we already run.** The dev server binds to all interfaces
+  (`host: true` in `app/vite.config.ts`), so the phone can already reach it —
+  the same must work under `npm run serve` (`app/server/standalone.mjs`), not
+  only under `npm run dev`.
+- **Reading the log costs the controller nothing.** It is a local file. Serving
+  it must not touch the controller, must not open an HTTP session to it, and the
+  page must not become a second poller — the two-session budget in change 1 is
+  the constraint most likely to bite this session, and a log viewer would be an
+  absurd way to spend it. If the page refreshes itself, it refreshes from the
+  local file only.
+- **Tail by default, filterable.** Last N lines, newest visible without
+  scrolling, plus a way to narrow to a substring so `quick_shower` or `DIFF` is
+  one tap. Raw text is fine and probably better than a UI — I want to be able to
+  select and paste it into a chat or a support ticket.
+- **Downloadable whole**, so a full trace can go into `research/diagnostics/`
+  with a date in the filename, per `AGENT.md`.
+- **Not routed through the CGI safety gate.** `app/server/cgi-safety.mjs` guards
+  controller endpoints; a log route is local file serving and has nothing to do
+  with it. Do not widen the gate to accommodate this, and do not let the log
+  route become a way to reach the controller.
+- Note in your handoff that this exposes the log to anything on the LAN. It holds
+  no credentials, but it does hold the controller's IP and MAC and a record of
+  when the shower ran. Tell me if you think that needs more than a note.
 
 ## The question I most want you to investigate first
 
@@ -239,10 +364,13 @@ I'd like that established rather than assumed.
 | Controller reboot | Unreachable 30-60 s |
 | Purely mechanical/hydraulic | Nothing anywhere — controller simply times out |
 | **Truncated read (NOT a fault)** | `con_string` → `dis` **with a short payload** — 300 keys rather than 304. Must be excluded before any of the above is claimed. |
+| **Commanded by our app (NOT a fault)** | A `REQ` line for `stop_shower.cgi` or `quick_shower.cgi` in the egress log, just before the state change. Must be excluded first — see change 5. |
 
-Note the last two rows. If the trace shows *nothing*, that is itself a result, and
-it points outside the controller. And if the trace shows a valve dropout, the
-first question is whether the payload was complete — see change 3.
+Note the last three rows. If the trace shows *nothing*, that is itself a result,
+and it points outside the controller. If it shows a valve dropout, the first
+question is whether the payload was complete — see change 3. And before any stop
+is called spontaneous, the egress log must show we did not ask for it — bearing
+in mind our log cannot see what the wall interface sent.
 
 ## Sequencing — do these in order
 
@@ -256,14 +384,21 @@ first question is whether the payload was complete — see change 3.
    instrumentation at all. My instinct is that it should come first and that the
    logger should be running while I do it, so the run is captured either way —
    tell me if you disagree.
-3. **Propose what to capture and the JSONL record shape**, before writing code.
-4. **Build it, and get it capturing on the dev box.**
-5. **Stop there and show me real captured traces.** I want to look at actual
-   content — a few minutes of idle capture — and understand what's in each field
-   before I run any water.
-6. **Only once I've reviewed that and confirmed will I start a shower.** Treat
+3. **Propose what to capture and the record shape**, before writing code.
+4. **Build the egress request/response log first.** It is the smallest piece, it
+   is entirely client-side, it costs the controller nothing, and everything
+   downstream depends on being able to say what our app did and did not send.
+   Do not fold it into a larger telemetry build — land it on its own so it is
+   working before anything else is added to the proxy.
+5. **Then build the state trace and the browser viewer**, and get both capturing
+   on the dev box.
+6. **Stop there and show me real captured traces.** I want to look at actual
+   content — a few minutes of idle capture, read in the browser on my phone the
+   way I would actually read it — and understand what's in each field before I
+   run any water.
+7. **Only once I've reviewed that and confirmed will I start a shower.** Treat
    "the operator has reviewed the trace and said go" as a hard gate. Do not ask me
-   to start the shower before step 5 is done.
+   to start the shower before step 6 is done.
 
 Also worth capturing: wall-clock duration from shower start to shutoff, across
 many events, so we can see whether it clusters (timer) or scatters (fault).
@@ -296,7 +431,12 @@ Beyond the trace itself, these are now answerable and were not before:
 - **Two concurrent HTTP sessions maximum**, serialised, with a gap — and budget
   for the wall interface being one of them now.
 - **The app must stay usable.** It is my only remote way to run the shower, and it
-  is now genuinely in use rather than a prototype.
+  is now genuinely in use rather than a prototype. Tracing sits on the path every
+  command takes, so a logger that can throw, block or fill a disk is a logger
+  that can stop me showering. Failure to write a log line must never fail the
+  request that produced it.
+- **The log viewer adds zero controller load.** Local file only, no session, no
+  poller. See "Reading it from the browser".
 
 ## Also
 

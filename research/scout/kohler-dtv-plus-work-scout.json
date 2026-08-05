@@ -1,0 +1,361 @@
+{
+  "schemaVersion": "work-scout-v1",
+  "repo": "Kohler-DTV-Plus",
+  "repoPath": "e:\\git\\Kohler-DTV-Plus",
+  "generatedAt": "2026-08-04",
+  "revisedAt": "2026-08-04",
+  "generatedBy": "work-scout sweep",
+  "stateOfProjectDoc": "docs/state/2026-08-04-KOHLER-DTV-PLUS-STATE-OF-PROJECT.md",
+  "attachedBatchPlans": ["research/scout/B01-strictmode-double-command.md"],
+  "oneLineDescription": "A replacement browser interface for a Kohler DTV+ shower, plus an open investigation into why the shower stops mid-use, documented publicly for YouTube and for Kohler support.",
+  "revisionNote": "Three first-draft findings were wrong, all in the same direction: the repository lags reality, so reading it as ground truth understated the project. Corrected — (1) the app HAS opened a valve and driven a full shower; (2) the K-99693 interface IS reconnected and healthy, measured num_interface=1 / ui1_con_string=conn; (3) Kohler support WAS contacted on 2026-07-27 and quoted ~$2013 for a replacement, which is what justified the cut; (4) the fabrication week's detail is NOT decaying — 45 raw clips exist and are queued for processing through e:\\git\\inferiere. The durable lesson: this project's evidence lives in the git tree, the operator's footage, and the hardware. A repo-only sweep will always under-report it.",
+  "repoActivity": {
+    "lastCommit": "2026-08-04",
+    "quietDays": 0,
+    "activeWorkstreams": [
+      "viewer/ view-cube drag and camera tween tuning (5 commits 2026-08-03..04) — a deliberate Maker Galaxy experiment; the gizmo is already on a path into that platform"
+    ],
+    "isBaselineReal": true,
+    "note": "Commit velocity points the wrong way here. The one workstream in flight is a prototype for another platform. The two workstreams the project exists for are paused, and both are blocked on operator action rather than code — but the physical repair is COMPLETE (housing cut, TPU cover installed, interface reconnected and reporting conn), it is simply unrecorded. The repo's narrative stops on 2026-07-27; the hardware moved on until 07-29."
+  },
+  "candidates": [
+    {
+      "id": "KDTV-W1",
+      "title": "Two discriminating showers that nobody has run",
+      "shape": "blocked-decision",
+      "pcfirg": {
+        "problem": "The shower stopped itself mid-use for ~2 months, and the two cheapest experiments that would discriminate between the surviving hypotheses have never been run.",
+        "cause": "Both are operator actions rather than code changes, so no development session picks them up and they fall through the gap between sessions.",
+        "fix": "Run two showers — one at high flow (several outlets, well above any tankless minimum firing flow) against the known handshower-alone case; and one ordinary shower now that the interface is reconnected, to see whether the fault survived the repair.",
+        "impact": "High flow stable with low flow failing ≈ confirms the tankless chain and points outside the DTV+. The interface run answers a question that was untestable for nine days.",
+        "risk": "Moves real water at a configured max of 113 °F, above the 109 °F scald threshold — needs explicit in-the-moment operator consent, with the operator present.",
+        "goal": "A measured high-flow duration recorded beside the low-flow one, and a recorded answer to 'does it still happen with the interface back'."
+      },
+      "evidenceRefs": [
+        "research/SHUTOFF-INVESTIGATION.md:12-14",
+        "research/SHUTOFF-INVESTIGATION.md:229-240",
+        "research/SHUTOFF-INVESTIGATION.md:386-389",
+        "STORY-LOG.md:13"
+      ],
+      "age": {
+        "lastSubstantiveTouch": "2026-07-26",
+        "ageDays": 9,
+        "whatItsAgeMeans": "The only item four documents independently name as the next step that still has not happened — the signature of work with no owner. The second shower is newly possible: the repair created a natural experiment nobody has noticed."
+      },
+      "route": "just-do-it",
+      "routeWhy": "Known problem, known action, zero code. Two showers, and the second one only became possible when the interface came back.",
+      "steelmanAgainst": "The shutoff interval already scatters between 'a couple of minutes' and ~4 minutes with no identified pattern, so a single high-flow run that survives 10 minutes proves less than it feels like. The operator may reasonably prefer to spend that water on runs captured by telemetry (W4) rather than observed by stopwatch — and if it needs three or four repetitions per condition, it stops being free.",
+      "costOfDelay": "The investigation stays parked. The natural experiment also decays in a soft way: the longer the interface stays connected, the weaker the memory of how often the fault occurred while it was absent.",
+      "onFire": false
+    },
+    {
+      "id": "KDTV-W10",
+      "title": "The degraded values.cgi payload can repeat, defeating the guard built to catch it",
+      "shape": "silent-failure",
+      "pcfirg": {
+        "problem": "values.cgi returned its known degraded payload — a healthy valve reported absent — on two consecutive reads, which is the one case the proxy's guard assumes cannot happen.",
+        "cause": "middleware.mjs requires a valve loss to be reported twice before believing it, on the evidence that the blip never repeated; two consecutive suspects therefore cause the middleware to accept and cache the bad payload.",
+        "fix": "Discriminate on payload completeness rather than repetition — the degraded response is short (300 keys against 304), so a truncated read is distinguishable from a real disconnection on the first sample.",
+        "impact": "The UI stops being able to insist the shower has no configured outlets for a 30 s TTL, and future telemetry stops being able to manufacture false valve-dropout events.",
+        "risk": "A key-count threshold hard-codes an assumption about a payload that firmware could change; it needs deriving or asserting rather than pasting as a magic number.",
+        "goal": "Two consecutive degraded reads never reach the cache or the UI as a valve disconnection, pinned by a test that replays this exact 300-key payload twice."
+      },
+      "evidenceRefs": [
+        "app/server/middleware.mjs:41-51",
+        "app/server/middleware.mjs:76-80",
+        "app/scripts/selftest.mjs:138-153",
+        "research/FIELD-NOTES.md:234-272",
+        "research/SHUTOFF-INVESTIGATION.md:164-175"
+      ],
+      "age": {
+        "lastSubstantiveTouch": "2026-08-04",
+        "ageDays": 0,
+        "whatItsAgeMeans": "Not a recency artifact. The underlying blip is documented from 2026-07-26; what is new is a counter-example to the assumption the mitigation rests on, which only surfaces if someone happens to read twice at the wrong moment."
+      },
+      "route": "batch",
+      "routeWhy": "The fix needs a measured distribution before a threshold is chosen, plus a replay test built from the captured 300-key payload. Too much judgement for just-do-it. Consider merging with W5 — both are the app mishandling a degraded rather than absent values.cgi.",
+      "steelmanAgainst": "n=1. Two consecutive degraded reads were observed once, and six samples immediately afterwards were healthy, so the base rate for repetition may be very low and the existing guard right almost always. The key-count discriminator also rests on a single observed pair; it could be a coincidence of which keys the truncation dropped rather than a reliable length signal, and hard-coding it risks trading a rare false-negative for a systematic one.",
+      "costOfDelay": "It fails in two directions daily: toward the user as a disabled start button for 30 s with someone possibly in the shower, and toward the investigation as fabricated evidence — 'controller has lost the valve' is precisely the signature being hunted, and one such sample has already been promoted to evidentiary status.",
+      "onFire": true
+    },
+    {
+      "id": "KDTV-W2",
+      "title": "React StrictMode double-fires quick_shower.cgi on an outlet toggle while water is running",
+      "shape": "silent-failure",
+      "pcfirg": {
+        "problem": "Tapping an outlet while the shower is running sends quick_shower.cgi twice in npm run dev, which is the documented way to run the app and the operator's only remote way to run the shower.",
+        "cause": "toggleOutlet issues the command from inside the setSelection updater, and <StrictMode> double-invokes updater functions in development — an impure updater is exactly what that double-invocation exists to expose.",
+        "fix": "Extract the toggle decision into a pure function, apply it outside the updater, and issue the command once from the caller.",
+        "impact": "The controller receives one command per tap in every build, and the impurity that produced the duplicate becomes a test failure rather than an invisible extra request.",
+        "risk": "Doing nothing leaves duplicate valve commands ~120 ms apart on a controller whose documented failure mode is rapid successive valve commands going unreachable for up to three hours; doing it touches the app's hottest interaction path.",
+        "goal": "A single outlet tap produces exactly one quick_shower.cgi request, pinned by a test that fails if a dispatch is ever moved back inside a state updater."
+      },
+      "evidenceRefs": [
+        "app/src/state/useShower.ts:173-186",
+        "app/src/main.tsx:6-10",
+        "app/server/kohler-client.mjs:71-91",
+        "research/FIELD-NOTES.md:26-29"
+      ],
+      "age": {
+        "lastSubstantiveTouch": "2026-07-26",
+        "ageDays": 9,
+        "whatItsAgeMeans": "It shipped with the original build and survived a polling rewrite and a UI fix, because it is invisible from the UI — the second command sets the same state as the first."
+      },
+      "route": "batch",
+      "routeWhy": "Reframed as research/scout/B01-strictmode-double-command.md in the PCFIRG format from E:\\git\\llm-fab\\.fab\\process\\BATCH-DEV.md. Route moved from just-do-it because the plan's first two tasks are to pin the defect with a failing test and to MEASURE the doubling rather than infer it. Hard exit criterion: `npm run check` exits 0 in app/. The plan explicitly forbids the tempting wrong fix — disabling StrictMode hides the detector, not the defect.",
+      "steelmanAgainst": "StrictMode double-invocation is development-only; npm run serve does not do it. The queue serialises, so the two-session limit is never breached, and the community lockup reports involve a browser tab plus an integration rather than two serialised requests. This may be a doubled request the controller simply absorbs, and nobody has observed it misbehaving.",
+      "costOfDelay": "Low odds, asymmetric downside: a wedged controller takes the shower out for up to three hours. Raised since the first draft — the app is no longer a prototype, it has driven a real shower and the operator uses it.",
+      "onFire": true
+    },
+    {
+      "id": "KDTV-W8",
+      "title": "Four documents describe a world that has moved on",
+      "shape": "doc-rot",
+      "pcfirg": {
+        "problem": "The repository's front page and its architecture doc both open by stating a premise the hardware now contradicts, and its honest-limitations section understates what has been proven.",
+        "cause": "The interface was reconnected and a real shower was run without any document being revisited; separately, PROTOCOL.md's endpoint table was never updated when the gate was widened for the investigation.",
+        "fix": "Correct the five in one pass — the premise in README and DESIGN, the 'no valve opened' limitation, PROTOCOL.md's Read table, and the two stale test counts.",
+        "impact": "A reader — human, agent, or Kohler engineer — stops being told the interface is dead and the app unproven when neither is true.",
+        "goal": "No document states a fact that npm test, the live controller, or the safety gate contradicts."
+      },
+      "evidenceRefs": [
+        "README.md:13-23",
+        "DESIGN.md:11-14",
+        "DESIGN.md:203-206",
+        "DESIGN.md:166",
+        "PROTOCOL.md:45-53",
+        "app/server/cgi-safety.mjs:40-45",
+        "FLOW.md:161-163",
+        "viewer/README.md:87"
+      ],
+      "age": {
+        "lastSubstantiveTouch": "2026-07-26",
+        "ageDays": 9,
+        "whatItsAgeMeans": "Every one is a document whose last touch predates the change it should reflect — the age tell itself, not a coincidence. Measured contradictions: num_interface=1 not 0; 56 tests not 49; 164 not 88; 5 exposed reads not 3."
+      },
+      "route": "just-do-it",
+      "routeWhy": "Five factual corrections against measured values and one operator report. Nothing to decide except the narrative question in the steelman.",
+      "steelmanAgainst": "The premise text is historical and arguably correct as history — the project exists because the interface failed, and that stays true even though it has since been repaired. Rewriting the front page to say 'the interface works now' risks obscuring why any of this was built. The fix is partly a narrative decision (does the README tell the origin story or the current state?) rather than a factual correction. Only the test counts and the endpoint table are unambiguous errors.",
+      "costOfDelay": "The front page states a premise the hardware contradicts, in a repo about to be pointed at by a video. Agents told to read PROTOCOL.md learn a reachable surface two endpoints smaller than the real one — during the investigation those endpoints were exposed for.",
+      "onFire": false
+    },
+    {
+      "id": "KDTV-W6",
+      "title": "Kohler was contacted and quoted $2013, and the repository does not know",
+      "shape": "doc-rot",
+      "pcfirg": {
+        "problem": "The plan of record still presents cutting the housing as conditional on Kohler having no supported route, but both steps were completed and the outcome that justified the cut exists only as text in a video filename on another drive.",
+        "cause": "The contact happened on camera rather than at the keyboard, and AGENT.md's 'Kohler support is contacted, and what they said' trigger has never fired.",
+        "fix": "Append the support contact and the ~$2013 replacement quote to STORY-LOG.md, and rewrite the plan of record in the past tense.",
+        "impact": "The economic justification for cutting a $1500 part — the number that makes the repair rational rather than reckless — becomes part of the record instead of a filename.",
+        "goal": "The repo states what was asked of Kohler on 2026-07-27 and what came back."
+      },
+      "evidenceRefs": [
+        "research/SHUTOFF-INVESTIGATION.md:367-375",
+        "AGENT.md:57",
+        "AGENT.md:76-77",
+        "STORY-LOG.md:45"
+      ],
+      "age": {
+        "lastSubstantiveTouch": "2026-07-27",
+        "ageDays": 8,
+        "whatItsAgeMeans": "Eight days is where age did the most damage in this repo: the process was followed correctly and the single most quotable number in the project survives only in a filename on another drive."
+      },
+      "route": "just-do-it",
+      "routeWhy": "Corrected from the first draft, which asked whether the step had been skipped. It was not. Evidence: raw/obs/2026-07-27-kohler,digial-interface,tech-support (@04_07_$2013_for replacement).mp4. This is now transcription plus a tense change, not a decision.",
+      "steelmanAgainst": "The $2013 quote will surface anyway when the footage is processed (W3), so writing it by hand now duplicates the pipeline's output and risks a transcription error on the one number that matters. And the seven For Kohler entries are better delivered as one considered package alongside a resolved investigation than appended to a support call about a part that has already been modified.",
+      "costOfDelay": "The strongest single example of the repo's pattern — the careful thing was done and not written down. A viewer or a Kohler engineer checking the plan of record against what happened finds a gap that was never really there.",
+      "onFire": false
+    },
+    {
+      "id": "KDTV-W4",
+      "title": "The telemetry capture was specified and never built",
+      "shape": "dormant-decision",
+      "pcfirg": {
+        "problem": "No trace has ever been captured spanning a real shutoff, so the transient valve flags that would confirm or kill the leading hypothesis go unobserved every time it happens.",
+        "cause": "A complete brief was written as a priming prompt for a session never run; nothing referenced it and no telemetry code exists in the tree.",
+        "fix": "Run the revised brief after W1 reports — or retire it in favour of instrumenting outside the DTV+ — and record which and why.",
+        "impact": "Either a JSONL trace sampling valve1_ErrorFatal/ErrorResettable through a shutoff, or a recorded decision that controller telemetry cannot see this fault.",
+        "risk": "The brief warns against 'a beautifully engineered logger that cannot see the fault'; building it before W1 reports is the specific way to waste the effort.",
+        "goal": "The observability question has an answer in the repo — built or declined, with reasons."
+      },
+      "evidenceRefs": [
+        "research/PROMPT-observability.md:1-14",
+        "research/PROMPT-observability.md:43-45",
+        "research/SHUTOFF-INVESTIGATION.md:333-351",
+        "research/SHUTOFF-INVESTIGATION.md:105-127"
+      ],
+      "age": {
+        "lastSubstantiveTouch": "2026-08-04",
+        "ageDays": 0,
+        "whatItsAgeMeans": "The prompt was 9 days old and stale in two load-bearing ways; it has been revised to revision 2 by this sweep. The dormancy is what matters, not the file's mtime."
+      },
+      "route": "batch",
+      "routeWhy": "Understood implementation work with an exit-coded gate and an operator review gate. The brief has been reviewed and updated as part of this sweep: the reconnected interface is now a first-class variable and a tightened concurrency constraint; the natural experiment is called out; W10 is folded in as a requirement (record payload completeness, not just content) with a new 'truncated read (NOT a fault)' row in the signature table; stale claims are flagged rather than silently fixed; sequencing is explicit. Sequence behind W1 — do not start before that reports.",
+      "steelmanAgainst": "The brief's own argument is the strongest one. The controlled negative shows the shutoff writes nothing, and the mechanical/hydraulic hypothesis predicts controller telemetry will record only 'running, then timed out' — which is already known. A logger could cost a week and confirm a negative. Instrumenting the tankless unit and outlet water temperature is cheaper per bit of information and sits outside the fragile controller entirely.",
+      "costOfDelay": "Every shutoff meanwhile is an uncaptured instance of the exact event under investigation, and the transient flags are invisible after the fact — the evidence is destroyed rather than merely deferred.",
+      "onFire": false
+    },
+    {
+      "id": "KDTV-W3",
+      "title": "The fabrication record is blocked on another repository's pipeline",
+      "shape": "drift",
+      "pcfirg": {
+        "problem": "A reader of this repo cannot tell that a $1500 part was machined open between 2026-07-27 and 08-03, because the story log jumps straight over the fabrication week.",
+        "cause": "The work is fully captured — 45 raw clips — but the footage has not been processed, and the repo's narrative is downstream of a pipeline in a different repository.",
+        "fix": "Scope what processing these clips through e:\\git\\inferiere actually requires — rename, transcribe, index, summarise, package for ZoomTube — and what it emits that STORY-LOG.md can be derived from.",
+        "impact": "The project's most visual sequence becomes tellable, and the pattern generalises to every future session that films rather than types.",
+        "goal": "A known, costed path from 45 raw clips to dated story-log entries."
+      },
+      "evidenceRefs": [
+        "STORY-LOG.md:13",
+        "STORY-LOG.md:119-121",
+        "AGENT.md:53-63",
+        "AGENT.md:65-67",
+        "cnc/k99693-cut-rear-port.gcode"
+      ],
+      "age": {
+        "lastSubstantiveTouch": "2026-07-28",
+        "ageDays": 7,
+        "whatItsAgeMeans": "Corrected from the first draft, which called this a decay clock. It is not — 45 clips spanning 2026-06-25 to 07-29 hold the original removal, the Kohler support call, the whole 07-28 fabrication day and the 07-29 cover install. Age is nearly irrelevant because the primary source is safe."
+      },
+      "route": "study",
+      "routeWhy": "Route changed from just-do-it. The commissioning signal holds: the questions cluster in one domain (what inferiere needs, what it emits, what ZoomTube packaging implies for a repo's story log), the answer is genuinely unknown from here, and it is a cross-repository dependency that NEITHER repository records. Hand-writing entries now would duplicate the pipeline and present recall as observation.",
+      "steelmanAgainst": "The technical outcome is already preserved — toolpaths, DXF, both STLs and the photographs are committed, and the 2026-08-03 gasket entry captures the reasoning that mattered. The footage will be processed eventually for the video regardless, and the story log can be written then at no extra cost. Commissioning a study to plan a pipeline that is going to run anyway is ceremony; the honest alternative is a one-line note in the story log saying 'the fabrication week is on video, unprocessed' and moving on.",
+      "costOfDelay": "Low — nothing is being lost. The real cost is invisibility: a planner reading this repo sees an unwritten story log and no reason it is unwritten, while a planner reading inferiere sees no consumer waiting.",
+      "onFire": false
+    },
+    {
+      "id": "KDTV-W5",
+      "title": "A degraded values.cgi silently declares the system Fahrenheit and clamps the ceiling to 113",
+      "shape": "silent-failure",
+      "pcfirg": {
+        "problem": "When values.cgi is unavailable but system_info.cgi is live — a state the proxy explicitly supports — the app treats the system as Fahrenheit and clamps the user's temperature ceiling to 113, regardless of the controller's real configuration.",
+        "cause": "num(values?.units) returns the fallback 0 for a missing payload, and 0 is the encoding for Fahrenheit, so 'unknown' and 'Fahrenheit' are the same value.",
+        "fix": "Treat missing units as unknown rather than Fahrenheit — refuse temperature adjustment, or hold the last known unit, instead of defaulting into a unit-specific ceiling.",
+        "impact": "On a Celsius-configured DTV+, the UI's own clamp becomes 113 °C on the one code path DISCLAIMER.md promises will never raise the configured limit.",
+        "risk": "Refusing adjustment during a partial outage removes a control while someone may be standing in the shower; the failure-safe direction needs deciding rather than assuming.",
+        "goal": "No unit-specific bound is ever derived from an absent payload, pinned by a test that builds a model with values: null and asserts no 113 ceiling appears."
+      },
+      "evidenceRefs": [
+        "app/src/api/model.ts:90-93",
+        "app/src/api/model.ts:136",
+        "app/src/api/model.ts:152-153",
+        "app/server/middleware.mjs:98-118",
+        "app/src/state/useShower.ts:204-219",
+        "DISCLAIMER.md:101-103"
+      ],
+      "age": {
+        "lastSubstantiveTouch": "2026-08-03",
+        "ageDays": 1,
+        "whatItsAgeMeans": "model.ts was touched a day ago for the cold-start fix, so this path was recently in front of someone and was not seen — invisible on this hardware, not neglected."
+      },
+      "route": "batch",
+      "routeWhy": "Needs a decision on the failure-safe direction plus a regression test constructing the non-identity case. Now shares a root cause with W10 — both are the app mishandling a values.cgi that arrives degraded rather than absent — so consider one batch for both.",
+      "steelmanAgainst": "It cannot fire on this system: it is Fahrenheit-configured, so units is 0 either way and the fallback is correct. It needs a Celsius system AND a values.cgi outage AND system_info.cgi still answering AND a user reaching for the temperature control. The controller's own UI bounds Celsius input at 26-max_temp and would likely reject 113, so the harm may be absorbed downstream.",
+      "costOfDelay": "Nothing much for this installation. But the repo's stated value is findings that generalise to other DTV+ owners, and it publishes a scald policy — shipping a documented clamp with a silent unit-confusion path underneath undercuts both if anyone else adopts the app.",
+      "onFire": false
+    },
+    {
+      "id": "KDTV-W7",
+      "title": "cnc/ holds twelve undocumented files, including the toolpath that cut a $1500 part",
+      "shape": "orphan",
+      "pcfirg": {
+        "problem": "cnc/ has no README and no provenance — nothing records which machine, which cutter, which of the five toolpaths was run, or which of the two cover revisions is installed.",
+        "cause": "Committed as build output from two fabrication sessions, in commits naming the file rather than the setup.",
+        "fix": "Add cnc/README.md recording per file: what it cuts, on what machine with what tooling, whether it was run, and what changed between rear-cover v1 and v2.",
+        "impact": "The repair becomes reproducible by the operator in six months and by a viewer who wants to do the same job.",
+        "risk": "Publishing a toolpath that cuts a live shower fixture invites someone to run it on different workholding; the README must carry that warning rather than read as an invitation.",
+        "goal": "Every file has one line saying what it is and whether it was run, and the current cover revision is identifiable without opening a slicer."
+      },
+      "evidenceRefs": [
+        "cnc/k99693-cut-rear-port.gcode",
+        "cnc/new-rear-port-cover.stl",
+        "cnc/new-rear-port-cover-v2.stl",
+        "AGENT.md:71-75",
+        "Images/README.md:1-18"
+      ],
+      "age": {
+        "lastSubstantiveTouch": "2026-08-01",
+        "ageDays": 3,
+        "whatItsAgeMeans": "Three days old and already ambiguous. Documentation debt on binary artifacts accrues immediately rather than gradually, because there is no diff to read it back off."
+      },
+      "route": "just-do-it",
+      "routeWhy": "A README following the pattern Images/README.md already establishes. Cheaper than it was: obs/2026-07-29 22-40-21_installing_rear_access_cover.mp4 shows which cover actually went on, so W3's pipeline supplies most of the answer.",
+      "steelmanAgainst": "These are working files from a one-off repair on one specific unit with one machine and jig, not a publishable process. A README risks implying reproducibility that does not exist — someone else's K-99693 sits in a different wall, and the CAD is documented as no guide to what is behind the rear face. Deleting the superseded v1 files might serve a reader better than documenting them.",
+      "costOfDelay": "Cheap now, awkward later: in six months nobody will know which cover is on the wall, and if the seal fails the first question is which revision failed.",
+      "onFire": false
+    },
+    {
+      "id": "KDTV-W9",
+      "title": "A public repo carries three unlicensed third-party bodies under a licence labelled a draft",
+      "shape": "irreversible",
+      "pcfirg": {
+        "problem": "This repo vendors xagon0's analysis, Kohler's guide and controller UI mirror, and content inherited from timelery — none of which grants any licence — and applies to its own work a licence whose vendored text is headed 'Status: Draft'.",
+        "cause": "The question was resolved honestly at the documentation level by writing a scope table, but nothing was ever asked of the three upstreams.",
+        "fix": "Ask xagon0 for explicit permission to vendor and redistribute, and decide whether a draft licence is the right thing to publish under before a video points an audience here.",
+        "impact": "Either a granted permission that converts the largest vendored body from reference-only to redistributable, or a recorded refusal that justifies unvendoring it.",
+        "risk": "Asking may get a 'no', which would force removing research/xagon0/ — material this project's protocol and safety analysis leans on heavily.",
+        "goal": "Every third-party body has either an explicit permission or a recorded decision to carry it reference-only with that risk accepted in writing."
+      },
+      "evidenceRefs": [
+        "LICENSE.md:15-38",
+        "LICENSE.md:44-49",
+        "LICENSE.md:1-11",
+        "Images/README.md:12-18",
+        "README.md:120-129"
+      ],
+      "age": {
+        "lastSubstantiveTouch": "2026-07-26",
+        "ageDays": 9,
+        "whatItsAgeMeans": "Age is irrelevant here and that is the point — this is structural rather than decaying. Cheap to resolve while the repo has a small audience, expensive after a video has driven traffic and forks exist."
+      },
+      "route": "just-do-it",
+      "routeWhy": "The action is an email to xagon0 and a decision about the draft licence. It needs no plan, and the window in which it stays cheap closes on the video's schedule rather than a development schedule.",
+      "steelmanAgainst": "LICENSE.md already handles this about as well as documentation can: the scope table names each body, states plainly that none is ours to license, and tells a redistributor to check with the authors first. Nothing is being sold or relicensed, and the use is repair and research. Asking xagon0 risks a refusal that removes material currently carried without objection — so raising the question could leave the project worse off than honest silence.",
+      "costOfDelay": "It compounds with reach rather than with time. Every fork and mirror made after the video multiplies material distributed under terms nobody granted, and none of that is retractable.",
+      "onFire": false
+    }
+  ],
+  "considered": [
+    {
+      "title": "DESIGN.md's Known gaps (presets, massage speed, second valve, PWA)",
+      "reason": "Spec-compliant deferrals declared plainly at DESIGN.md:202-216. Deliberately deferred is not drift. The one item that HAS graduated — 'no valve opened' — moved into W8."
+    },
+    {
+      "title": "The Android / Capacitor port",
+      "reason": "Aspirational by design, with the decision already made and the seam verified in app/src/api/config.ts. Scope not yet started is not a finding."
+    },
+    {
+      "title": "research/SOURCES.md has been swept exactly once",
+      "reason": "Nine days is not stale for a monitoring index of slow-moving upstream repos. Flagging it would be promoting a weak item to fill an age quota."
+    },
+    {
+      "title": "The viewer has no stated goal in-repo",
+      "reason": "WITHDRAWN on operator correction. It is a deliberate Maker Galaxy experiment — rendering a vendor product alongside the add-on that repairs it — and the view gizmo is already on a path into that platform. The residual (neither repo records which experiments graduate) is noted in the state doc §7 and is too small to bill as work."
+    },
+    {
+      "title": "The values.cgi blip filter's suspectCount state machine",
+      "reason": "PARTIALLY WITHDRAWN. The state machine behaves exactly as written across consecutive-bad, alternating and recovery cases. Its PREMISE does not hold — the blip repeated on 2026-08-04. Promoted to W10."
+    },
+    {
+      "title": "The viewer's view-cube work (5 commits / 2 days)",
+      "reason": "In flight with an owner and momentum. WIP is not priority; it needs nothing from a scout."
+    },
+    {
+      "title": "viewer/README.md has two items numbered 3",
+      "reason": "A markdown numbering slip at viewer/README.md:392-397 with no consequence for any reader. Fold into any edit that touches the file."
+    },
+    {
+      "title": "The 2017 fork-era content",
+      "reason": "Eight commits, a README and a Jekyll config; _config.yml already deleted and the README rewritten. Genuinely dead, correctly so. The only live residue is licensing, captured in W9."
+    }
+  ],
+  "quotaCheck": {
+    "candidatesOlderThan90Days": 0,
+    "totalCandidates": 10,
+    "met": false,
+    "note": "Cannot be met, and I checked twice rather than assuming. The repository's substantive history begins 2026-07-26 — nine days ago. The only content older than 90 days is the 2017 fork stub: eight commits consisting of a README and a Jekyll theme config, the latter deleted and the former entirely rewritten; git log --until=2018-01-01 confirms the tree held two files. There is no old code, no old decision register, no old config, and no aging dependency here to find. Applying the quota's intent rather than its letter: W9 is the age-irrelevant structural item, and W6 is where age did real damage — an eight-day-old $2013 quote that justifies the entire repair and survives only in a filename. The genuine anti-recency risk in this repo is not old-versus-new but REPO-VERSUS-WORLD: the loudest workstream (the viewer, 5 commits in 2 days) produced zero candidates, while the findings came from the quiet investigation, from operator corrections, and from a single read-only hardware check that contradicted three documents in one command."
+  },
+  "caveats": "Verified by execution: test counts (npm test, both apps); exposed-endpoint count (node against exposedEndpoints()); the git age map for every non-binary tracked file; and, new in this revision, a live read-only check of the controller (npm run selftest plus six direct values.cgi reads) establishing num_interface=1, ui1_con_string=conn, valve conn fw 0.12, and the two consecutive degraded payloads behind W10. Verified by reading: every claim cited with a file:line. Verified by operator report: the successful real shower, the Maker Galaxy purpose of the viewer, and the inferiere processing plan. NOT measured: W2's doubled request is confirmed by code reading plus React's documented StrictMode contract — batch task B01.T02 exists to measure it. W5 is confirmed by tracing num()/isF/maxTemp; no Celsius controller exists to demonstrate it. W10's key-count discriminator rests on ONE observed pair (300 vs 304) and needs a distribution before it is trusted as a threshold. NOT read: PROTOCOL.md lines 149-212, the vendored xagon0 documentation, the controller-mirror JavaScript, the 45 raw video clips (filenames only), and the binary CNC/CAD assets beyond their listings. Cross-repo distortion to watch for: this repo's documentation quality is unusually high, and the first draft of this ledger was still wrong three times — always in the direction of understating the project, because the repo lags the work. When sweeping a repo whose operator films the work, budget for a correction pass and ask before concluding something did not happen."
+}

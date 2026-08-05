@@ -10,6 +10,57 @@ See the Story log section of [AGENT.md](AGENT.md) for what to append and how.
 
 ---
 
+## 2026-08-04
+
+### 13:40 — The `values.cgi` blip repeats, and the guard against it assumes it can't
+
+A read-only sweep of the controller caught the known degraded `values.cgi`
+payload **twice in a row** — which is the one case the proxy's mitigation is
+built to assume cannot happen.
+
+`npm run selftest` read `values.cgi`, saw `valve1_installed: false` /
+`valve_1_con_string: 'dis'` on a valve that was fine, re-read to rule out the
+flap documented in [FIELD-NOTES.md](research/FIELD-NOTES.md) §6 — and got the
+same answer again. Six deliberate reads immediately afterwards were all healthy:
+
+```
+selftest read 1   installed=false  con=dis    300 keys
+selftest read 2   installed=false  con=dis    300 keys
+follow-up  1..6   installed=true   con=conn   304 keys   fw 0.12, over 18 s
+```
+
+FIELD-NOTES §6 records this as a one-in-30-to-50 read that "recovers on the next
+read", and `app/server/middleware.mjs` encodes exactly that: a payload losing a
+previously-installed valve must say so **twice** before it is believed. Two
+consecutive suspects therefore defeat the guard — the bad payload is accepted and
+cached, which is the "no configured outlets for 30 seconds, possibly with someone
+standing in the shower" outcome the guard exists to prevent.
+
+The useful half of the finding: **the degraded payload is short — 300 keys
+against 304.** A truncated response and a genuine valve disconnection do not look
+the same on the wire, and the code currently reads only the content, never the
+completeness. That is a cheaper and more direct discriminator than repetition.
+
+**Why it matters:** it fails in two directions. Toward the user, it can blank the
+UI mid-shower. Toward the investigation, it *fabricates* the exact signature we
+are hunting — "the controller has lost the valve" is the state the 2026-07-14
+video shows during a shutoff, and one such sample has already been promoted to
+evidence. Any telemetry that logs `con_string` without logging payload
+completeness will generate that finding on schedule. The observability brief has
+been updated to require it.
+
+Honest bound on this: n=1 for the repetition, and the 300-versus-304 signal rests
+on a single observed pair. Neither is a measured distribution yet.
+
+**For Kohler:** `values.cgi` intermittently returns a short, partially-populated
+response — 300 keys instead of 304 — in which a healthy, connected valve is
+reported as `installed: false` / `dis`, while the valve's firmware version is
+still present in the same payload. It can occur on consecutive requests. Any
+client that treats a single such read as a state change will report a valve
+dropout that did not happen.
+
+---
+
 ## 2026-08-03
 
 ### 19:05 — Corrected: the interface is portrait, and the CAD is lying on its side

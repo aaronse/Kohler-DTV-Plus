@@ -2,6 +2,12 @@
 
 Copy everything below the line into a fresh chat in `e:\git\Kohler-DTV-Plus`.
 
+**Revision 2026-08-04.** Revision 1 (2026-07-26) was written while the K-99693
+interface was physically disconnected and before the app had ever opened a
+valve. Both are now false. What changed, and why each change matters to this
+session, is in "What changed since revision 1" below — read it, because two of
+the changes alter the constraints rather than just the context.
+
 ---
 
 I need to build passive observability for a Kohler DTV+ shower system so we can
@@ -10,10 +16,14 @@ root-cause a "shower randomly stops mid-use" fault. Please start by reading
 `research/FIELD-NOTES.md` and `DESIGN.md` — they carry the context and the hard
 constraints. Don't re-derive what's already in them.
 
+Note that several of those documents are **stale in specific ways listed below**.
+Where a document and this prompt disagree, this prompt is newer; where this
+prompt and the live hardware disagree, the hardware wins.
+
 ## The problem
 
-For ~2 months the shower stops on its own 2-4 minutes into a shower. No pattern
-found yet.
+For ~2 months the shower stopped on its own 2-4 minutes into a shower. No
+pattern found yet.
 
 The decisive evidence is a video I recorded on 2026-07-14 (transcript at
 `E:\proj-med\build-661-diag-kohler-shower\2026-07-14-DTV-shower-unexpectedly-stops.txt`,
@@ -63,12 +73,95 @@ temperature, flow rate, the tankless unit's own fault log). I'd rather hear
 "polling the controller won't answer this, here's what would" than get a
 beautifully engineered logger that cannot see the fault.
 
-Separately: the K-99693 interface is physically disconnected (its internal
-wire-to-board connector was pulled out when I removed the housing — the original
-install silicone-sealed the housing *and* the blue seal plug to the wall). Its
-contacts are clean, no corrosion, and it is **not** implicated in the shutoffs.
-I'm contacting Kohler support about reconnecting it; possibly 3D scanning and
-CNC-cutting an access opening. That's a separate track from this session.
+---
+
+## What changed since revision 1 — read this before planning
+
+### 1. The K-99693 interface is reconnected and healthy — this is now a variable
+
+Revision 1 said the interface was physically disconnected and that reconnecting
+it was "a separate track from this session." It is no longer separate.
+
+Verified against the live controller on 2026-08-04:
+
+```
+num_interface        = 1          (was 0)
+ui1_con_string       = conn       (was not_seen)
+valve_1_con_string   = conn       fw 0.12
+controller fw        = 0.0.3.89   MAC 00:14:6F:0E:53:E1
+```
+
+Three consequences, and the second one is a constraint, not context:
+
+- **The shutoffs predate the interface's removal by ~2 months, and the interface
+  has now been absent and present across the fault's lifetime.** That is a free
+  natural experiment. "Does the shutoff still happen with the interface
+  reconnected?" is now answerable and is one of the highest-value open questions.
+- **The interface is a second HTTP client.** The controller's own UI polls
+  `system_info.cgi` every 5 s and `values.cgi` every 10 s
+  (`research/controller-mirror/js/control.js`), and the controller allows **two
+  concurrent HTTP sessions** total. Our app is one. The wall interface may be
+  another. **The concurrency budget is tighter than it was when revision 1 was
+  written, and this is the constraint most likely to bite this session.** Work
+  out what the reconnected interface actually costs before adding anything.
+- **The premise text in `README.md` and `DESIGN.md` is now wrong.** Both still
+  open with `num_interface = 0` / `ui1_con_string = not_seen` as the reason the
+  project exists. Don't correct them as part of this session — just don't trust
+  them.
+
+### 2. The app has driven a real shower, successfully
+
+Revision 1 and `DESIGN.md`'s "Known gaps" both say the app is unverified against
+running water. **That is stale.** The operator has run a full shower through the
+browser app against the live valve, and it worked. The command path is proven end
+to end, not just as far as `stop_shower.cgi`.
+
+This does **not** relax the constraint below: *you* still never open a valve. It
+does mean the transport, the gate, `quick_shower.cgi` and the optimistic-state
+handling are load-bearing production code with a real user, so telemetry must not
+destabilise them.
+
+### 3. `values.cgi` can return the degraded payload TWICE IN A ROW
+
+`research/FIELD-NOTES.md` §6 documents an intermittent read where a healthy valve
+reports `valve1_installed: false` / `valve_1_con_string: 'dis'`, recovering on the
+next read — roughly one in 30-50. The proxy's guard
+(`app/server/middleware.mjs:57-86`) is built on the assumption that a bad payload
+does not repeat: it requires the loss to be reported **twice** before believing it.
+
+**On 2026-08-04 it repeated.** `npm run selftest` read `values.cgi`, saw the valve
+absent, re-read to rule out the known flap, and **got the same answer again**.
+Six deliberate reads immediately afterwards were all healthy:
+
+```
+selftest read 1   installed=false   300 keys
+selftest read 2   installed=false   300 keys     <- the guard's assumption fails here
+follow-up  1..6   installed=true    304 keys     conn, fw 0.12, over 18 s
+```
+
+Two things follow, and the second is the useful one:
+
+- **The twice-guard is defeated by exactly this event.** Two consecutive suspect
+  reads make the middleware accept and cache the bad payload — the "disabled start
+  button for 30 seconds, possibly with someone standing in the shower" outcome
+  that FIELD-NOTES §6 says the guard exists to prevent.
+- **The degraded payload is SHORT: 300 keys versus 304.** That is a cheap,
+  reliable discriminator the code does not currently use. A truncated response and
+  a genuine valve disconnection are not the same event and do not look the same on
+  the wire. **Any telemetry that logs `valve_1_con_string` without also logging the
+  key count will manufacture false valve-dropout events — and a valve dropout is
+  precisely the signature this whole investigation is hunting.** Getting this
+  wrong would not merely add noise; it would fabricate the finding.
+
+Treat "record payload completeness alongside payload content" as a requirement,
+not a nicety.
+
+### 4. The cheapest experiment still has not been run
+
+Revision 1 asked whether the high-flow experiment should come first. It should,
+and it still has not happened. See "Sequencing" below.
+
+---
 
 ## What I want built
 
@@ -84,9 +177,13 @@ Decisions already made:
    (15 s idle / 5 s active) rather than adding a second poller.
    `research/FIELD-NOTES.md` §1 explains why this is non-negotiable: three
    separate people have locked this controller up with polling, taking it out for
-   hours.
+   hours. **With the wall interface reconnected this matters more than it did** —
+   see change 1 above.
 3. **JSONL, parseable, not enormous.** Capture what's useful for this class of
    fault. Rotate or cap it.
+4. **Capture completeness, not just content.** Every record carries the payload's
+   key count and whether the proxy served it from cache, so a truncated read is
+   distinguishable from a real state change after the fact. See change 3.
 
 Please treat these as settled unless you find a concrete reason one is wrong, in
 which case say so.
@@ -113,6 +210,12 @@ anything push-shaped on this hardware:
   it is undocumented and unused by the vendor's own client, so treat finding one
   as unlikely. Confirm by checking whether any endpoint holds the socket open
   rather than closing it, but timebox it.
+- **New, and now the more interesting version of this question:** the wall
+  interface is back on the bus and is itself a client. Does its presence show up
+  anywhere readable — a session count, a last-seen timestamp, a changing field
+  that only moves when it polls? If the controller exposes anything about *who
+  else is talking to it*, that is both a confounder we must record and possibly a
+  cheaper signal than anything we would build.
 - Is there anything on the RS-485 side we could observe passively? The valve and
   controller talk Saturn protocol; `research/xagon0/docs/protocols/` documents
   it. A passive bus tap would see the failure directly instead of inferring it
@@ -135,16 +238,32 @@ I'd like that established rather than assumed.
 | RS-485 comms loss | `conn` → `dis`, no setpoint reversion |
 | Controller reboot | Unreachable 30-60 s |
 | Purely mechanical/hydraulic | Nothing anywhere — controller simply times out |
+| **Truncated read (NOT a fault)** | `con_string` → `dis` **with a short payload** — 300 keys rather than 304. Must be excluded before any of the above is claimed. |
 
-Note the last row: if the trace shows *nothing*, that is itself a result, and it
-points outside the controller.
+Note the last two rows. If the trace shows *nothing*, that is itself a result, and
+it points outside the controller. And if the trace shows a valve dropout, the
+first question is whether the payload was complete — see change 3.
 
-**Before building anything, tell me whether this experiment is cheaper than the
-code:** run the shower with several outlets open, well above any minimum firing
-flow, and see whether it survives materially longer than the handshower-alone
-case. If high flow is stable and low flow fails, that's close to conclusive with
-no instrumentation at all. I'm happy to build the logger too — I want the traces
-regardless — but say so if the experiment should come first.
+## Sequencing — do these in order
+
+1. **Answer the transport question**, and more importantly tell me **whether
+   controller telemetry can discriminate the hypotheses at all**, given the
+   controlled negative. If it can't, say so and tell me what would.
+2. **Tell me whether the high-flow experiment should come before the code.** Run
+   the shower with several outlets open, well above any minimum firing flow, and
+   see whether it survives materially longer than the handshower-alone case. If
+   high flow is stable and low flow fails, that's close to conclusive with no
+   instrumentation at all. My instinct is that it should come first and that the
+   logger should be running while I do it, so the run is captured either way —
+   tell me if you disagree.
+3. **Propose what to capture and the JSONL record shape**, before writing code.
+4. **Build it, and get it capturing on the dev box.**
+5. **Stop there and show me real captured traces.** I want to look at actual
+   content — a few minutes of idle capture — and understand what's in each field
+   before I run any water.
+6. **Only once I've reviewed that and confirmed will I start a shower.** Treat
+   "the operator has reviewed the trace and said go" as a hard gate. Do not ask me
+   to start the shower before step 5 is done.
 
 Also worth capturing: wall-clock duration from shower start to shutoff, across
 many events, so we can see whether it clusters (timer) or scatters (fault).
@@ -152,35 +271,38 @@ many events, so we can see whether it clusters (timer) or scatters (fault).
 `cerror_logs.cgi` and `kerror_logs.cgi` are already exposed as reads (0/5) — poll
 them for *changes* rather than continuously.
 
+## Open questions this session may be able to close
+
+Beyond the trace itself, these are now answerable and were not before:
+
+- **Does the shutoff still happen with the interface reconnected?** It has been
+  absent and present across the fault's lifetime, which is a free natural
+  experiment. Even a "yes, unchanged" is worth recording.
+- **How much of the two-session budget does the reconnected interface consume?**
+  This decides whether telemetry can add anything at all.
+- **How often does the degraded `values.cgi` payload actually occur, and does it
+  cluster?** We now have a discriminator (key count) and no measurement. If it
+  clusters around anything — time, load, the interface polling — that is itself a
+  finding, and possibly a related one.
+
 ## Constraints you must not break
 
 - **Nothing above 2/5** on the CGI risk scale. The gate in
   `app/server/cgi-safety.mjs` enforces it; don't weaken it. Widening the exposed
   surface needs a recorded reason and the pinned test updated deliberately.
 - **Never open a valve.** All of this is read-only. I'll run showers manually.
-- **Two concurrent HTTP sessions maximum**, serialised, with a gap.
-- The app must stay usable — this is still my only way to run the shower.
+  (The app has now driven a real shower successfully — that does not change this
+  rule for you.)
+- **Two concurrent HTTP sessions maximum**, serialised, with a gap — and budget
+  for the wall interface being one of them now.
+- **The app must stay usable.** It is my only remote way to run the shower, and it
+  is now genuinely in use rather than a prototype.
 
 ## Also
 
 Append anything significant to `STORY-LOG.md` per the convention in `AGENT.md`.
 This is being documented for YouTube (@azab2c) and may go to Kohler support, so
 findings, reversals and mistakes are all worth capturing as they happen.
-
-## How I want to work through this
-
-1. Tell me what you found on the transport question, and — more importantly —
-   **whether controller telemetry can actually discriminate the hypotheses**,
-   given the controlled negative above. If it can't, say so and tell me what
-   would.
-2. Propose what to capture and the JSONL record shape, before writing code.
-3. Build it, and get it capturing on the dev box.
-4. **Stop there and show me real captured traces.** I want to look at actual
-   content — a few minutes of idle capture — and understand what's in each field
-   before I run any water.
-5. Only once I've reviewed that and confirmed will I start a shower. Treat "the
-   operator has reviewed the trace and said go" as a hard gate. Do not ask me to
-   start the shower before step 4 is done.
 
 Sample output I can eyeball matters more than completeness — if a field is
 cryptic, tell me what it means and why it's worth logging.

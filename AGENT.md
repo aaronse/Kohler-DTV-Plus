@@ -43,10 +43,9 @@ may be read by Kohler engineers and by a general audience.**
 
 ## Story log
 
-Append to [STORY-LOG.md](STORY-LOG.md) whenever something happens that a viewer,
-a Kohler engineer, or future-you would want to know. This is the raw material for
-the video and for any support conversation — write it as it happens, because the
-detail is gone by the next session.
+Append to [STORY-LOG.md](STORY-LOG.md) whenever something happens that a viewer, a Kohler engineer, or
+future-you would want to know. This is the raw material for the video and for any support conversation —
+write it as it happens, because the detail is gone by the next session.
 
 **Append when:**
 
@@ -60,23 +59,17 @@ detail is gone by the next session.
 
 **Do not append** routine refactors, passing tests, or tidy-ups.
 
-**Format** — newest entries at the top of the log body, under a date heading:
-
-```markdown
-## 2026-07-26
-
-### 12:42 — Video review kills the "phantom touch" theory
-The 2026-07-14 recording shows the controller still reporting "running" for
-about a minute after the water stops. A commanded stop sets state immediately,
-so nothing commanded this. The valve stops and the controller finds out later.
-
-**Why it matters:** moves the investigation from the interface to the valve.
-**For Kohler:** the controller has no idea the valve has gone until it times out.
-```
-
-Timestamps are local time. Include a **Why it matters** line. Add a **For
-Kohler** line when the entry is something their support or product team should
-see — those get collated when we contact them.
+- **Read cheaply:** `STORY-DECISIONS.md` (when present) for what is true now, then `STORY-LOG-INDEX.md`,
+  then only the entries you need, by line range. Never read a whole `STORY-LOG.md`.
+- **Format:** storylog v0 (`E:\git\storylog\SPEC.md`; Claude Code has the `storylog` skill). Entries
+  run **oldest first**: append at the END with `storylog add`, or by hand followed by `storylog index`.
+  Headline `### YYYY-MM-DD HH:MM — <a claim, not a topic>`, local time; load-bearing numbers inline or in
+  a table; evidence linked, not pasted; close with `**Why it matters:**`. Add a **For Kohler:** line when the entry is something their support or product team should see — those get collated when we contact them.
+- **Never edit, reorder or delete a committed entry.** A wrong entry is overturned by a new one.
+- **Investigations** with several attempts get a breakout: `storylog init <dir>/story-log/<slug>
+  --parent ../../STORY-LOG.md`, one `iterations/<variant>-v<NN>/` per attempt (`storylog iteration`).
+- **Images:** commit only metadata-free WebP (`storylog photo`); never GPS.
+- **Before committing:** `storylog verify .` must exit 0.
 
 ## Conventions
 

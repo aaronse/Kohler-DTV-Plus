@@ -49,37 +49,6 @@
       "onFire": true
     },
     {
-      "id": "KDTV-W16",
-      "title": "GPS coordinates are still in the public git history, and the decision is recorded in another repo",
-      "shape": "irreversible",
-      "pcfirg": {
-        "problem": "The pre-5d83023 blob of Images/KohlerBoardOverall.webp still carries an exif:GPS chunk and is reachable from origin/master on a public GitHub repository.",
-        "cause": "5d83023 removed the chunk from the working tree only and said so in its own message; the history decision was deferred and is tracked in a sibling repo's backlog (storylog S20), so a reader of this repo cannot see that it is open.",
-        "fix": "Take the decision — rewrite history and force-push, or record 'accepted, and why' in this repo — and either way append the story-log entry AGENT.md:58 requires for a mistake that got corrected.",
-        "impact": "Either the owner's premises stop being derivable from the public repo, or the repo stops implying the question is still being worked.",
-        "risk": "A force-push on a public default branch breaks existing clones and does not reach forks or the host's own caches, so a support request may be needed to finish the job.",
-        "goal": "No blob reachable from this repo's public history carries GPS metadata, or a dated line in this repo records that the exposure was accepted and on what reasoning."
-      },
-      "evidenceRefs": [
-        "git show 5d83023^:Images/KohlerBoardOverall.webp (exif:GPS present)",
-        "git log 5d83023 (commit body: 'The old bytes remain in history and on GitHub')",
-        "git merge-base --is-ancestor 05ebb49 origin/master (true)",
-        "AGENT.md:71",
-        "AGENT.md:58",
-        "e:/git/storylog/BACKLOG-INDEX.md:13 (S20, Who=dec, status open)"
-      ],
-      "age": {
-        "lastSubstantiveTouch": "2026-10-08",
-        "ageDays": 23,
-        "whatItsAgeMeans": "The decision is 23 days old; the exposure is 97. The gap between those two numbers is the finding — the fix commit named the problem and then the clock started again."
-      },
-      "route": "just-do-it",
-      "routeWhy": "One owner decision followed by either a short mechanical job or one line of writing. It is not a study: both options and their costs are already known.",
-      "steelmanAgainst": "Rewriting a public default branch has real costs and reaches neither forks nor caches, so 'accept it' may well be the right answer — and the photo is of a circuit board, not a front door. The candidate is for the undecidedness, not for a particular outcome.",
-      "costOfDelay": "The exposure itself is already 97 days old and another quarter changes little about the bytes. What it costs is that the repo's own safety convention (AGENT.md:71) is on record being broken with no resolution, in a repo written to be read by outsiders.",
-      "onFire": true
-    },
-    {
       "id": "KDTV-W11",
       "title": "A ~412-second periodic controller fault is measured in the trace and recorded nowhere, while the story log still blames load",
       "shape": "untested-assumption",
@@ -533,5 +502,12 @@
     "met": true,
     "note": "Met for the first time in this repo's three ledgers, and the reason is the calendar rather than better attention: the repo's substantive history begins 2026-07-26 and crossed 90 days on 2026-10-24. The 2026-08-29 ledger reported 0 of 11 and explained why honestly. Ten of fifteen candidates now have a last substantive touch of 94 days or more, and seven of those ten were already in the 2026-08-04 or 2026-08-29 ledger and were not acted on. No item was promoted to fill the quota; W18 and W19 are the only two admitted on age alone, and both expired against dates written in the repo itself ('after some months'; 'last full sweep')."
   },
-  "caveats": "Verified by execution: npx vitest run in app/ (85 passed, exit 0) and viewer/ (164 passed), npx tsc --noEmit in both (exit 0), npx vite build in app/ (exit 0, 168.38 kB JS), exposedEndpoints() (18 of 56, MAX_RISK 2), storylog verify . (0 errors, 1 warning), git log/status/blame/show, and a fresh parse of app/.trace/egress.log with every timestamp re-derived rather than inherited from the prior ledger. Both test suites were run with DTV_TRACE_DIR pointed at a scratch directory, so this sweep did NOT repeat KDTV-W14's pollution: the live trace is still exactly 1,998 lines. NOT contacted: the controller or any hardware; no REQ line was generated. Where I disagree with the prior snapshot I say so: the guard-defeat spacing measures 408-425 s, not ~366 s, because the two readings anchor on different events, and inferiere does reference this footage, which the 08-29 snapshot denied. NOT verified: whether a browser tab on the controller's own page or a second LAN client was open during the 08-05 and 08-11 windows, which an egress-only trace cannot see and which is the main confounder for calling the fault periodic; whether the 08-11 shower actually ran 31 minutes or merely was polled for 31 minutes (the log ends, it does not record a stop); the viewer's export gate, which was not re-run. Cross-repo reads were read-only and shallow: storylog, inferiere, mg-web, mg-controller, OpenMakerLicense, llm-fab, sig-wb and craftcraft-private. One distortion to hold for a cross-repo read: this repo is unusually well documented for its size, so its gaps are visible in a way a less-documented sibling's are not; do not read the length of this ledger as the repo being in worse shape than its neighbours."
+  "caveats": "Verified by execution: npx vitest run in app/ (85 passed, exit 0) and viewer/ (164 passed), npx tsc --noEmit in both (exit 0), npx vite build in app/ (exit 0, 168.38 kB JS), exposedEndpoints() (18 of 56, MAX_RISK 2), storylog verify . (0 errors, 1 warning), git log/status/blame/show, and a fresh parse of app/.trace/egress.log with every timestamp re-derived rather than inherited from the prior ledger. Both test suites were run with DTV_TRACE_DIR pointed at a scratch directory, so this sweep did NOT repeat KDTV-W14's pollution: the live trace is still exactly 1,998 lines. NOT contacted: the controller or any hardware; no REQ line was generated. Where I disagree with the prior snapshot I say so: the guard-defeat spacing measures 408-425 s, not ~366 s, because the two readings anchor on different events, and inferiere does reference this footage, which the 08-29 snapshot denied. NOT verified: whether a browser tab on the controller's own page or a second LAN client was open during the 08-05 and 08-11 windows, which an egress-only trace cannot see and which is the main confounder for calling the fault periodic; whether the 08-11 shower actually ran 31 minutes or merely was polled for 31 minutes (the log ends, it does not record a stop); the viewer's export gate, which was not re-run. Cross-repo reads were read-only and shallow: storylog, inferiere, mg-web, mg-controller, OpenMakerLicense, llm-fab, sig-wb and craftcraft-private. One distortion to hold for a cross-repo read: this repo is unusually well documented for its size, so its gaps are visible in a way a less-documented sibling's are not; do not read the length of this ledger as the repo being in worse shape than its neighbours.",
+  "priorLedgerBurndown": [
+    {
+      "id": "KDTV-W16",
+      "status": "done",
+      "evidence": "Owner ruling 2026-11-01: The coordinates were not the owner's. The photo blob was purged from history and `master` force-pushed on 2026-11-01. Closed; do not raise again."
+    }
+  ]
 }

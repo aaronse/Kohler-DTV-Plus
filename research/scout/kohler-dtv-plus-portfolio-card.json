@@ -440,11 +440,6 @@
       "item": "The only copy of the project's newest hardware evidence, and the only analysis of it, are both outside git",
       "evidence": "app/.trace/egress.log is 1,998 lines, gitignored (app/.gitignore:11-13), mtime 2026-08-29, and the app has not run since 2026-08-11. git status has shown the same four untracked paths for 63 days: docs/state/2026-08-29-KOHLER-DTV-PLUS-STATE-OF-PROJECT.md and three files under research/scout/. research/diagnostics/ holds four files, newest 2026-08-04.",
       "action": "Copy the 2026-08-05 and 2026-08-11 windows of app/.trace/egress.log into research/diagnostics/ with dates in the filenames, then git add the four untracked paths and commit. No decision required."
-    },
-    {
-      "item": "GPS coordinates of the owner's premises are still in the public git history",
-      "evidence": "git show 5d83023^:Images/KohlerBoardOverall.webp still contains an exif:GPS chunk; the introducing commit 05ebb49 (2026-07-26) is an ancestor of origin/master; HEAD equals origin/master. The 2026-10-08 commit body states the old bytes remain on the remote pending an owner decision, which is tracked as storylog backlog row S20 and not in this repo.",
-      "action": "Owner decision: purge the blob from history and force-push (accepting that forks and host caches are not reached), or record in this repo that the exposure is accepted and why. Either way append the story-log entry AGENT.md:58 requires."
     }
   ]
 }

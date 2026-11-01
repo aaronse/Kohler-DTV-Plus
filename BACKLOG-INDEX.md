@@ -23,7 +23,7 @@ the open table or gets a ✅ / ❌ status, in the same commit as the work.
 | ID | Item | Who | Cost | Status |
 |---|---|---|---|---|
 | WS-1031-01 | **Preserve the project's own evidence.** Copy the 2026-08-05 and 2026-08-11 windows of the gitignored `app/.trace/egress.log` into `research/diagnostics/` with dates, then `git add` the four scout artifacts untracked since 2026-08-29. Unlocks every other row, because all of them cite that file, and it is the only copy. — ledger `KDTV-W15`, shape `silent-failure`, 63 d 🔥 | dec | small | ⬜ |
-| WS-1031-02 | **Settle the GPS history exposure.** Decide whether to purge the pre-`5d83023` photo blob from public history and force-push, or to record the exposure as accepted and why, and append the story-log entry the repo's own convention requires either way. Unlocks publishing the work without an open privacy question. Tracked in parallel as storylog S20. — ledger `KDTV-W16`, shape `irreversible`, 23 d 🔥 | dec | one decision, then small | ⬜ |
+| WS-1031-02 | **Settle the GPS history exposure.** Decide whether to purge the pre-`5d83023` photo blob from public history and force-push, or to record the exposure as accepted and why, and append the story-log entry the repo's own convention requires either way. Unlocks publishing the work without an open privacy question. Tracked in parallel as storylog S20. — ledger `KDTV-W16`, shape `irreversible`, 23 d 🔥 | dec | one decision, then small | ✅ |
 | WS-1031-03 | **Land the periodic-fault finding so the investigation stops reasoning from a belief the evidence killed.** Write the measured ~412 s guard-defeat cycle into I3 as a hypothesis with its anchor, mark E11 answered, record the 2026-08-11 shower in I1, and overturn the 2026-08-04 'we caused both hangs' entry. Unlocks a correctly aimed E1 and E10. — ledger `KDTV-W11`, shape `untested-assumption`, 87 d | dec | ~1 session | ⬜ |
 | WS-1031-04 | **Fix the valve-loss guard (E9) so a valve loss in a future trace means something.** Replace the count-repetitions rule in `middleware.mjs:92-119` with the specified short-or-slow single-sample test. Unlocks trustworthy evidence for I1 and stops the proxy manufacturing the signature the investigation hunts; measured defeated 12 times. — ledger `KDTV-W10`, shape `silent-failure`, 97 d | dec | ~1 session | ⬜ |
 | WS-1031-05 | **Record what the controller did, not only what we asked.** Emit state `DIFF` lines when the derived model changes, and serve the trace tail on one route so a stall is visible from the bathroom. Unlocks a water-moving experiment whose result is recorded rather than inferred — the 2026-08-11 shower is the worked example of running one without it. — ledger `KDTV-W4`, shape `dormant-decision`, 88 d | dec | ~2 sessions | ⬜ |
@@ -51,3 +51,7 @@ One ledger candidate is deliberately absent, because the index holds only work r
 
 Ten further items were looked at and did not clear the bar; they are listed with their reasons
 under *Considered and not carried* in the ledger.
+
+## Owner rulings
+
+- **2026-11-01, WS-1031-02:** The coordinates were not the owner's. The photo blob was purged from history and `master` force-pushed on 2026-11-01. Closed; do not raise again.

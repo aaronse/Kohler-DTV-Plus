@@ -639,3 +639,14 @@ which connected devices are reported as absent. There is no error status — the
 reply parses cleanly and looks authoritative. A client cannot distinguish it from
 a genuine device dropout except by counting keys or noticing that the response
 took twenty seconds.
+
+### 2026-11-01 00:45 — The photo that broke our own no-GPS rule is out of git history
+
+The board photo added on 2026-07-26 carried GPS metadata, against the rule in AGENT.md that images never do.
+The October fix stripped it from the working tree only, so the original stayed reachable from public `master`.
+History is now rewritten with the stripped photo in every commit, and `master` is force-pushed. Commit hashes
+before that push no longer exist on the branch, so any older note citing one is out of date.
+
+**Why it matters:** removing a file from the tree does not remove it from a public repo. GitHub still serves the
+old blob to anyone who has its exact id, and only GitHub can remove that. The coordinates were not the owner's,
+so the owner closed this at that point.

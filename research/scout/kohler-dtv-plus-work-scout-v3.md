@@ -1,51 +1,48 @@
-# Kohler DTV+ — Work Ledger v3
+# Kohler-DTV-Plus — work ledger
 
-Generated **2026-10-31** by `claude-opus-5` from [docs/state/2026-10-31-KOHLER-DTV-PLUS-STATE-OF-PROJECT.md](../../docs/state/2026-10-31-KOHLER-DTV-PLUS-STATE-OF-PROJECT.md) — read that first; this file does not repeat it.
+Generated **2026-10-31** by `claude-opus-5`, `work-scout-v1`, repo `E:/git/Kohler-DTV-Plus`. Rendered from the JSON by `scout_ledger.py`: no new content.
 
-Machine-readable twin: `research/scout/kohler-dtv-plus-work-scout-v3.json`. Prior ledger: `research/scout/kohler-dtv-plus-work-scout-v2.json` (2026-08-29, still untracked — see KDTV-W15). Scored rows for the portfolio board live in `BACKLOG-INDEX.md`.
+**Assessment behind this ledger:** [`docs/state/2026-10-31-KOHLER-DTV-PLUS-STATE-OF-PROJECT.md`](../../docs/state/2026-10-31-KOHLER-DTV-PLUS-STATE-OF-PROJECT.md). Read it first.
 
-**This ledger does not score and does not implement.** It establishes what is true, frames each
-candidate as PCFIRG, routes it, and stops.
+**Machine-readable twin:** [`kohler-dtv-plus-work-scout-v3.json`](kohler-dtv-plus-work-scout-v3.json).
+
+A browser replacement for a Kohler DTV+ shower's disconnected K-99693 wall interface, driving the controller's undocumented HTTP/0.9 CGI API through a raw-socket Node proxy behind a code-enforced safety gate, plus an open investigation into why the shower stopped itself mid-use.
 
 ## Repo activity
 
-| Last commit | Quiet days | App last run | In flight |
-| --- | --- | --- | --- |
-| 2026-10-08 | 23 | 2026-08-11 | nothing |
+Last commit 2026-10-08, 23 quiet days. In flight: nothing.
 
 Paused, and paused differently than on 2026-08-29. One commit landed in 63 days (5d83023, housekeeping: GPS strip plus a storylog v0 migration). git status has shown the same four untracked scout artifacts for 63 days, HEAD equals origin/master, and the app has not been run in 81 days. Measured today: 85 app tests and 164 viewer tests pass, both typechecks and the app build are clean. Nothing in the 2026-08-29 ledger was acted on.
 
-## Candidates at a glance
+## The ledger
 
-| # | Candidate | Shape | Age | Route | Cost of delay (first clause) |
-| --- | --- | --- | --- | --- | --- |
-| 1 | **KDTV-W15** 🔥 Sixty-three days of hardware evidence and the only analysis of it both live outside git | silent-failure | 63 d (2026-08-29) | `just-do-it` | High and asymmetric |
-| 2 | **KDTV-W16** 🔥 GPS coordinates are still in the public git history, and the decision is recorded in another repo | irreversible | 23 d (2026-10-08) | `just-do-it` | The exposure itself is already 97 days old and another quarter changes little about the bytes |
-| 3 | **KDTV-W11** A ~412-second periodic controller fault is measured in the trace and recorded nowhere, while the story log still blames load | untested-assumption | 87 d (2026-08-05) | `just-do-it` | Every session that reads INVESTIGATIONS |
-| 4 | **KDTV-W10** The values.cgi valve-loss guard is defeated on every stall and the replacement rule has been specified for 88 days | silent-failure | 97 d (2026-07-26) | `batch` | Low in water terms — the UI blanks for 30 s and recovers — and high in evidence terms: every future trace stays ambiguous about whether a valve loss was real, which is the one question I1 exists to answer |
-| 5 | **KDTV-W4** The state-diff trace and the phone log viewer are the unbuilt half of the telemetry brief, and the built half shows why they are needed | dormant-decision | 88 d (2026-08-04) | `batch` | Moderate |
-| 6 | **KDTV-W8** The front page of a public repo states the fault this project works around is still present, and the one commit in 63 days added a fresh contradiction | doc-rot | 97 d (2026-07-26) | `just-do-it` | Low operationally, real reputationally |
-| 7 | **KDTV-W13** Every dev page load sends four requests to hardware documented as fragile, and the proxy forwards reads the browser already abandoned | silent-failure | 97 d (2026-07-26) | `batch` | Low in itself |
-| 8 | **KDTV-W14** npm test writes into the operator's live evidence file, and the documented way to stop it breaks twelve tests | silent-failure | 72 d (2026-08-20) | `just-do-it` | Low, and it accrues one line per test run |
-| 9 | **KDTV-W5** A degraded or absent values.cgi makes the model declare the system Fahrenheit and its ceiling 113 | silent-failure | 97 d (2026-07-26) | `batch` | Nothing much for this shower |
-| 10 | **KDTV-W18** The repair's own re-check is 94 days overdue and nothing in the repo will ever fire it | aging-assumption | 94 d (2026-07-29) | `just-do-it` | Unknown, which is the problem |
-| 11 | **KDTV-W19** The monitoring index whose purpose is a periodic sweep has not been swept in 97 days | aging-assumption | 97 d (2026-07-26) | `just-do-it` | Low per quarter and compounding: the longer the gap, the larger the diff and the more likely a relevant finding is read as old news |
-| 12 | **KDTV-W9** A public repo redistributes three unlicensed third-party bodies and a manufacturer's CAD under a licence labelled Draft | irreversible | 97 d (2026-07-26) | `just-do-it` | Nothing much most quarters, and a step change the moment the repo gets attention — which is the explicit plan, since the work is heading for a public video |
-| 13 | **KDTV-W3** The week that justifies this project is missing from the story log, and the footage has been sitting processed in a sibling repo since July | drift | 95 d (2026-07-28) | `just-do-it` | The detail keeps leaving |
-| 14 | **KDTV-W1** The cheapest experiment that could settle the leading hypothesis has been specified and unrun for 97 days | blocked-decision | 97 d (2026-07-26) | `just-do-it` | High in information terms |
-| 15 | **KDTV-W20** The repo's stated public purpose has no owner, date or artifact after 97 days | blocked-decision | 97 d (2026-07-26) | `scored-proposal` | Nothing operationally |
+| ID | Title | Shape | Age (days) | Route | Cost of delay |
+|---|---|---|---|---|---|
+| [KDTV-W15](#kdtv-w15) 🔥 | Sixty-three days of hardware evidence and the only analysis of it both live outside git | silent-failure | 63 | just-do-it | High and asymmetric |
+| [KDTV-W11](#kdtv-w11) | A ~412-second periodic controller fault is measured in the trace and recorded nowhere, while the story log still blames load | untested-assumption | 87 | just-do-it | Every session that reads INVESTIGATIONS.md inherits the wrong mechanism and plans the wrong experiment |
+| [KDTV-W10](#kdtv-w10) | The values.cgi valve-loss guard is defeated on every stall and the replacement rule has been specified for 88 days | silent-failure | 97 | batch | Low in water terms — the UI blanks for 30 s and recovers — and high in evidence terms: every future trace stays ambiguous about whether a valve loss was real, which is the one question I1 exists to answer. |
+| [KDTV-W4](#kdtv-w4) | The state-diff trace and the phone log viewer are the unbuilt half of the telemetry brief, and the built half shows why they are needed | dormant-decision | 88 | batch | Moderate |
+| [KDTV-W8](#kdtv-w8) | The front page of a public repo states the fault this project works around is still present, and the one commit in 63 days added a fresh contradiction | doc-rot | 97 | just-do-it | Low operationally, real reputationally |
+| [KDTV-W13](#kdtv-w13) | Every dev page load sends four requests to hardware documented as fragile, and the proxy forwards reads the browser already abandoned | silent-failure | 97 | batch | Low in itself |
+| [KDTV-W14](#kdtv-w14) | npm test writes into the operator's live evidence file, and the documented way to stop it breaks twelve tests | silent-failure | 72 | just-do-it | Low, and it accrues one line per test run |
+| [KDTV-W5](#kdtv-w5) | A degraded or absent values.cgi makes the model declare the system Fahrenheit and its ceiling 113 | silent-failure | 97 | batch | Nothing much for this shower |
+| [KDTV-W18](#kdtv-w18) | The repair's own re-check is 94 days overdue and nothing in the repo will ever fire it | aging-assumption | 94 | just-do-it | Unknown, which is the problem |
+| [KDTV-W19](#kdtv-w19) | The monitoring index whose purpose is a periodic sweep has not been swept in 97 days | aging-assumption | 97 | just-do-it | Low per quarter and compounding: the longer the gap, the larger the diff and the more likely a relevant finding is read as old news |
+| [KDTV-W9](#kdtv-w9) | A public repo redistributes three unlicensed third-party bodies and a manufacturer's CAD under a licence labelled Draft | irreversible | 97 | just-do-it | Nothing much most quarters, and a step change the moment the repo gets attention — which is the explicit plan, since the work is heading for a public video. |
+| [KDTV-W3](#kdtv-w3) | The week that justifies this project is missing from the story log, and the footage has been sitting processed in a sibling repo since July | drift | 95 | just-do-it | The detail keeps leaving |
+| [KDTV-W1](#kdtv-w1) | The cheapest experiment that could settle the leading hypothesis has been specified and unrun for 97 days | blocked-decision | 97 | just-do-it | High in information terms |
+| [KDTV-W20](#kdtv-w20) | The repo's stated public purpose has no owner, date or artifact after 97 days | blocked-decision | 97 | scored-proposal | Nothing operationally |
 
-🔥 = `onFire`: one operator action prevents a loss or an exposure.
-
-**Anti-recency quota:** 10 of 15 candidates have a last substantive touch older than ~90 days — **met**.
+**Quota check:** 10 of 15 older than 90 days, met.
 
 Met for the first time in this repo's three ledgers, and the reason is the calendar rather than better attention: the repo's substantive history begins 2026-07-26 and crossed 90 days on 2026-10-24. The 2026-08-29 ledger reported 0 of 11 and explained why honestly. Ten of fifteen candidates now have a last substantive touch of 94 days or more, and seven of those ten were already in the 2026-08-04 or 2026-08-29 ledger and were not acted on. No item was promoted to fill the quota; W18 and W19 are the only two admitted on age alone, and both expired against dates written in the repo itself ('after some months'; 'last full sweep').
 
 ---
 
-## The candidates
+## Candidates
 
-### KDTV-W15 · Sixty-three days of hardware evidence and the only analysis of it both live outside git — 🔥 **on fire**
+<a id="kdtv-w15"></a>
+### KDTV-W15 · Sixty-three days of hardware evidence and the only analysis of it both live outside git — 🔥 on fire
 
 `silent-failure` · last substantive touch **2026-08-29** (63 days) · route **`just-do-it`**
 
@@ -68,29 +65,7 @@ Goal: `git status` is clean and research/diagnostics/ holds dated copies of both
 
 **Evidence.** `app/.gitignore:11-13`; `app/.trace/egress.log:1-1998`; `research/diagnostics/ (4 files, newest 2026-08-04)`; `docs/state/2026-08-29-KOHLER-DTV-PLUS-STATE-OF-PROJECT.md:1-10 (untracked)`; `research/scout/kohler-dtv-plus-work-scout-v2.json (untracked)`
 
-### KDTV-W16 · GPS coordinates are still in the public git history, and the decision is recorded in another repo — 🔥 **on fire**
-
-`irreversible` · last substantive touch **2026-10-08** (23 days) · route **`just-do-it`**
-
-```text
-Problem: The pre-5d83023 blob of Images/KohlerBoardOverall.webp still carries an exif:GPS chunk and is reachable from origin/master on a public GitHub repository.
-Cause: 5d83023 removed the chunk from the working tree only and said so in its own message; the history decision was deferred and is tracked in a sibling repo's backlog (storylog S20), so a reader of this repo cannot see that it is open.
-Fix: Take the decision — rewrite history and force-push, or record 'accepted, and why' in this repo — and either way append the story-log entry AGENT.md:58 requires for a mistake that got corrected.
-Impact: Either the owner's premises stop being derivable from the public repo, or the repo stops implying the question is still being worked.
-Risk: A force-push on a public default branch breaks existing clones and does not reach forks or the host's own caches, so a support request may be needed to finish the job.
-Goal: No blob reachable from this repo's public history carries GPS metadata, or a dated line in this repo records that the exposure was accepted and on what reasoning.
-```
-
-**What its age means.** The decision is 23 days old; the exposure is 97. The gap between those two numbers is the finding — the fix commit named the problem and then the clock started again.
-
-**Why this route.** One owner decision followed by either a short mechanical job or one line of writing. It is not a study: both options and their costs are already known.
-
-**Steelman against.** Rewriting a public default branch has real costs and reaches neither forks nor caches, so 'accept it' may well be the right answer — and the photo is of a circuit board, not a front door. The candidate is for the undecidedness, not for a particular outcome.
-
-**Cost of delay.** The exposure itself is already 97 days old and another quarter changes little about the bytes. What it costs is that the repo's own safety convention (AGENT.md:71) is on record being broken with no resolution, in a repo written to be read by outsiders.
-
-**Evidence.** `git show 5d83023^:Images/KohlerBoardOverall.webp (exif:GPS present)`; `git log 5d83023 (commit body: 'The old bytes remain in history and on GitHub')`; `git merge-base --is-ancestor 05ebb49 origin/master (true)`; `AGENT.md:71`; `AGENT.md:58`; `e:/git/storylog/BACKLOG-INDEX.md:13 (S20, Who=dec, status open)`
-
+<a id="kdtv-w11"></a>
 ### KDTV-W11 · A ~412-second periodic controller fault is measured in the trace and recorded nowhere, while the story log still blames load
 
 `untested-assumption` · last substantive touch **2026-08-05** (87 days) · route **`just-do-it`**
@@ -114,6 +89,7 @@ Goal: I3 carries a periodic-fault hypothesis with its measurement and anchor, E1
 
 **Evidence.** `app/.trace/egress.log:228,321,412,503,594,685,776,867 (08-05 ACCEPTED lines)`; `app/.trace/egress.log:1353,1579,1781,1873 (08-11 ACCEPTED lines)`; `INVESTIGATIONS.md:588-600 (E11, both branches pre-stated)`; `INVESTIGATIONS.md:553-571 (E8 result: 'everything degraded tonight followed load we generated')`; `STORY-LOG-INDEX.md (entry 2026-08-04 23:05)`; `AGENT.md:68`
 
+<a id="kdtv-w10"></a>
 ### KDTV-W10 · The values.cgi valve-loss guard is defeated on every stall and the replacement rule has been specified for 88 days
 
 `silent-failure` · last substantive touch **2026-07-26** (97 days) · route **`batch`**
@@ -137,6 +113,7 @@ Goal: A session reproducing the 08-05 stall pattern produces zero `ACCEPTED valv
 
 **Evidence.** `app/server/middleware.mjs:92-119`; `INVESTIGATIONS.md:574-586 (E9, unchecked)`; `app/src/api/model.ts:101-160 (buildValve)`; `app/.trace/egress.log:1353 (ACCEPTED at 22:17:23Z, one minute into the 08-11 shower)`; `git blame app/server/middleware.mjs:88-94 -> c8cefc13 (2026-07-26)`
 
+<a id="kdtv-w4"></a>
 ### KDTV-W4 · The state-diff trace and the phone log viewer are the unbuilt half of the telemetry brief, and the built half shows why they are needed
 
 `dormant-decision` · last substantive touch **2026-08-04** (88 days) · route **`batch`**
@@ -160,6 +137,7 @@ Goal: A shower run produces DIFF lines bracketing its start and end, readable fr
 
 **Evidence.** `app/server/trace.mjs:42`; `app/server/trace.mjs:131`; `app/server/middleware.mjs:125-173 (four routes, none serving the log)`; `research/PROMPT-observability.md (step 5)`; `app/.trace/egress.log:1873-1998 (the 08-11 run's last poll, then nothing)`
 
+<a id="kdtv-w8"></a>
 ### KDTV-W8 · The front page of a public repo states the fault this project works around is still present, and the one commit in 63 days added a fresh contradiction
 
 `doc-rot` · last substantive touch **2026-07-26** (97 days) · route **`just-do-it`**
@@ -183,6 +161,7 @@ Goal: No tracked document states the dead premise, and every count in prose matc
 
 **Evidence.** `README.md:18-19`; `README.md:40`; `DESIGN.md:11-13`; `DESIGN.md:165`; `DESIGN.md:204-206`; `PROTOCOL.md:199-201`; `viewer/README.md:87`; `app/scripts/selftest.mjs:179`; `research/FIELD-NOTES.md:251`; `INVESTIGATIONS.md:518`; `AGENT.md:64-65`
 
+<a id="kdtv-w13"></a>
 ### KDTV-W13 · Every dev page load sends four requests to hardware documented as fragile, and the proxy forwards reads the browser already abandoned
 
 `silent-failure` · last substantive touch **2026-07-26** (97 days) · route **`batch`**
@@ -206,6 +185,7 @@ Goal: A dev page load produces exactly one values.cgi and one system_info.cgi RE
 
 **Evidence.** `app/src/main.tsx:7`; `app/src/state/useShower.ts:66-108`; `app/server/middleware.mjs:125-173`; `app/test/hookHarness.ts:18-22`; `app/.trace/egress.log:1241-1244 (a 4-REQ burst)`; `git blame app/src/state/useShower.ts:60-110 -> 6a1b2d43, c8cefc13 (both 2026-07-26)`
 
+<a id="kdtv-w14"></a>
 ### KDTV-W14 · npm test writes into the operator's live evidence file, and the documented way to stop it breaks twelve tests
 
 `silent-failure` · last substantive touch **2026-08-20** (72 days) · route **`just-do-it`**
@@ -228,6 +208,7 @@ Goal: `npx vitest run` leaves the live trace byte-identical, and `DTV_TRACE=0 np
 
 **Evidence.** `app/vite.config.ts:13`; `app/server/middleware.mjs:72`; `app/server/trace.mjs:63`; `app/server/trace.mjs:71`; `app/server/__tests__/trace.test.ts:173-175`; `app/.trace/egress.log:1998 (a NOTE written by the 2026-08-29 sweep's own test run)`
 
+<a id="kdtv-w5"></a>
 ### KDTV-W5 · A degraded or absent values.cgi makes the model declare the system Fahrenheit and its ceiling 113
 
 `silent-failure` · last substantive touch **2026-07-26** (97 days) · route **`batch`**
@@ -251,6 +232,7 @@ Goal: A degraded payload produces no unit and no ceiling in the UI, pinned by a 
 
 **Evidence.** `app/src/api/model.ts:136`; `app/src/api/model.ts:153`; `app/src/api/model.ts:186`; `app/src/api/model.ts:213`; `app/src/api/model.ts:254-258 (isScaldRange)`; `git blame app/src/api/model.ts:130-160 -> 614de910, ab29b2dc (both 2026-07-26)`
 
+<a id="kdtv-w18"></a>
 ### KDTV-W18 · The repair's own re-check is 94 days overdue and nothing in the repo will ever fire it
 
 `aging-assumption` · last substantive touch **2026-07-29** (94 days) · route **`just-do-it`**
@@ -274,6 +256,7 @@ Goal: I2 carries a dated re-check result naming the installed cover revision, an
 
 **Evidence.** `INVESTIGATIONS.md:476 (resolved 2026-07-29)`; `INVESTIGATIONS.md:500-518`; `INVESTIGATIONS.md:522-524`; `cnc/new-rear-port-cover.stl`; `cnc/new-rear-port-cover-v2.stl`; `app/scripts/selftest.mjs:177-181 (the read-only interface check)`
 
+<a id="kdtv-w19"></a>
 ### KDTV-W19 · The monitoring index whose purpose is a periodic sweep has not been swept in 97 days
 
 `aging-assumption` · last substantive touch **2026-07-26** (97 days) · route **`just-do-it`**
@@ -297,6 +280,7 @@ Goal: SOURCES.md carries a 2026-10 sweep date and what the diff found, explicitl
 
 **Evidence.** `research/SOURCES.md:6`; `research/SOURCES.md:12-19 (the sweep loop, with since=2026-07-26)`; `research/SOURCES.md:28,60,80`; `research/FIELD-NOTES.md:251`
 
+<a id="kdtv-w9"></a>
 ### KDTV-W9 · A public repo redistributes three unlicensed third-party bodies and a manufacturer's CAD under a licence labelled Draft
 
 `irreversible` · last substantive touch **2026-07-26** (97 days) · route **`just-do-it`**
@@ -320,6 +304,7 @@ Goal: Every third-party body in the tree has a dated licence position and a name
 
 **Evidence.** `LICENSE.md:46-48`; `research/xagon0/PROVENANCE.md`; `viewer/public/models/PROVENANCE.md`; `AGENT.md:80-81`; `e:/git/OpenMakerLicense/LICENSE.md (unchanged since 2026-01-08)`
 
+<a id="kdtv-w3"></a>
 ### KDTV-W3 · The week that justifies this project is missing from the story log, and the footage has been sitting processed in a sibling repo since July
 
 `drift` · last substantive touch **2026-07-28** (95 days) · route **`just-do-it`**
@@ -343,6 +328,7 @@ Goal: The story log covers 2026-07-27 to 07-29, and one of its entries names whe
 
 **Evidence.** `STORY-LOG-INDEX.md (2026-07-27 16:10 -> 2026-08-03 16:18, no 07-27 support call)`; `INVESTIGATIONS.md:500-518 (the call, the quote, the machining, the cover)`; `AGENT.md:55-56`; `AGENT.md:82-83`; `e:/git/inferiere/apps/web/scripts/gate-b10.ts:9-12`; `e:/git/inferiere/apps/web/scripts/gate-b10.ts:240-247 (two declared chapters)`
 
+<a id="kdtv-w1"></a>
 ### KDTV-W1 · The cheapest experiment that could settle the leading hypothesis has been specified and unrun for 97 days
 
 `blocked-decision` · last substantive touch **2026-07-26** (97 days) · route **`just-do-it`**
@@ -366,6 +352,7 @@ Goal: E1 is checked in INVESTIGATIONS.md with a duration, a story-log entry, and
 
 **Evidence.** `INVESTIGATIONS.md:113-123 (E1, unchecked)`; `INVESTIGATIONS.md:124-138 (E2, unchecked)`; `INVESTIGATIONS.md:180-190 (E10, unchecked)`; `INVESTIGATIONS.md:92-100 (leading hypothesis)`; `INVESTIGATIONS.md:574-586 (E9)`; `DISCLAIMER.md (scald threshold and consent rule)`; `AGENT.md:31-33`; `app/.trace/egress.log:1331-1361 (the 08-11 start, unrecorded)`
 
+<a id="kdtv-w20"></a>
 ### KDTV-W20 · The repo's stated public purpose has no owner, date or artifact after 97 days
 
 `blocked-decision` · last substantive touch **2026-07-26** (97 days) · route **`scored-proposal`**
@@ -391,12 +378,10 @@ Goal: Both appear in a dated N-Star pass with a classification, or this repo's d
 
 ---
 
-## Considered and not carried
-
-What was rejected is how a reader calibrates how aggressive the filter was.
+## Considered and dropped
 
 | Looked at | Why it did not clear the bar |
-| --- | --- |
+|---|---|
 | cnc/ still holds twelve undocumented files (prior KDTV-W7) | Carried twice and never done, and nothing depends on it: the operator holds the knowledge and the files are inputs to one machine. Its one perishable fact — which rear-cover revision is installed — is folded into W18, which has an actual reason to go and look. Demoted rather than carried a third time. |
 | STORY-LOG.md:41 has no '**Why it matters:**' line (the one storylog verify warning) | Unfixable as written: AGENT.md:68 forbids editing a committed entry, and the only compliant fix is a new entry, which is disproportionate to a missing closing line. Recorded here as a standing tension between the format check and the append-only rule, not as work. |
 | The 2026-08-29 snapshot's claim that inferiere references nothing of this footage | False when written — gate-b10.ts predates it by four weeks. Corrected in the state doc's burn-down and folded into W3's cause rather than carried as its own item; a wrong claim in an uncommitted artifact is not work, it is a correction. |
@@ -408,8 +393,24 @@ What was rejected is how a reader calibrates how aggressive the filter was.
 | The viewer's Maker Galaxy graduation has not started | Verified again: mg-web has no sourceUnit and no gizmo files. The roadmap lives in mg-web, so recording 'nothing crossed' belongs in the state doc's cross-project table, not in this repo's ledger. |
 | DESIGN.md's known gaps — presets, massage speed, second valve, PWA — and the Android port | Spec-compliant deferrals, declared plainly and unchanged. Not drift. |
 
----
+## Burn-down of the previous ledger
+
+| ID | Status | Evidence |
+|---|---|---|
+| KDTV-W16 | done | Owner ruling 2026-11-01: The coordinates were not the owner's. The photo blob was purged from history and `master` force-pushed on 2026-11-01. Closed; do not raise again. |
 
 ## Caveats
 
 Verified by execution: npx vitest run in app/ (85 passed, exit 0) and viewer/ (164 passed), npx tsc --noEmit in both (exit 0), npx vite build in app/ (exit 0, 168.38 kB JS), exposedEndpoints() (18 of 56, MAX_RISK 2), storylog verify . (0 errors, 1 warning), git log/status/blame/show, and a fresh parse of app/.trace/egress.log with every timestamp re-derived rather than inherited from the prior ledger. Both test suites were run with DTV_TRACE_DIR pointed at a scratch directory, so this sweep did NOT repeat KDTV-W14's pollution: the live trace is still exactly 1,998 lines. NOT contacted: the controller or any hardware; no REQ line was generated. Where I disagree with the prior snapshot I say so: the guard-defeat spacing measures 408-425 s, not ~366 s, because the two readings anchor on different events, and inferiere does reference this footage, which the 08-29 snapshot denied. NOT verified: whether a browser tab on the controller's own page or a second LAN client was open during the 08-05 and 08-11 windows, which an egress-only trace cannot see and which is the main confounder for calling the fault periodic; whether the 08-11 shower actually ran 31 minutes or merely was polled for 31 minutes (the log ends, it does not record a stop); the viewer's export gate, which was not re-run. Cross-repo reads were read-only and shallow: storylog, inferiere, mg-web, mg-controller, OpenMakerLicense, llm-fab, sig-wb and craftcraft-private. One distortion to hold for a cross-repo read: this repo is unusually well documented for its size, so its gaps are visible in a way a less-documented sibling's are not; do not read the length of this ledger as the repo being in worse shape than its neighbours.
+
+## Other fields
+
+**priorStateOfProjectDoc.** docs/state/2026-08-29-KOHLER-DTV-PLUS-STATE-OF-PROJECT.md
+
+**priorLedger.** research/scout/kohler-dtv-plus-work-scout-v2.json
+
+**backlogIndex.** BACKLOG-INDEX.md
+
+**lastAppUseInTrace.** 2026-08-11
+
+**isBaselineReal.** `true`

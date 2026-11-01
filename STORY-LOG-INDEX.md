@@ -28,3 +28,4 @@
 | 2026-08-04 22:55 | L552-L574 |  | There is no measured water temperature anywhere in the CGI API |  |
 | 2026-08-04 23:05 | L576-L596 |  | We caused both hangs, and it is worth saying how |  |
 | 2026-08-04 23:10 | L598-L641 |  | The egress log's first capture caught a controller hang, and explained the `values.cgi` blip |  |
+| 2026-11-01 00:45 | L643-L652 |  | The photo that broke our own no-GPS rule is out of git history |  |

@@ -1,0 +1,450 @@
+{
+  "schemaVersion": "portfolio-card-v1",
+  "repo": "Kohler-DTV-Plus",
+  "repoPath": "e:/git/Kohler-DTV-Plus",
+  "origin": "aaronse/Kohler-DTV-Plus",
+  "generatedAt": "2026-10-31",
+  "generatedBy": "claude-opus-5",
+  "stateOfProjectDoc": "docs/state/2026-10-31-KOHLER-DTV-PLUS-STATE-OF-PROJECT.md",
+  "workLedger": "research/scout/kohler-dtv-plus-work-scout-v3.json",
+  "backlogIndex": "BACKLOG-INDEX.md",
+  "oneLine": "A browser replacement for a Kohler DTV+ shower's disconnected K-99693 wall interface, driving the controller's undocumented HTTP/0.9 CGI API through a raw-socket Node proxy behind a code-enforced safety gate, plus an open investigation into why the shower stops itself mid-use.",
+  "domain": [
+    "home automation",
+    "hardware reverse engineering",
+    "fault investigation",
+    "3D printing and CNC",
+    "public build documentation"
+  ],
+  "stack": [
+    "Node",
+    "React 18",
+    "TypeScript",
+    "Vite 6",
+    "Vitest 2",
+    "three.js",
+    "Python",
+    "Estlcam G-code"
+  ],
+  "status": "paused",
+  "lastCommit": "2026-10-08",
+  "maturity": "working",
+  "gate": "The project's three most valuable artifacts are all outside git — 1,998 lines of single-copy hardware evidence in a gitignored trace, and the 2026-08-29 analysis of it untracked for 63 days — so the first action is preservation, not code, and the GPS bytes the 2026-10-08 commit stripped from the working tree are still live in public history awaiting an owner decision.",
+  "reusable": [
+    {
+      "name": "Three-homes investigation pattern",
+      "kind": "pattern",
+      "path": "INVESTIGATIONS.md",
+      "what": "Present tense here, past tense in the story log, raw evidence in diagnostics; experiments pre-state both outcomes before being run",
+      "reuseMode": "copy",
+      "maturity": "real",
+      "coupling": "none",
+      "suits": [
+        "hardware debugging",
+        "repair projects",
+        "any multi-session fault hunt"
+      ]
+    },
+    {
+      "name": "Risk-rated allowlist that self-throws",
+      "kind": "pattern",
+      "path": "app/server/cgi-safety.mjs, app/src/api/__tests__/safety.test.ts",
+      "what": "0-5 rated endpoint table, explicit expose flag, import-time self-check, a test pinning the exposed set; 18 of 56 reachable, max risk 2",
+      "reuseMode": "copy",
+      "maturity": "real",
+      "coupling": "none; the table's contents are DTV+-specific",
+      "suits": [
+        "unauthenticated hardware APIs",
+        "fragile device control",
+        "CNC and valve control"
+      ]
+    },
+    {
+      "name": "Raw-socket HTTP/0.9 client with a serialised queue",
+      "kind": "library",
+      "path": "app/server/kohler-client.mjs",
+      "what": "Speaks HTTP/1.0 out and accepts HTTP/0.9 in, one queue with a gap floor, retries, tolerant repr-JSON parsing",
+      "reuseMode": "copy",
+      "maturity": "real",
+      "coupling": "node:net; imports trace.mjs (copy both or strip)",
+      "suits": [
+        "embedded web servers",
+        "pre-HTTP/1.0 devices",
+        "appliances that answer with a bare body"
+      ]
+    },
+    {
+      "name": "Egress trace logger",
+      "kind": "library",
+      "path": "app/server/trace.mjs, app/server/__tests__/trace.test.ts",
+      "what": "Fixed-column greppable REQ/RES/ERR/CACHE/GUARD/NOTE lines, correlation ids, rotation, never throws, session-relative SHORT baseline, CACHE lines so silence is never read as confirmation",
+      "reuseMode": "copy",
+      "maturity": "real",
+      "coupling": "node:fs; DTV_TRACE* env vars",
+      "suits": [
+        "any proxy on a command path",
+        "field diagnosis without a debugger",
+        "post-hoc incident reading"
+      ]
+    },
+    {
+      "name": "Read-only live self-test shape",
+      "kind": "pattern",
+      "path": "app/scripts/selftest.mjs",
+      "what": "Verifies the safety gate offline first, then reads live state, asserts cross-endpoint consistency, and never commands",
+      "reuseMode": "fork",
+      "maturity": "real",
+      "coupling": "DTV+ endpoints; kohler-client.mjs",
+      "suits": [
+        "smoke-testing live hardware safely",
+        "CI against a device"
+      ]
+    },
+    {
+      "name": "Minimal React hook dispatcher for tests",
+      "kind": "library",
+      "path": "app/test/hookHarness.ts",
+      "what": "~120-line stand-in for useState/useEffect/useMemo/useRef/useCallback that models StrictMode double updaters",
+      "reuseMode": "copy",
+      "maturity": "real",
+      "coupling": "vitest vi.mock('react'); does NOT model double-mounted effects, which is why KDTV-W13 was invisible",
+      "suits": [
+        "testing hooks without a DOM",
+        "catching StrictMode double-invoke bugs"
+      ]
+    },
+    {
+      "name": "Updater-purity structural test",
+      "kind": "pattern",
+      "path": "app/src/state/__tests__/updaterPurity.test.ts",
+      "what": "Source-scans a hook and fails if a dispatch appears inside any state updater",
+      "reuseMode": "copy",
+      "maturity": "real",
+      "coupling": "none",
+      "suits": [
+        "React codebases where a double-fired side effect is expensive"
+      ]
+    },
+    {
+      "name": "Sourced field-notes document",
+      "kind": "pattern",
+      "path": "research/FIELD-NOTES.md",
+      "what": "Community failure reports, each with a source link, and what this project changed in response",
+      "reuseMode": "reference",
+      "maturity": "real",
+      "coupling": "none; the numbers are DTV+-specific and one is known wrong in mechanism",
+      "suits": [
+        "reverse-engineering someone else's hardware",
+        "turning forum posts into constraints"
+      ]
+    },
+    {
+      "name": "Monitoring index with a sweep script",
+      "kind": "tooling",
+      "path": "research/SOURCES.md",
+      "what": "Tiered upstream list, a gh api loop that diffs since the last sweep date, plus discovery search terms",
+      "reuseMode": "copy",
+      "maturity": "real",
+      "coupling": "gh CLI",
+      "suits": [
+        "watching upstream repos",
+        "periodic competitive or community sweeps"
+      ]
+    },
+    {
+      "name": "Passive-telemetry session brief",
+      "kind": "prompt",
+      "path": "research/PROMPT-observability.md",
+      "what": "Revision-logged priming prompt: decisions already made, constraints, step sequencing with operator gates, a strawman log format",
+      "reuseMode": "fork",
+      "maturity": "real",
+      "coupling": "DTV+ context throughout",
+      "suits": [
+        "handing an observability task to an agent",
+        "briefs that must not re-litigate settled decisions"
+      ]
+    },
+    {
+      "name": "Scout-authored batch plan",
+      "kind": "pattern",
+      "path": "research/scout/B01-strictmode-double-command.md",
+      "what": "PCFIRG header, inputs, scope and do-not-expand, tasks with done-when and evidence, one hard exit criterion",
+      "reuseMode": "reference",
+      "maturity": "real",
+      "coupling": "llm-fab BATCH-DEV format",
+      "suits": [
+        "turning a scout candidate into executable work"
+      ]
+    },
+    {
+      "name": "Renderer-free mesh core",
+      "kind": "library",
+      "path": "viewer/src/core/units.ts, viewer/src/core/stl.ts, viewer/src/core/meshStats.ts, viewer/src/core/repair.ts, viewer/src/core/decals.ts",
+      "what": "Declared-unit and declared-axis STL writer, envelope/area/volume/closedness stats, weld+cap+seam repair, decal quad maths; no three import anywhere in core",
+      "reuseMode": "copy",
+      "maturity": "real",
+      "coupling": "none",
+      "suits": [
+        "mesh tooling that must be testable headlessly",
+        "print and CAM preparation"
+      ]
+    },
+    {
+      "name": "Export verification gate",
+      "kind": "tooling",
+      "path": "viewer/scripts/verify-exports.ts",
+      "what": "Exports every catalog asset, re-reads the bytes, and checks envelope, repair drift and decal placement and facing",
+      "reuseMode": "fork",
+      "maturity": "real",
+      "coupling": "three addon loaders; vite-node",
+      "suits": [
+        "asset pipelines where a silent geometry regression is expensive"
+      ]
+    },
+    {
+      "name": "Catalog contract with declared units",
+      "kind": "contract",
+      "path": "viewer/src/catalog/types.ts, viewer/src/catalog/catalog.json",
+      "what": "Maker-Galaxy-aligned files[] plus required sourceUnit, sourceUpAxis and provenanceNote; validation refuses a model that will not declare them",
+      "reuseMode": "import",
+      "maturity": "real",
+      "coupling": "none",
+      "suits": [
+        "3D asset catalogs",
+        "anywhere a guessed unit would be worse than a refusal"
+      ]
+    },
+    {
+      "name": "Decal sidecar contract",
+      "kind": "contract",
+      "path": "viewer/src/catalog/decals.json, viewer/src/core/decals.ts",
+      "what": "Anchor = origin + u + v in export space; the normal is u x v so handedness self-checks; artwork can never reach geometry",
+      "reuseMode": "copy",
+      "maturity": "real",
+      "coupling": "none",
+      "suits": [
+        "applying labels or artwork to meshes without contaminating the mesh"
+      ]
+    },
+    {
+      "name": "Fusion-style view cube, drag-orbit and camera tween",
+      "kind": "subsystem",
+      "path": "viewer/src/scene/viewGizmo.ts, viewer/src/scene/gizmoDrag.ts, viewer/src/scene/cameraTween.ts, viewer/src/scene/cameraFit.ts",
+      "what": "26-region chamfered cube with roll arrows and home, drag geared 2x against a model drag, ~340 ms eased snaps, reduced-motion aware",
+      "reuseMode": "fork",
+      "maturity": "real",
+      "coupling": "three ^0.184; reaches OrbitControls private fields behind guards",
+      "suits": [
+        "any three.js viewer that wants CAD-style navigation"
+      ]
+    },
+    {
+      "name": "Provenance record pair",
+      "kind": "pattern",
+      "path": "viewer/public/models/PROVENANCE.md, viewer/public/decals/PROVENANCE.md",
+      "what": "Vendor asset versus own asset provenance, measured units and orientation, and a licensing stance stated per file",
+      "reuseMode": "copy",
+      "maturity": "real",
+      "coupling": "none",
+      "suits": [
+        "any repo vendoring third-party CAD or artwork"
+      ]
+    },
+    {
+      "name": "Safety policy enforced in code",
+      "kind": "pattern",
+      "path": "DISCLAIMER.md",
+      "what": "Scald and brick warnings, a 0-5 risk scale, a section on how the repo enforces it, and disclosure of risky calls already made",
+      "reuseMode": "copy",
+      "maturity": "real",
+      "coupling": "none",
+      "suits": [
+        "projects controlling heat, water, motion or mains"
+      ]
+    },
+    {
+      "name": "Open Maker Licence application with a scope table and CLA",
+      "kind": "contract",
+      "path": "LICENSE.md, CLA.md, CONTRIBUTING.md",
+      "what": "Vendored licence with a re-sync note and an explicit table of what the licence cannot cover",
+      "reuseMode": "copy",
+      "maturity": "real",
+      "coupling": "OpenMakerLicense, still a draft upstream",
+      "suits": [
+        "public hardware repos with vendored third-party material"
+      ]
+    },
+    {
+      "name": "Icon rebuild from device art",
+      "kind": "tooling",
+      "path": "research/tools/make-fittings.py",
+      "what": "Luminance to alpha, glow floor, per-image normalisation, per-theme ink, 3x output",
+      "reuseMode": "copy",
+      "maturity": "real",
+      "coupling": "Python, numpy, Pillow",
+      "suits": [
+        "rebuilding UI icons from screenshots of a device"
+      ]
+    },
+    {
+      "name": "DTV+ protocol knowledge",
+      "kind": "asset",
+      "path": "PROTOCOL.md, FLOW.md, research/controller-mirror, app/test/fixtures/values.json, research/diagnostics",
+      "what": "Endpoint table with risk ratings, transport quirks, field semantics, live captures, and the controller's own JS",
+      "reuseMode": "reference",
+      "maturity": "real",
+      "coupling": "only useful for a DTV+; the mirror is Kohler's copyright",
+      "suits": [
+        "anyone else automating a Kohler DTV+"
+      ]
+    },
+    {
+      "name": "xagon0 hardware analysis",
+      "kind": "asset",
+      "path": "research/xagon0",
+      "what": "RS-485 Saturn and Amulet protocols, datatable, error codes, NAND recovery, firmware notes",
+      "reuseMode": "reference",
+      "maturity": "real",
+      "coupling": "no licence stated upstream — see traps",
+      "suits": [
+        "DTV+ bus-level work"
+      ]
+    },
+    {
+      "name": "Kohler reference documents and CAD",
+      "kind": "asset",
+      "path": "research/reference, viewer/public/models",
+      "what": "User guide, spec sheet and the manufacturer OBJ the viewer repairs",
+      "reuseMode": "reference",
+      "maturity": "real",
+      "coupling": "Kohler copyright; redistribution undecided — see traps",
+      "suits": [
+        "fit work on K-99693 and K-99694"
+      ]
+    },
+    {
+      "name": "K-99693 access-cut jig and rear cover",
+      "kind": "asset",
+      "path": "cnc",
+      "what": "Jig DXF, four Estlcam projects, five G-code files and two rear-cover STL revisions for cutting into a sealed wall interface",
+      "reuseMode": "reference",
+      "maturity": "real",
+      "coupling": "one unit, one machine, no README, and no record of which revision is installed",
+      "suits": [
+        "repairing a sealed-in wall device",
+        "one-off jig design"
+      ]
+    },
+    {
+      "name": "K-99693 replica interface UI",
+      "kind": "subsystem",
+      "path": "app/src/ui, app/src/styles/interface.css, app/public/fittings",
+      "what": "React screens styled after the wall interface, dark and light themes, rebuilt fitting icons",
+      "reuseMode": "reference",
+      "maturity": "real",
+      "coupling": "shaped by the DTV+ model",
+      "suits": [
+        "replacing a dead appliance touchscreen with a phone"
+      ]
+    }
+  ],
+  "contracts": [
+    {
+      "name": "CGI risk-rated endpoint allowlist",
+      "path": "app/server/cgi-safety.mjs",
+      "consumers": [
+        "app/server/middleware.mjs",
+        "app/scripts/selftest.mjs",
+        "app/src/api/__tests__/safety.test.ts"
+      ],
+      "stability": "stable and self-enforcing; 18 of 56 endpoints exposed, max risk 2, verified by running exposedEndpoints() today"
+    },
+    {
+      "name": "Egress trace line format",
+      "path": "app/server/trace.mjs",
+      "consumers": [
+        "app/server/kohler-client.mjs",
+        "app/server/middleware.mjs",
+        "research/diagnostics"
+      ],
+      "stability": "stable for the five emitted kinds; the DIFF kind is named in comments with no emitter behind it"
+    },
+    {
+      "name": "Viewer catalog with declared units and up-axis",
+      "path": "viewer/src/catalog/types.ts",
+      "consumers": [
+        "viewer/src/catalog/catalog.json",
+        "viewer/scripts/verify-exports.ts"
+      ],
+      "stability": "stable here; aligned with Maker Galaxy models.json, but mg-web has no sourceUnit field, so nothing has graduated"
+    },
+    {
+      "name": "Decal sidecar",
+      "path": "viewer/src/catalog/decals.json",
+      "consumers": [
+        "viewer/src/core/decals.ts",
+        "viewer/scripts/verify-exports.ts"
+      ],
+      "stability": "stable; handedness self-checks"
+    },
+    {
+      "name": "Story log, storylog v0",
+      "path": "STORY-LOG.md",
+      "consumers": [
+        "STORY-LOG-INDEX.md",
+        "AGENT.md"
+      ],
+      "stability": "format is external and owned by e:/git/storylog as of 2026-10-08; storylog verify . exits 0 with one warning. The content stops on 2026-08-04"
+    },
+    {
+      "name": "N-Star backlog index",
+      "path": "BACKLOG-INDEX.md",
+      "consumers": [
+        "e:/git/craftcraft-private/pipeline/repos.json",
+        "e:/git/craftcraft/nstar"
+      ],
+      "stability": "new 2026-10-31; ids are stable and an Item cell must not be re-worded without accepting a re-score"
+    }
+  ],
+  "relatedRepos": [
+    "storylog — owns the story-log format this repo adopted on 2026-10-08, and carries this repo's GPS history decision as its backlog row S20",
+    "inferiere — holds the fabrication footage as a committed two-chapter 'Kohler Shower Diagnosis' deliverable descriptor since 2026-07-31; neither repo records the link",
+    "craftcraft-private — pipeline registry; expects this repo's BACKLOG-INDEX.md, which did not exist until 2026-10-31",
+    "mg-web — Maker Galaxy; the viewer's catalog contract is aligned with its models.json, but nothing has crossed in 89 days",
+    "mg-controller — the Capacitor port in DESIGN.md is modelled on its apps/android-cap",
+    "OpenMakerLicense — LICENSE.md is vendored from it; canonical unchanged since 2026-01-08 and still a draft",
+    "llm-fab — the BATCH-DEV PCFIRG format used by research/scout/B01-strictmode-double-command.md; this repo has no fab.json",
+    "sig-wb — produces the state doc, this card and the work ledger"
+  ],
+  "traps": [
+    "seam — state DIFF trace lines: trace.mjs names the kind in comments (`:42`, `:131`) and nothing emits them. Reading 'DIFF' in the format header as a working feature is the mistake.",
+    "seam — phone-readable log viewer: middleware.mjs:125-173 has four /api/ routes and none serves the trace file, although the observability brief sequences it as step 5.",
+    "seam — Android/Capacitor host: the only artifact is the base-URL seam in app/src/api/config.ts. HTTP/0.9 means a Node proxy has to ship on every platform, so the mg-controller Capacitor config alone is not enough.",
+    "claimed — `num_interface = 0` as the live state: README.md:18-19, DESIGN.md:11-13 and PROTOCOL.md:199-201 still present it, and INVESTIGATIONS.md:518 has recorded `= 1` since 2026-08-04.",
+    "claimed — 'no valve has been opened by this app yet' (DESIGN.md:204-206): app/.trace/egress.log:1361 records quick_shower.cgi returning ':)' on 2026-08-11.",
+    "claimed — test counts in prose: DESIGN.md:165 says 49 (85 measured today) and viewer/README.md:87 says 88 (164 measured today). Cite the command, never the number.",
+    "claimed — STORY-LOG.md is 'newest first' per README.md:40: the 2026-10-08 commit made it oldest-first and rewrote AGENT.md:64-65 accordingly.",
+    "claimed — 'one bad read in 30-50' (research/FIELD-NOTES.md:251): the file labels it rough and INVESTIGATIONS.md I3 supersedes the mechanism, but the figure is still there and still cited.",
+    "claimed — DTV_TRACE=0 as a kill switch (trace.mjs:71): setting it fails 12 of 85 tests, measured today.",
+    "claimed — steam, lighting, rain panel and the second valve (DESIGN.md:207-214): coded against the controller's own JS, none installed on this system, never exercised.",
+    "claimed — the view gizmo being 'on a path into Maker Galaxy': mg-web/src contains no viewGizmo, gizmoDrag or cameraTween, and neither repo has moved in 89 days.",
+    "trap — no server-side temperature clamp: the proxy forwards params unclamped and the clamp is UI-only. The controller is also reachable unauthenticated by any LAN client, so a proxy clamp would protect less than it appears to.",
+    "trap — npm test writes a NOTE line into app/.trace/egress.log via vite.config.ts evaluating the middleware at config time. Redirect DTV_TRACE_DIR before running the suite or the evidence file gains events that never happened.",
+    "trap — licence: research/xagon0 states no licence upstream, research/reference and viewer/public/models hold Kohler copyright material whose redistribution PROVENANCE.md says 'needs a deliberate call' that was never made, and LICENSE.md:46 reads 'Status: Draft'. Treat everything under those three paths as unlicensed for reuse.",
+    "trap — cnc/ has no README and nothing records which of the two rear-cover revisions is installed in the wall.",
+    "trap — polling floor: 15 s idle and 5 s active is a hard floor recorded in research/FIELD-NOTES.md, not a tuning parameter. Raising it risks a lockup measured in hours."
+  ],
+  "licence": "Maker Galaxy AGPL for Makers v1 (Draft), vendored from e:/git/OpenMakerLicense; scope table in LICENSE.md. Does not cover research/xagon0 (no upstream licence), research/reference or viewer/public/models (Kohler copyright).",
+  "onFire": [
+    {
+      "item": "The only copy of the project's newest hardware evidence, and the only analysis of it, are both outside git",
+      "evidence": "app/.trace/egress.log is 1,998 lines, gitignored (app/.gitignore:11-13), mtime 2026-08-29, and the app has not run since 2026-08-11. git status has shown the same four untracked paths for 63 days: docs/state/2026-08-29-KOHLER-DTV-PLUS-STATE-OF-PROJECT.md and three files under research/scout/. research/diagnostics/ holds four files, newest 2026-08-04.",
+      "action": "Copy the 2026-08-05 and 2026-08-11 windows of app/.trace/egress.log into research/diagnostics/ with dates in the filenames, then git add the four untracked paths and commit. No decision required."
+    },
+    {
+      "item": "GPS coordinates of the owner's premises are still in the public git history",
+      "evidence": "git show 5d83023^:Images/KohlerBoardOverall.webp still contains an exif:GPS chunk; the introducing commit 05ebb49 (2026-07-26) is an ancestor of origin/master; HEAD equals origin/master. The 2026-10-08 commit body states the old bytes remain on the remote pending an owner decision, which is tracked as storylog backlog row S20 and not in this repo.",
+      "action": "Owner decision: purge the blob from history and force-push (accepting that forks and host caches are not reached), or record in this repo that the exposure is accepted and why. Either way append the story-log entry AGENT.md:58 requires."
+    }
+  ]
+}

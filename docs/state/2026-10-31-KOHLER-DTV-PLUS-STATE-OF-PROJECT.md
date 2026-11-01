@@ -258,7 +258,7 @@ state-`DIFF` half of W4.
 decision *is* tracked — in `e:/git/storylog/BACKLOG-INDEX.md` as **S20, "Decide the Kohler
 history purge"**, `Who = dec`, status ⬜, checked 2026-10-18. It was not tracked here, and until
 this sweep this repo had no `BACKLOG-INDEX.md` at all, so a planner reading *this* repo could not
-see it. The exposure is of the owner's own premises; it is described and never reproduced in any
+see it. The owner says the coordinates are not theirs (2026-11-01); it is described and never reproduced in any
 artifact this sweep writes.
 
 Two honest halves. The rewrite-and-force-push is a real cost on a public default branch, and it

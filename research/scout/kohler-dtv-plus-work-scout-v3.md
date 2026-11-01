@@ -78,7 +78,7 @@ Goal: `git status` is clean and research/diagnostics/ holds dated copies of both
 Problem: The pre-5d83023 blob of Images/KohlerBoardOverall.webp still carries an exif:GPS chunk and is reachable from origin/master on a public GitHub repository.
 Cause: 5d83023 removed the chunk from the working tree only and said so in its own message; the history decision was deferred and is tracked in a sibling repo's backlog (storylog S20), so a reader of this repo cannot see that it is open.
 Fix: Take the decision — rewrite history and force-push, or record 'accepted, and why' in this repo — and either way append the story-log entry AGENT.md:58 requires for a mistake that got corrected.
-Impact: Either the owner's premises stop being derivable from the public repo, or the repo stops implying the question is still being worked.
+Impact: Either the coordinates stop being derivable from the public repo, or the repo stops implying the question is still being worked.
 Risk: A force-push on a public default branch breaks existing clones and does not reach forks or the host's own caches, so a support request may be needed to finish the job.
 Goal: No blob reachable from this repo's public history carries GPS metadata, or a dated line in this repo records that the exposure was accepted and on what reasoning.
 ```
